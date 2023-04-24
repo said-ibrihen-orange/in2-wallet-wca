@@ -73,4 +73,7 @@ stages:
                     sudo docker-compose stop in2-dome-backend
                     sudo docker-compose -f /etc/dome/docker-compose.yml pull in2-dome-backend            
                     sudo docker-compose -f /etc/dome/docker-compose.yml up -d
+                    echo 'Logs'
+                    cd /etc/dome
+                    sudo docker-compose logs
 
