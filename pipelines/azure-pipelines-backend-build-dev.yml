@@ -2,7 +2,7 @@ trigger: none
       
 variables:
   registryName: 'acrdomedev001'
-  imageRepository: 'dome-backend'
+  imageRepository: 'dome-wallet-backend'
   azureSubscription: 'Entorno Cloud DOME DEV'
   dockerRegistryServiceConnection: 'ACR DEV'
   dockerfilePath: '$(System.DefaultWorkingDirectory)/Dockerfile'
@@ -42,8 +42,8 @@ stages:
                 # Additional properties that will be passed to the scanner,
                 # Put one key=value per line, example:
                 # sonar.exclusions=**/*.bin
-                sonar.projectKey=in2Dome_in2-dome-backend
-                sonar.projectName=in2-dome-backend
+                sonar.projectKey=in2Dome_in2-dome-wallet_backend
+                sonar.projectName=in2-dome-wallet_backend
           - task: Gradle@3
             inputs:
                gradleWrapperFile: 'gradlew'
@@ -61,3 +61,6 @@ stages:
           - task: SonarCloudPublish@1
             inputs:
                     pollingTimeoutSec: '300'
+
+
+              
