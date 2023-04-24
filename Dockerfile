@@ -27,5 +27,5 @@ WORKDIR /app
 COPY --from=build-env /appbuild/service-matrix.properties /app/
 COPY --from=build-env /appbuild/configs /app/configs
 COPY --from=build-env /appbuild/build/libs/in2-dome-wallet-backend-0.2.0-SNAPSHOT.jar /app/
-RUN bash -c 'touch /app/in2-dome-wallet_backend-0.2.0-SNAPSHOT.jar'
-ENTRYPOINT ["java","-jar","/app/in2-dome-wallet_backend-0.2.0-SNAPSHOT.jar"]
+RUN bash -c 'touch /app/in2-dome-wallet-backend-0.2.0-SNAPSHOT.jar'
+ENTRYPOINT ["java","-jar","/app/in2-dome-wallet-backend-0.2.0-SNAPSHOT.jar"]
