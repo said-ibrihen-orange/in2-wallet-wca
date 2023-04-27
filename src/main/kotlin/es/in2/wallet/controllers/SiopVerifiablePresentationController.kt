@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/wallet/siop")
+@RequestMapping("/api/siop")
 @Tag(name = "DOME User Wallet - Verifiable Presentation Creation Service", description = "...")
 class SiopVerifiablePresentationController(
     private val siopVerifiablePresentationService: SiopVerifiablePresentationService

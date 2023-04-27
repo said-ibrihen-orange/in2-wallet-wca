@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/wallet/credential-offers")
+@RequestMapping("/api/credential-offers")
 class CredentialOfferController(
     private val credentialOfferService: CredentialOfferService
 ) {

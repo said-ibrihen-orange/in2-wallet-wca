@@ -10,7 +10,7 @@ import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/wallet/siop")
+@RequestMapping("/api/siop")
 @Tag(name = "DOME User Wallet - Request Token Verification Service", description = "...")
 class RequestTokenVerificationController(
     private val requestTokenVerificationService: RequestTokenVerificationService
