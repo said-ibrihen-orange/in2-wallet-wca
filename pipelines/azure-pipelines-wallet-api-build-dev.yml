@@ -2,7 +2,7 @@ trigger: none
       
 variables:
   registryName: 'acrdomedev001'
-  imageRepository: 'dome-backend'
+  imageRepository: 'dome-wallet-api'
   azureSubscription: 'Entorno Cloud DOME DEV'
   dockerRegistryServiceConnection: 'ACR DEV'
   dockerfilePath: '$(System.DefaultWorkingDirectory)/Dockerfile'
@@ -42,8 +42,8 @@ stages:
                 # Additional properties that will be passed to the scanner,
                 # Put one key=value per line, example:
                 # sonar.exclusions=**/*.bin
-                sonar.projectKey=in2Dome_in2-dome-backend
-                sonar.projectName=in2-dome-backend
+                sonar.projectKey=in2Dome_in2-dome-wallet_api
+                sonar.projectName=in2-dome-wallet_api
           - task: Gradle@3
             inputs:
                gradleWrapperFile: 'gradlew'
@@ -62,37 +62,5 @@ stages:
             inputs:
                     pollingTimeoutSec: '300'
 
-          - task: Docker@2
-            displayName: Build and push an image to container registry
-            inputs:
-              command: buildAndPush
-              repository: $(imageRepository)
-              dockerfile: $(dockerfilePath)
-              containerRegistry: $(dockerRegistryServiceConnection)
-              tags: latest
+
               
-  # - stage: Deploy 
-  #   jobs:
-  #     - deployment: UploadImageToACR
-  #       pool:
-  #         vmImage: ubuntu-latest
-  #       environment: 
-  #         name: vm-agente-dev
-  #         resourceType: VirtualMachine
-  #       strategy:
-  #         runOnce:
-  #           deploy:
-  #             steps:                                    
-  #             - task: Bash@3
-  #               inputs:
-  #                 targetType: 'inline'
-  #                 workingDirectory: '$(Pipeline.Workspace)'
-  #                 script: |
-  #                   az login --service-principal -u $(app-id) -p $(password-or-cert) --tenant $(tenant)
-  #                   sudo az acr login --name $(registryName)
-  #                   ls
-  #                   echo "FIRST"
-  #                   cd dockerfile_backend
-  #                   echo "Build directory"
-  #                   ls 
-  #                   az acr build -t $(imageRepository):$(Build.BuildId) -t $(imageRepository):latest -r $(registryName) -f Dockerfile .
