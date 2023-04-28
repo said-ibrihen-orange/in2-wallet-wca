@@ -66,7 +66,8 @@ class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
 
     private fun generateEcPublicKeyFromDidDocument(didDocument: JsonNode): ECPublicKey {
         val verificationMethod = didDocument["verificationMethod"]
-        val publicKeyJwk = verificationMethod[0].get("publicKeyJwk").toString()
+        val verificationMethodIndex0 = verificationMethod[0]
+        val publicKeyJwk = verificationMethodIndex0["publicKeyJwk"].toString()
         return ECKey.parse(publicKeyJwk).toECPublicKey()
     }
 
