@@ -18,14 +18,14 @@ class WalletGlobalControllerExceptionHandler {
 
     @ExceptionHandler(DidVerificationException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun handleDidVerificationException(e: Exception): ResponseEntity<Void> {
+    fun handleDidVerificationException(e: Exception): ResponseEntity<Unit> {
         log.error(e.message)
         return ResponseEntity(HttpStatus.NOT_FOUND)
     }
 
     @ExceptionHandler(VerificationException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    fun handleVerificationException(e: Exception): ResponseEntity<Void> {
+    fun handleVerificationException(e: Exception): ResponseEntity<Unit> {
         log.error(e.message)
         return ResponseEntity(HttpStatus.NOT_FOUND)
     }
