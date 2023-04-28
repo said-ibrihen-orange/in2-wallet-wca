@@ -21,7 +21,7 @@ import java.net.http.HttpResponse
 import java.security.interfaces.ECPublicKey
 import java.text.ParseException
 
-interface RequestTokenVerificationService {
+fun interface RequestTokenVerificationService {
     fun verifyRequestToken(requestToken: String)
 }
 
