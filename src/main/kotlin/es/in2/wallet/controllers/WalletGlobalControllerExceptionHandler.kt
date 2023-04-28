@@ -32,7 +32,7 @@ class WalletGlobalControllerExceptionHandler {
 
     @ExceptionHandler(RequestTokenException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    fun handleRequestTokenVerificationException(e: Exception): ResponseEntity<Void> {
+    fun handleRequestTokenVerificationException(e: Exception): ResponseEntity<Unit> {
         log.error(e.message)
         return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
