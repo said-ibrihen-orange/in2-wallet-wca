@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
 import java.time.Instant
 
-interface SiopVerifiablePresentationService {
+fun interface SiopVerifiablePresentationService {
     fun createVerifiablePresentation(verifiableCredentials: List<String>, format: String): String
 }
 
