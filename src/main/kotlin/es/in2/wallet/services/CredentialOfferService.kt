@@ -9,7 +9,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-interface CredentialOfferService {
+fun interface CredentialOfferService {
     fun getCredentialOffer(credentialOfferUri: String): String
 }
 
