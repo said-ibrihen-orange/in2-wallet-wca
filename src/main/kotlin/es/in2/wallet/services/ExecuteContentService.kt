@@ -31,7 +31,6 @@ class ExecuteContentImpl(
         return response.get().body()
     }
 
-    // TODO
     override fun sendAuthenticationResponse(state: String, vp: String): String {
 
         val formData = "state=$state" +
