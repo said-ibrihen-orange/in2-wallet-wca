@@ -44,3 +44,4 @@ management:
 app:
   url:
     api: https://walletapidev.in2.es
+
