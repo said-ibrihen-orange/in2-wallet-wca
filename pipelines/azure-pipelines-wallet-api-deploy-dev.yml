@@ -27,6 +27,7 @@ variables:
   azureSubscription: 'Entorno Cloud DOME DEV'
   dockerRegistryServiceConnection: 'ACR DEV'
   dockerfilePath: '$(System.DefaultWorkingDirectory)/Dockerfile'
+  volumeRepository: 'wallet-api'
 
        
 
@@ -70,8 +71,8 @@ stages:
                     az login --service-principal -u $(app-id) -p $(password-or-cert) --tenant $(tenant)
                     sudo az acr login --name $(registryName)
                     cd /etc/dome/
-                    sudo docker-compose stop in2-dome-backend
-                    sudo docker-compose -f /etc/dome/docker-compose.yml pull wallet-api          
+                    sudo docker-compose stop $(volumeRepository) 
+                    sudo docker-compose -f /etc/dome/docker-compose.yml pull $(volumeRepository)          
                     sudo docker-compose -f /etc/dome/docker-compose.yml up -d
                     echo 'Logs'
                     cd /etc/dome
