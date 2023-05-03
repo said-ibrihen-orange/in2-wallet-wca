@@ -1,6 +1,5 @@
 package es.in2.wallet.services
 
-import es.in2.wallet.WalletProperties
 import org.springframework.stereotype.Service
 import java.net.URI
 import java.net.http.HttpClient
@@ -9,14 +8,11 @@ import java.net.http.HttpResponse
 
 interface ExecuteContentService {
     fun getAuthenticationRequest(url: String): String
-
     fun sendAuthenticationResponse(state: String, vp: String): String
 }
 
 @Service
-class ExecuteContentImpl(
-    private val walletProperties: WalletProperties
-) : ExecuteContentService {
+class ExecuteContentImpl : ExecuteContentService {
 
     override fun getAuthenticationRequest(url: String): String {
         val client = HttpClient.newBuilder().build()
@@ -47,12 +43,13 @@ class ExecuteContentImpl(
                 "format%22%3A%22" +
                 "jwt_vc%22%2C%22path%22%3A%22%24.verifiableCredential%5B0%5D%22%7D%7D%5D%2C%22id%22%3A%22" +
                 "CustomerPresentationSubmission%22%7D&id_token=ADASD"
-        val endpointUrl = "${walletProperties.domeBackendBaseURL}/relying-party/siop-sessions"
+        // TODO Hao, This will be retrieved from redirect_uri attribute of SIOP Authentication Request
+        //val endpointUrl = "${walletProperties.domeBackendBaseURL}/relying-party/siop-sessions"
 
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
             .headers("Content-Type", "application/x-www-form-urlencoded")
-            .uri(URI.create(endpointUrl))
+            .uri(URI.create(/*endpointUrl*/ "add redirection_uri parameter"))
             .POST(HttpRequest.BodyPublishers.ofString(formData))
             .build()
         println("Form data: $formData")

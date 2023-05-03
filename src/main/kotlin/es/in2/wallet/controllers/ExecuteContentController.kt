@@ -1,7 +1,6 @@
 package es.in2.wallet.controllers
 
 import es.in2.wallet.JWT
-import es.in2.wallet.WalletProperties
 import es.in2.wallet.services.ExecuteContentService
 import es.in2.wallet.services.RequestTokenVerificationService
 import es.in2.wallet.services.SiopVerifiablePresentationService
@@ -14,14 +13,12 @@ import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
-
 @RestController
 @RequestMapping("/api/execute-content")
 class ExecuteContentController(
     private val executeContentService: ExecuteContentService,
     private val requestTokenVerificationService: RequestTokenVerificationService,
-    private val siopVerifiablePresentationService: SiopVerifiablePresentationService,
-    private val walletProperties: WalletProperties
+    private val siopVerifiablePresentationService: SiopVerifiablePresentationService
 ) {
 
     private val log: Logger = LogManager.getLogger(ExecuteContentController::class.java)
