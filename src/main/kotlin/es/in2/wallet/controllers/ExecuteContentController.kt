@@ -1,14 +1,12 @@
 package es.in2.wallet.controllers
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import es.in2.wallet.JWT
 import es.in2.wallet.services.ExecuteContentService
-import es.in2.wallet.services.RequestTokenVerificationService
 import es.in2.wallet.services.SiopVerifiablePresentationService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.websocket.server.PathParam
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpStatus
@@ -18,26 +16,15 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/execute-content")
 class ExecuteContentController(
     private val executeContentService: ExecuteContentService,
-    private val requestTokenVerificationService: RequestTokenVerificationService,
     private val siopVerifiablePresentationService: SiopVerifiablePresentationService
 ) {
 
     private val log: Logger = LogManager.getLogger(ExecuteContentController::class.java)
 
-    @PostMapping(path = ["/get-siop-authentication-request"])
-    //@CrossOrigin(origins = ["http://localhost:8100","http://localhost:8000","https://domewalletdev.in2.es"])
+    @PostMapping("/get-siop-authentication-request")
     @ResponseStatus(HttpStatus.OK)
-    fun executeURL(@RequestBody url: String): HashMap<String, String> {
-        log.info("Getting url: $url")
-        val requestToken = executeContentService.getAuthenticationRequest(url)
-        log.info("Request token: $requestToken")
-
-        // TODO: Verificacion incorrecta no coge los parametros bien hay que revisar
-        //requestTokenVerificationService.verifyRequestToken(requestToken)
-
-        val map = HashMap<String, String>()
-        map["requestToken"] = requestToken
-        return map
+    fun executeURL(@RequestBody url: String): String {
+        return executeContentService.getAuthenticationRequest(url)
     }
 
     @Operation(summary = "Create a Verifiable Presentation with the Verifiable Credentials attached.")
@@ -49,25 +36,22 @@ class ExecuteContentController(
             )
         ]
     )
-    @PostMapping(
-        path = ["/siop/vp"]
-    )
-    //consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
-    //@CrossOrigin(origins = ["http://localhost:8100", "http://localhost:8000", "https://domewalletdev.in2.es"])
+    @PostMapping("/vp")
     @ResponseStatus(HttpStatus.OK)
-    fun executeURLVP(
-        @PathParam("siopAuthenticationRequest") siopAuthenticationRequest: String,
-        @RequestBody verifiableCredentials: List<String>,
-        httpServletRequest: HttpServletRequest
-    ): String {
-        log.info("Getting vp: $verifiableCredentials ")
-        log.info("State $siopAuthenticationRequest")
+    fun executeURLVP(@RequestBody vpRequest: VpRequest): String {
         // create a verifiable presentation
-        val vp = siopVerifiablePresentationService.createVerifiablePresentation(verifiableCredentials, JWT)
-        log.info("VP created : $vp")
+        val vp = siopVerifiablePresentationService.createVerifiablePresentation(
+            vpRequest.verifiableCredentials, JWT
+        )
         // send the verifiable presentation to the dome backend
-        return executeContentService.sendAuthenticationResponse(siopAuthenticationRequest, vp)
+        return executeContentService.sendAuthenticationResponse(
+            vpRequest.siopAuthenticationRequest, vp
+        )
     }
-
-
 }
+
+class VpRequest(
+    @JsonProperty("siop_authentication_request") val siopAuthenticationRequest: String,
+    @JsonProperty("vc_list") val verifiableCredentials: List<String>
+)
+
