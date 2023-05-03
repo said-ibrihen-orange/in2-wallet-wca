@@ -49,4 +49,4 @@ dome:
   backend:
     router:
       # Todo change to docker container name
-      base: "http://localhost:8082"
+      base: http://localhost:8082

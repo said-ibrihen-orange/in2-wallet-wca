@@ -48,4 +48,4 @@ app:
 dome:
   backend:
     router:
-      base: "http://localhost:8082"
+      base: http://localhost:8082
