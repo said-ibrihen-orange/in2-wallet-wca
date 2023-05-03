@@ -8,9 +8,8 @@ spring:
     open-in-view: false
     properties:
       jakarta.persistence.sharedCache.mode: UNSPECIFIED
-    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     generate-ddl: true
     database-platform: org.hibernate.dialect.MySQLDialect
