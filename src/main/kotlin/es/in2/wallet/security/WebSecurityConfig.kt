@@ -1,4 +1,4 @@
-package es.in2.issuer.security
+package es.in2.wallet.security
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
