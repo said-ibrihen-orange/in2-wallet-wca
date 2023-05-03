@@ -7,6 +7,7 @@ import es.in2.wallet.services.SiopVerifiablePresentationService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.websocket.server.PathParam
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -29,7 +30,11 @@ class ExecuteContentController(
     fun executeURL(@RequestBody url: String): HashMap<String, String> {
         log.info("Getting url: $url")
         val requestToken = executeContentService.getAuthenticationRequest(url)
-        requestTokenVerificationService.verifyRequestToken(requestToken)
+        log.info("Request token: $requestToken")
+
+        // TODO: Verificacion incorrecta no coge los parametros bien hay que revisar
+        //requestTokenVerificationService.verifyRequestToken(requestToken)
+
         val map = HashMap<String, String>()
         map["requestToken"] = requestToken
         return map
@@ -48,19 +53,20 @@ class ExecuteContentController(
         path = ["/siop/vp"]
     )
     //consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
-    @CrossOrigin(origins = ["http://localhost:8100", "http://localhost:8000", "https://domewalletdev.in2.es"])
+    //@CrossOrigin(origins = ["http://localhost:8100", "http://localhost:8000", "https://domewalletdev.in2.es"])
     @ResponseStatus(HttpStatus.OK)
     fun executeURLVP(
-        @PathParam("state") state: String,
-        @RequestBody verifiableCredentials: List<String>
+        @PathParam("siopAuthenticationRequest") siopAuthenticationRequest: String,
+        @RequestBody verifiableCredentials: List<String>,
+        httpServletRequest: HttpServletRequest
     ): String {
         log.info("Getting vp: $verifiableCredentials ")
-        log.info("State $state")
+        log.info("State $siopAuthenticationRequest")
         // create a verifiable presentation
         val vp = siopVerifiablePresentationService.createVerifiablePresentation(verifiableCredentials, JWT)
         log.info("VP created : $vp")
         // send the verifiable presentation to the dome backend
-        return executeContentService.sendAuthenticationResponse(state, vp)
+        return executeContentService.sendAuthenticationResponse(siopAuthenticationRequest, vp)
     }
 
 

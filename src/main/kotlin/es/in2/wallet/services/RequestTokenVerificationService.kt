@@ -46,6 +46,7 @@ class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
 
     private fun checkIfDidIsInTheTrustedParticipantList(payload: Payload): JsonNode {
         val issuerDID: String = payload.toJSONObject()[ISSUER_TOKEN_PROPERTY_NAME].toString()
+        println(issuerDID)
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create("$UNIVERSAL_RESOLVER_URL/$issuerDID"))
@@ -53,7 +54,7 @@ class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        if (response.get().statusCode() != 201) {
+        if (response.get().statusCode() != 201 && response.get().statusCode() != 200) {
             throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         val result = response.get().body()

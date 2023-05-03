@@ -26,7 +26,6 @@ class SiopVerifiablePresentationController(
     @PostMapping("/vp")
     @ResponseStatus(HttpStatus.CREATED)
     fun createVerifiablePresentation(
-        @RequestParam("requestToken") requestToken : String,
         httpServletRequest: HttpServletRequest,
         @RequestBody verifiableCredentials: List<String>
     ): String {
