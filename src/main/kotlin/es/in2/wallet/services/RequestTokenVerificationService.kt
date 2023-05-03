@@ -13,8 +13,6 @@ import es.in2.wallet.UNIVERSAL_RESOLVER_URL
 import es.in2.wallet.exceptions.DidVerificationException
 import es.in2.wallet.exceptions.RequestTokenException
 import es.in2.wallet.exceptions.VerificationException
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
 import java.net.URI
 import java.net.http.HttpClient
@@ -29,8 +27,6 @@ fun interface RequestTokenVerificationService {
 
 @Service
 class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
-
-    private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
 
     override fun verifyRequestToken(requestToken: String) {
         val signedJWTResponse = parseRequestTokenToSignedJwt(requestToken)
@@ -50,6 +46,7 @@ class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
 
     private fun checkIfDidIsInTheTrustedParticipantList(payload: Payload): JsonNode {
         val issuerDID: String = payload.toJSONObject()[ISSUER_TOKEN_PROPERTY_NAME].toString()
+        println(issuerDID)
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create("$UNIVERSAL_RESOLVER_URL/$issuerDID"))

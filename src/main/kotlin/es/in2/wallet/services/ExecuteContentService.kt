@@ -52,16 +52,23 @@ class ExecuteContentImpl(
         // Add the basic formData to execute de /api/verifier/siop-sessions
         // I am awareness that we need to implement a better function which adds the presentation submission.
         // Same case for 'scope' attribute
-        val formData = "state=${parsedSiopAuthenticationRequest["state"].asText()}" +
+
+        val state = checkIfStateIsBlank(
+            parsedSiopAuthenticationRequest["state"].asText())
+        val redirectUri = checkIfRedirectUriIsBlank(
+            parsedSiopAuthenticationRequest["redirect_uri"].asText())
+
+        val formData = "state=$state}" +
                 "&vp_token=$vp" +
                 "&presentation_submission=null"
         // execute the Post request
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
             .headers("Content-Type", "application/x-www-form-urlencoded")
-            .uri(URI.create(parsedSiopAuthenticationRequest["redirect_uri"].asText()))
+            .uri(URI.create(redirectUri))
             .POST(HttpRequest.BodyPublishers.ofString(formData))
             .build()
+
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() != 200) {
             throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
@@ -70,5 +77,20 @@ class ExecuteContentImpl(
         return response.get().body()
     }
 
+    private fun checkIfStateIsBlank(state:String): String {
+        if(state.isBlank()) {
+            throw IllegalArgumentException("Missing 'state' parameter")
+        } else {
+            return state
+        }
+    }
+
+    private fun checkIfRedirectUriIsBlank(redirectUri:String): String {
+        if(redirectUri.isBlank()) {
+            throw IllegalArgumentException("Missing 'redirect_uri' parameter")
+        } else {
+            return redirectUri
+        }
+    }
 
 }

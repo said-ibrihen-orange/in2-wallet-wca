@@ -3,12 +3,10 @@ package es.in2.wallet.controllers
 import com.fasterxml.jackson.annotation.JsonProperty
 import es.in2.wallet.JWT
 import es.in2.wallet.services.ExecuteContentService
-import es.in2.wallet.services.RequestTokenVerificationService
 import es.in2.wallet.services.SiopVerifiablePresentationService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import jakarta.websocket.server.PathParam
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpStatus
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/execute-content")
 class ExecuteContentController(
     private val executeContentService: ExecuteContentService,
-    private val requestTokenVerificationService: RequestTokenVerificationService,
     private val siopVerifiablePresentationService: SiopVerifiablePresentationService
 ) {
 
@@ -44,15 +41,17 @@ class ExecuteContentController(
     fun executeURLVP(@RequestBody vpRequest: VpRequest): String {
         // create a verifiable presentation
         val vp = siopVerifiablePresentationService.createVerifiablePresentation(
-            vpRequest.verifiableCredentials, JWT)
+            vpRequest.verifiableCredentials, JWT
+        )
         // send the verifiable presentation to the dome backend
         return executeContentService.sendAuthenticationResponse(
-            vpRequest.siopAuthenticationRequest, vp)
+            vpRequest.siopAuthenticationRequest, vp
+        )
     }
 }
 
 class VpRequest(
-    @JsonProperty("siop_authentication_request") val siopAuthenticationRequest : String,
+    @JsonProperty("siop_authentication_request") val siopAuthenticationRequest: String,
     @JsonProperty("vc_list") val verifiableCredentials: List<String>
 )
 
