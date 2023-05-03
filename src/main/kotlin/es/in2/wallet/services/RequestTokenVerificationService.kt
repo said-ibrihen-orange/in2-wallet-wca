@@ -13,6 +13,8 @@ import es.in2.wallet.UNIVERSAL_RESOLVER_URL
 import es.in2.wallet.exceptions.DidVerificationException
 import es.in2.wallet.exceptions.RequestTokenException
 import es.in2.wallet.exceptions.VerificationException
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
 import java.net.URI
 import java.net.http.HttpClient
@@ -28,9 +30,11 @@ fun interface RequestTokenVerificationService {
 @Service
 class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
 
+    private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
+
     override fun verifyRequestToken(requestToken: String) {
         val signedJWTResponse = parseRequestTokenToSignedJwt(requestToken)
-        val didDocument = checkIfDidIsInTheTrustedParticipantList(signedJWTResponse.payload)
+        val didDocument = checkIfDidIsInTheTrustedParticipantList(signedJWTResponse.payload)["didDocument"]
         val ecPublicKey = generateEcPublicKeyFromDidDocument(didDocument)
         val verifier = verifySignedJwtWithPublicEcKey(ecPublicKey)
         checkJWSVerifierResponse(signedJWTResponse, verifier)
@@ -49,11 +53,11 @@ class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create("$UNIVERSAL_RESOLVER_URL/$issuerDID"))
-            .headers("Content-Type", "application/x-www-form-urlencoded")
+            .headers("Content-Type", "application/json")
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        if (response.get().statusCode() != 201) {
+        if (response.get().statusCode() != 200) {
             throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         val result = response.get().body()
