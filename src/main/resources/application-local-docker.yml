@@ -44,3 +44,9 @@ management:
 app:
   url:
     api: http://localhost:8083
+
+dome:
+  backend:
+    router:
+      # Todo change to docker container name
+      base: http://localhost:8082
