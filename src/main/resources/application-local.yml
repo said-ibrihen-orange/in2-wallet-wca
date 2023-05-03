@@ -45,3 +45,8 @@ management:
 app:
   url:
     api: http://localhost:8083
+
+dome:
+  backend:
+    router:
+      base: "http://localhost:8082"

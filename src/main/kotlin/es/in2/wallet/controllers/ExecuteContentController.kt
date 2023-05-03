@@ -48,7 +48,7 @@ class ExecuteContentController(
         ]
     )
     @PostMapping(
-        path = ["/vp"]
+        path = ["/siop/vp"]
     )
     //consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @CrossOrigin(origins = ["http://localhost:8100", "http://localhost:8000", "https://domewalletdev.in2.es"])

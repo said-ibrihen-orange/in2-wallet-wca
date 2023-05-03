@@ -45,3 +45,7 @@ app:
   url:
     api: https://walletapidev.in2.es
 
+dome:
+  backend:
+    router:
+      base: "http://localhost:8082"
