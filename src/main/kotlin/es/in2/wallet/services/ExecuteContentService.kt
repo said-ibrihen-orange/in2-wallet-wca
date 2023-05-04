@@ -54,15 +54,16 @@ class ExecuteContentImpl(
         val parameter = contentOfSiopAuthRequest.replace("?", "").split("&")
         val state = parameter[4].replace("state=", "")
         val redirectUri = parameter[6].replace("redirect_uri=", "")
-        val formData = "state=$state}" +
+        val formData = "state=$state" +
                 "&vp_token=$vp" +
                 "&presentation_submission={\"definition_id\": \"CustomerPresentationDefinition\", \"descriptor_map\": [{\"format\": \"ldp_vp\", \"id\": \"id_credential\", \"path\": \"\$\", \"path_nested\": {\"format\": \"ldp_vc\", \"path\": \"\$.verifiableCredential[0]\"}}], \"id\": \"CustomerPresentationSubmission\"}"
+
         log.info(formData)
         // execute the Post request
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .headers("Content-Type", "application/x-www-form-urlencoded")
             .uri(URI.create(redirectUri))
+            .headers("Content-Type", "application/x-www-form-urlencoded")
             .POST(HttpRequest.BodyPublishers.ofString(formData))
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
