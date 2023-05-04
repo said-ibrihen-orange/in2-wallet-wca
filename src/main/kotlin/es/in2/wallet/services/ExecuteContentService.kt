@@ -1,5 +1,6 @@
 package es.in2.wallet.services
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.nimbusds.jose.JWSObject
 import es.in2.wallet.OPEN_ID_PREFIX
 import es.in2.wallet.domain.CustomSiopAuthenticationRequestParser
@@ -12,7 +13,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 interface ExecuteContentService {
-    fun getAuthenticationRequest(url: String): String
+    fun getAuthenticationRequest(url: String): AuthRequestContent
     fun sendAuthenticationResponse(siopAuthenticationRequest: String, vp: String): String
 }
 
@@ -23,14 +24,16 @@ class ExecuteContentImpl(
 
     private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
 
-    override fun getAuthenticationRequest(url: String): String {
+    override fun getAuthenticationRequest(url: String): AuthRequestContent {
         // Get RequestToken that contains the SIOP Authentication Request
         val requestToken = getSiopAuthenticationRequest(url)
+        log.info("get SIOP Authentication Request - response request_tokn: $requestToken")
         // validate the RequestToken
         requestTokenVerificationService.verifyRequestToken(requestToken)
         // extract siop_authentication_requests
         val jwsObject = JWSObject.parse(requestToken)
-        return jwsObject.payload.toJSONObject()["auth_request"].toString()
+        return AuthRequestContent(
+            authRequest =  jwsObject.payload.toJSONObject()["auth_request"].toString())
     }
 
     private fun getSiopAuthenticationRequest(url: String): String {
@@ -100,3 +103,7 @@ class ExecuteContentImpl(
     }
 
 }
+
+class AuthRequestContent(
+    @JsonProperty("auth_request") private val authRequest: String
+)
