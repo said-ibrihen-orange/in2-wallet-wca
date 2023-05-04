@@ -1,9 +1,7 @@
 package es.in2.wallet.services
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jose.JWSObject
 import es.in2.wallet.OPEN_ID_PREFIX
-import es.in2.wallet.domain.CustomSiopAuthenticationRequest
 import es.in2.wallet.domain.CustomSiopAuthenticationRequestParser
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger

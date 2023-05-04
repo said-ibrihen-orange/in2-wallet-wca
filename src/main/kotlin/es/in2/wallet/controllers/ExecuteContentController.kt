@@ -24,6 +24,7 @@ class ExecuteContentController(
     @PostMapping("/get-siop-authentication-request")
     @ResponseStatus(HttpStatus.OK)
     fun executeURL(@RequestBody qrContent: QrContent): String {
+        log.info("execute QR content - content ${qrContent.content}")
         return executeContentService.getAuthenticationRequest(qrContent.content)
     }
 
