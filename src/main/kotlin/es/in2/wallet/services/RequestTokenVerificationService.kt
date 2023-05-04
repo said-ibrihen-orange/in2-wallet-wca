@@ -13,6 +13,8 @@ import es.in2.wallet.UNIVERSAL_RESOLVER_URL
 import es.in2.wallet.exceptions.DidVerificationException
 import es.in2.wallet.exceptions.RequestTokenException
 import es.in2.wallet.exceptions.VerificationException
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
 import java.net.URI
 import java.net.http.HttpClient
@@ -28,7 +30,10 @@ fun interface RequestTokenVerificationService {
 @Service
 class RequestTokenVerificationServiceImpl : RequestTokenVerificationService {
 
+    private val log: Logger = LogManager.getLogger(RequestTokenVerificationServiceImpl::class.java)
+
     override fun verifyRequestToken(requestToken: String) {
+        log.info("verifyRequestToken")
         val signedJWTResponse = parseRequestTokenToSignedJwt(requestToken)
         val didDocument = checkIfDidIsInTheTrustedParticipantList(signedJWTResponse.payload)["didDocument"]
         val ecPublicKey = generateEcPublicKeyFromDidDocument(didDocument)

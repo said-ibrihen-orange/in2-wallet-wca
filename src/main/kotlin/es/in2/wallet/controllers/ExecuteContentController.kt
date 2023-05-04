@@ -2,6 +2,7 @@ package es.in2.wallet.controllers
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import es.in2.wallet.JWT
+import es.in2.wallet.services.AuthRequestContent
 import es.in2.wallet.services.ExecuteContentService
 import es.in2.wallet.services.SiopVerifiablePresentationService
 import io.swagger.v3.oas.annotations.Operation
@@ -23,7 +24,7 @@ class ExecuteContentController(
 
     @PostMapping("/get-siop-authentication-request")
     @ResponseStatus(HttpStatus.OK)
-    fun executeURL(@RequestBody qrContent: QrContent): String {
+    fun executeURL(@RequestBody qrContent: QrContent): AuthRequestContent {
         log.info("execute QR content - content ${qrContent.content}")
         return executeContentService.getAuthenticationRequest(qrContent.content)
     }
