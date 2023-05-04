@@ -2,6 +2,9 @@ package es.in2.wallet.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jose.JWSObject
+import es.in2.wallet.OPEN_ID_PREFIX
+import es.in2.wallet.domain.CustomSiopAuthenticationRequest
+import es.in2.wallet.domain.CustomSiopAuthenticationRequestParser
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
@@ -48,15 +51,20 @@ class ExecuteContentImpl(
     override fun sendAuthenticationResponse(siopAuthenticationRequest: String, vp: String): String {
         // TODO need to validate this business logic
         // Parse de String SIOP Authentication Response to a readable JSON Object
-        val parsedSiopAuthenticationRequest = ObjectMapper().readTree(siopAuthenticationRequest)
+        val contentOfSiopAuthRequest = siopAuthenticationRequest.replace(OPEN_ID_PREFIX, "")
+
+        val parsedSiopAuthenticationRequest = CustomSiopAuthenticationRequestParser().parse(contentOfSiopAuthRequest)
+
+            //ObjectMapper().readValue(siopAuthenticationRequest, CustomSiopAuthenticationRequest::class.java)
         // Add the basic formData to execute de /api/verifier/siop-sessions
         // I am awareness that we need to implement a better function which adds the presentation submission.
         // Same case for 'scope' attribute
 
+
         val state = checkIfStateIsBlank(
-            parsedSiopAuthenticationRequest["state"].asText())
+            parsedSiopAuthenticationRequest.getState())
         val redirectUri = checkIfRedirectUriIsBlank(
-            parsedSiopAuthenticationRequest["redirect_uri"].asText())
+            parsedSiopAuthenticationRequest.getRedirectUri())
 
         val formData = "state=$state}" +
                 "&vp_token=$vp" +
