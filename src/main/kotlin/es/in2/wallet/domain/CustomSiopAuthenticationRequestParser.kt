@@ -1,19 +1,30 @@
 package es.in2.wallet.domain
 
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.net.URI
 
 class CustomSiopAuthenticationRequestParser {
 
+    private val log: Logger = LogManager.getLogger(CustomSiopAuthenticationRequestParser::class.java)
+
     fun parse(siopUrl: String): CustomSiopAuthenticationRequest {
-        val uri = URI(siopUrl)
+        log.info("parsing... $siopUrl")
+        val uri = URI(siopUrl.removePrefix("?"))
         val query = uri.query
-        val queryParams = query.split("&")
+
+        log.info("query = $query")
+
+        val queryParams = query.removePrefix("?").split("&")
             .associate {
                 val (key, value) = it.split("=")
                 key to value
             }
 
-        val scope = queryParams["scope"]?.split(",") ?: emptyList()
+        val scope = queryParams["scope"]
+            //?.removePrefix("[")
+            //?.removeSuffix("]")
+            ?.split(",") ?: emptyList()
         val responseType = queryParams["response_type"] ?: ""
         val responseMode = queryParams["response_mode"] ?: ""
         val clientId = queryParams["client_id"] ?: ""

@@ -3,7 +3,6 @@ package es.in2.wallet.services
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.nimbusds.jose.JWSObject
 import es.in2.wallet.OPEN_ID_PREFIX
-import es.in2.wallet.domain.CustomSiopAuthenticationRequestParser
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
@@ -32,7 +31,8 @@ class ExecuteContentImpl(
         // extract siop_authentication_requests
         val jwsObject = JWSObject.parse(requestToken)
         return AuthRequestContent(
-            jwsObject.payload.toJSONObject()["auth_request"].toString())
+            jwsObject.payload.toJSONObject()["auth_request"].toString()
+        )
     }
 
     private fun getSiopAuthenticationRequest(url: String): String {
@@ -49,27 +49,15 @@ class ExecuteContentImpl(
     }
 
     override fun sendAuthenticationResponse(siopAuthenticationRequest: String, vp: String): String {
-        // TODO need to validate this business logic
         // Parse de String SIOP Authentication Response to a readable JSON Object
         val contentOfSiopAuthRequest = siopAuthenticationRequest.replace(OPEN_ID_PREFIX, "")
-
-        val parsedSiopAuthenticationRequest = CustomSiopAuthenticationRequestParser().parse(contentOfSiopAuthRequest)
-
-            //ObjectMapper().readValue(siopAuthenticationRequest, CustomSiopAuthenticationRequest::class.java)
-        // Add the basic formData to execute de /api/verifier/siop-sessions
-        // I am awareness that we need to implement a better function which adds the presentation submission.
-        // Same case for 'scope' attribute
-
-
-        val state = checkIfStateIsBlank(
-            parsedSiopAuthenticationRequest.getState())
-        val redirectUri = checkIfRedirectUriIsBlank(
-            parsedSiopAuthenticationRequest.getRedirectUri())
-
-
+        val parameter = contentOfSiopAuthRequest.replace("?", "").split("&")
+        val state = parameter[4].replace("state=", "")
+        val redirectUri = parameter[6].replace("redirect_uri=", "")
         val formData = "state=$state}" +
                 "&vp_token=$vp" +
-                "&presentation_submission=null"
+                "&presentation_submission={\"definition_id\": \"CustomerPresentationDefinition\", \"descriptor_map\": [{\"format\": \"ldp_vp\", \"id\": \"id_credential\", \"path\": \"\$\", \"path_nested\": {\"format\": \"ldp_vc\", \"path\": \"\$.verifiableCredential[0]\"}}], \"id\": \"CustomerPresentationSubmission\"}"
+        log.info(formData)
         // execute the Post request
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
@@ -77,29 +65,13 @@ class ExecuteContentImpl(
             .uri(URI.create(redirectUri))
             .POST(HttpRequest.BodyPublishers.ofString(formData))
             .build()
-
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        log.info("response = ${response.get().statusCode()}")
         if (response.get().statusCode() != 200) {
             throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         // access_token returned
         return response.get().body()
-    }
-
-    private fun checkIfStateIsBlank(state:String): String {
-        if(state.isBlank()) {
-            throw IllegalArgumentException("Missing 'state' parameter")
-        } else {
-            return state
-        }
-    }
-
-    private fun checkIfRedirectUriIsBlank(redirectUri:String): String {
-        if(redirectUri.isBlank()) {
-            throw IllegalArgumentException("Missing 'redirect_uri' parameter")
-        } else {
-            return redirectUri
-        }
     }
 
 }
