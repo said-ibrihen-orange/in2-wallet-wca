@@ -1,7 +1,5 @@
 package es.in2.wallet.domain
 
-import java.net.URI
-
 class CustomSiopAuthenticationRequest(
     private val scope: List<String>,
     private val responseType: String,
