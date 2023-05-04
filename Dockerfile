@@ -4,13 +4,13 @@
 ARG SKIP_TESTS
 
 ## --- dos2unix-env    # convert line endings from Windows machines
-FROM docker.io/rkimf1/dos2unix@sha256:60f78cd8bf42641afdeae3f947190f98ae293994c0443741a2b3f3034998a6ed as dos2unix-env
+FROM docker.io/rkimf1/dos2unix@sha256:60f78cd8bf42641afdeae3f947190f98ae293994c0443741a2b3f3034998a6ed AS dos2unix-env
 WORKDIR /convert
 COPY gradlew .
 RUN dos2unix ./gradlew
 
 ## --- build-env
-FROM docker.io/gradle:8.0.2-jdk as build-env
+FROM docker.io/gradle:8.0.2-jdk AS build-env
 ARG SKIP_TESTS
 WORKDIR /appbuild
 COPY . /appbuild
