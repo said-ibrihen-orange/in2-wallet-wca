@@ -27,13 +27,12 @@ class ExecuteContentImpl(
     override fun getAuthenticationRequest(url: String): AuthRequestContent {
         // Get RequestToken that contains the SIOP Authentication Request
         val requestToken = getSiopAuthenticationRequest(url)
-        log.info("get SIOP Authentication Request - response request_tokn: $requestToken")
         // validate the RequestToken
         requestTokenVerificationService.verifyRequestToken(requestToken)
         // extract siop_authentication_requests
         val jwsObject = JWSObject.parse(requestToken)
         return AuthRequestContent(
-            authRequest =  jwsObject.payload.toJSONObject()["auth_request"].toString())
+            jwsObject.payload.toJSONObject()["auth_request"].toString())
     }
 
     private fun getSiopAuthenticationRequest(url: String): String {
@@ -66,6 +65,7 @@ class ExecuteContentImpl(
             parsedSiopAuthenticationRequest.getState())
         val redirectUri = checkIfRedirectUriIsBlank(
             parsedSiopAuthenticationRequest.getRedirectUri())
+
 
         val formData = "state=$state}" +
                 "&vp_token=$vp" +
@@ -104,6 +104,7 @@ class ExecuteContentImpl(
 
 }
 
+
 class AuthRequestContent(
-    @JsonProperty("auth_request") private val authRequest: String
+    @JsonProperty("auth_request") val authRequest: String
 )

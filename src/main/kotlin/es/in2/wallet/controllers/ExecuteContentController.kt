@@ -25,7 +25,6 @@ class ExecuteContentController(
     @PostMapping("/get-siop-authentication-request")
     @ResponseStatus(HttpStatus.OK)
     fun executeURL(@RequestBody qrContent: QrContent): AuthRequestContent {
-        log.info("execute QR content - content ${qrContent.content}")
         return executeContentService.getAuthenticationRequest(qrContent.content)
     }
 
@@ -42,9 +41,11 @@ class ExecuteContentController(
     @ResponseStatus(HttpStatus.OK)
     fun executeURLVP(@RequestBody vpRequest: VpRequest): String {
         // create a verifiable presentation
+        log.info("building Verifiable Presentation")
         val vp = siopVerifiablePresentationService.createVerifiablePresentation(
             vpRequest.verifiableCredentials, JWT
         )
+        log.info("executing the post Authentication Response ")
         // send the verifiable presentation to the dome backend
         return executeContentService.sendAuthenticationResponse(
             vpRequest.siopAuthenticationRequest, vp
