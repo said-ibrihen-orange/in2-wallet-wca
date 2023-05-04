@@ -59,9 +59,13 @@ dependencies {
 	//implementation("com.nimbusds:oauth2-oidc-sdk:10.7")
 
 	// dome demo dependencies
-
 	runtimeOnly("com.mysql:mysql-connector-j")
-	annotationProcessor("org.projectlombok:lombok")
+
+	// lombok
+	compileOnly("org.projectlombok:lombok:1.18.26")
+	annotationProcessor("org.projectlombok:lombok:1.18.26")
+	testCompileOnly("org.projectlombok:lombok:1.18.26")
+	testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
 
 	// documentation
 	implementation("org.springdoc:springdoc-openapi-starter-common:2.0.4")

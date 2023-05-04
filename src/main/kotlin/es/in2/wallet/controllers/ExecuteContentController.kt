@@ -23,8 +23,8 @@ class ExecuteContentController(
 
     @PostMapping("/get-siop-authentication-request")
     @ResponseStatus(HttpStatus.OK)
-    fun executeURL(@RequestBody url: String): String {
-        return executeContentService.getAuthenticationRequest(url)
+    fun executeURL(@RequestBody qrContent: QrContent): String {
+        return executeContentService.getAuthenticationRequest(qrContent.content)
     }
 
     @Operation(summary = "Create a Verifiable Presentation with the Verifiable Credentials attached.")
@@ -53,5 +53,9 @@ class ExecuteContentController(
 class VpRequest(
     @JsonProperty("siop_authentication_request") val siopAuthenticationRequest: String,
     @JsonProperty("vc_list") val verifiableCredentials: List<String>
+)
+
+class QrContent(
+    @JsonProperty("qr_content") val content: String
 )
 
