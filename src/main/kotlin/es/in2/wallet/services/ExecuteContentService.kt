@@ -24,6 +24,7 @@ class ExecuteContentImpl(
     private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
 
     override fun getAuthenticationRequest(url: String): AuthRequestContent {
+        log.info("ExecuteContentImpl - getAuthenticationRequest() - URL: $url")
         // Get RequestToken that contains the SIOP Authentication Request
         val requestToken = getSiopAuthenticationRequest(url)
         // validate the RequestToken
