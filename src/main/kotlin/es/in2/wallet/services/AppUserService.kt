@@ -8,8 +8,8 @@ import java.util.*
 interface AppUserService {
     fun getUserByUsername(username: String): AppUser?
     fun saveUser(appUser: AppUser)
-
     fun deleteUsers()
+    fun getUsers(): List<AppUser>
 }
 
 @Service
@@ -28,5 +28,10 @@ class AppUserServiceImpl(
     override fun deleteUsers() {
         appUserRepository.deleteAll()
     }
+
+    override fun getUsers(): List<AppUser> {
+        return listOf(appUserRepository.findAll()).flatten()
+    }
+
 
 }

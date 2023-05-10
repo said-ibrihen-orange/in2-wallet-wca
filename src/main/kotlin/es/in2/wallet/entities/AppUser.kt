@@ -6,6 +6,7 @@ import java.util.*
 @Table(name = "app_users")
 class AppUser(
     @Id @GeneratedValue(strategy = GenerationType.UUID) val id: UUID?,
+    @Column(unique = true)
     val username: String,
 
 ){

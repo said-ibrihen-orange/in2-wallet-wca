@@ -15,9 +15,17 @@ class AuthController(private val appUserService: AppUserService){
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(@RequestBody appUser: AppUser): ResponseEntity<String> {
-
+        // Check if user exists
+        if (appUserService.getUserByUsername(appUser.username) != null) {
+            return ResponseEntity<String>(HttpStatus.CONFLICT)
+        }
+        // Save user
         appUserService.saveUser(appUser)
-        val t = appUserService.getUserByUsername(appUser.username)
+
+        // Get User UUID
+        val t = appUserService.getUserByUsername(appUser.username) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+
+        // Put location header
         val location: URI = ServletUriComponentsBuilder
             .fromCurrentRequest()
             .path("/{id}")
@@ -26,7 +34,6 @@ class AuthController(private val appUserService: AppUserService){
         println(location)
         val headers = HttpHeaders()
         headers.set("Location", location.toString())
-
         return ResponseEntity.created(location)
             .headers(headers)
             .body("User created with uuid: ${t?.id}")
