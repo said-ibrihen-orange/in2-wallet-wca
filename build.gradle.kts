@@ -76,6 +76,11 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
+	// testing
+	testImplementation ("org.junit.jupiter:junit-jupiter-api:5.8.1")
+	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+	testImplementation("org.mockito:mockito-core:3.12.4")
+	testImplementation("io.mockk:mockk:1.13.5")
 }
 
 tasks.withType<KotlinCompile> {
@@ -88,3 +93,4 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+8

@@ -10,6 +10,9 @@ class AppUser(
     val username: String,
 
 ){
+    constructor():this(null,""){
+    }
     constructor(username: String):this(null,username){
     }
+
 }

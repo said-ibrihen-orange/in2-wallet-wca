@@ -10,11 +10,12 @@ interface AppUserService {
     fun saveUser(appUser: AppUser)
     fun deleteUsers()
     fun getUsers(): List<AppUser>
+    fun registerUser(username: String):UUID
 }
 
 @Service
 class AppUserServiceImpl(
-    private val appUserRepository: AppUserRepository
+  private val appUserRepository: AppUserRepository
 ) : AppUserService {
 
     override fun getUserByUsername(username: String): AppUser? {
@@ -31,6 +32,22 @@ class AppUserServiceImpl(
 
     override fun getUsers(): List<AppUser> {
         return listOf(appUserRepository.findAll()).flatten()
+    }
+
+    override fun registerUser(username: String): UUID {
+        // Check if user exists
+        if (this.getUserByUsername(username) != null) {
+            throw Exception("User already exists")
+        }
+        // Save user
+        this.saveUser(AppUser(username))
+        // Return user UUID
+        val t = this.getUserByUsername(username)?.id
+        if (t != null) {
+            return t
+        } else {
+            throw Exception("User not found")
+        }
     }
 
 

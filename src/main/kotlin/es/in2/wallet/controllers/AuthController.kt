@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.net.URI
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/auth")
@@ -15,27 +16,29 @@ class AuthController(private val appUserService: AppUserService){
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(@RequestBody appUser: AppUser): ResponseEntity<String> {
-        // Check if user exists
-        if (appUserService.getUserByUsername(appUser.username) != null) {
-            return ResponseEntity<String>(HttpStatus.CONFLICT)
-        }
-        // Save user
-        appUserService.saveUser(appUser)
-
         // Get User UUID
-        val t = appUserService.getUserByUsername(appUser.username) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        var uuid: UUID
+        try {
+            uuid = appUserService.registerUser(appUser.username)
+        } catch (e: Exception) {
+            if (e.message == "User already exists") {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists")
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user")
+            }
+        }
 
         // Put location header
         val location: URI = ServletUriComponentsBuilder
             .fromCurrentRequest()
             .path("/{id}")
-            .buildAndExpand(t?.id)
+            .buildAndExpand(uuid)
             .toUri()
         println(location)
         val headers = HttpHeaders()
         headers.set("Location", location.toString())
         return ResponseEntity.created(location)
             .headers(headers)
-            .body("User created with uuid: ${t?.id}")
+            .body("User created with uuid: $uuid")
     }
 }
