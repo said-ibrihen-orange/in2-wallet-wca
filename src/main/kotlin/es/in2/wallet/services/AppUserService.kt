@@ -2,6 +2,7 @@ package es.in2.wallet.services
 
 import es.in2.wallet.entities.AppUser
 import es.in2.wallet.repositories.AppUserRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -15,6 +16,7 @@ interface AppUserService {
 
 @Service
 class AppUserServiceImpl(
+    @Autowired
   private val appUserRepository: AppUserRepository
 ) : AppUserService {
 
@@ -39,15 +41,10 @@ class AppUserServiceImpl(
         if (this.getUserByUsername(username) != null) {
             throw Exception("User already exists")
         }
+        val uuid = UUID.randomUUID()
         // Save user
-        this.saveUser(AppUser(username))
-        // Return user UUID
-        val t = this.getUserByUsername(username)?.id
-        if (t != null) {
-            return t
-        } else {
-            throw Exception("User not found")
-        }
+        this.saveUser(AppUser(uuid,username))
+        return uuid
     }
 
 
