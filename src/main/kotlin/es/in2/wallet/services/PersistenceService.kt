@@ -100,7 +100,7 @@ class PersistenceServiceImpl:PersistenceService{
     override fun getVCs(userid: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$FIWARE_URL/v2/entities/$userid?type=UserInfo"))
+            .uri(URI.create("$FIWARE_URL/v2/entities?user_ID=$userid"))
             .GET()
             .build()
         println("$FIWARE_URL/v2/entities/$userid?type=UserInfo")
