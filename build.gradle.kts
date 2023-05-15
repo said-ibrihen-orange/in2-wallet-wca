@@ -93,7 +93,7 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
-	systemProperty("spring.profiles.active", "local")
+	systemProperty("spring.profiles.active", "dev")
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)
 }
