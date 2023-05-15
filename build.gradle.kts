@@ -60,7 +60,8 @@ dependencies {
 	implementation("com.nimbusds:nimbus-jose-jwt:9.30.2")
 	//implementation("com.nimbusds:oauth2-oidc-sdk:10.7")
 
-	// dome demo dependencies
+	// persistence
+	testImplementation("com.h2database:h2:2.1.214")
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// lombok
@@ -93,7 +94,7 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
-	systemProperty("spring.profiles.active", "dev")
+	//systemProperty("spring.profiles.active", "dev")
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)
 }
