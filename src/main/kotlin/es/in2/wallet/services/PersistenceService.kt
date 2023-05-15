@@ -68,9 +68,9 @@ class PersistenceServiceImpl:PersistenceService{
         vcJSONData["type"] = "vc_json"
         vcJSONData["user_ID"] = vcJWTDataUserID
 
-        val vcJSONDataCredential = HashMap<String,String>()
-            vcJSONDataCredential["type"] = "String"
-            vcJSONDataCredential["value"] = payloadToJson.toString()
+        val vcJSONDataCredential = HashMap<String,Any>()
+            vcJSONDataCredential["type"] = "JSON"
+            vcJSONDataCredential["value"] = payloadToJson
         vcJSONData["vc"] = vcJSONDataCredential
 
         saveVC(vcJSONData)
