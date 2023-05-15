@@ -7,11 +7,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito
+import org.springframework.boot.test.context.SpringBootTest
 import java.util.*
 
+@SpringBootTest
 class AppUserServiceImplTest {
+
     private var mockRepository = Mockito.mock(AppUserRepository::class.java)
     private var appUserService = AppUserServiceImpl(mockRepository)
+
     @BeforeEach
     fun setUp() {
         mockRepository = Mockito.mock(AppUserRepository::class.java)
@@ -33,7 +37,6 @@ class AppUserServiceImplTest {
         val expected = AppUser(uuid2,"user2")
         val actual = appUserService.getUserByUsername("user2")
         assertEquals(expected, actual)
-
     }
 
     @Test
@@ -73,7 +76,6 @@ class AppUserServiceImplTest {
         val actual = appUserService.registerUser("user4")
         // Can´t check the uuid because it is generated randomly -> assert it is not null
         assertNotNull( actual, "The uuid is null")
-
     }
 
     @Test
@@ -92,4 +94,5 @@ class AppUserServiceImplTest {
             appUserService.registerUser("user3")
         }
     }
+
 }

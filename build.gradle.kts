@@ -4,6 +4,8 @@ plugins {
 	distribution
 	id("org.springframework.boot") version "3.0.5"
 	id("io.spring.dependency-management") version "1.1.0"
+	id("jacoco")
+	id("org.sonarqube") version "4.0.0.2929"
 	kotlin("jvm") version "1.7.22"
 	kotlin("plugin.spring") version "1.7.22"
 	kotlin("plugin.jpa") version "1.7.22"
@@ -91,6 +93,16 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
+	systemProperty("spring.profiles.active", "local")
 	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport)
 }
-8
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required.set(true)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+	}
+}
