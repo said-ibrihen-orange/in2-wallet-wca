@@ -21,7 +21,7 @@ interface PersistenceService {
 @Service
 class PersistenceServiceImpl:PersistenceService{
     override fun saveVC(vc: String, userid: String) {
-
+        // Parse the VC to get the credential ID the json
         val parsedVerifiableCredential = SignedJWT.parse(vc)
         val payloadToJson = parsedVerifiableCredential.payload.toJSONObject()
         val verifiableCredential = payloadToJson["vc"]
@@ -39,24 +39,41 @@ class PersistenceServiceImpl:PersistenceService{
             credential_type: (vc_jwt / vc_json)
             vc (formato JWT-JWS o los datos de la credential en formato JSON)*/
 
-        val vcJWTdata = HashMap<String,Any>()
-        vcJWTdata["id"] = userid
-        vcJWTdata["credential_ID"] = credentialID
-        vcJWTdata["credential_type"] = "vc_jwt"
-        vcJWTdata["vc"] = vc
+        // Savin the VC in the FIWARE Context Broker in format jwt-token
 
-        val vcJSONdata = HashMap<String,Any>()
-        vcJSONdata["user_ID"] = userid
-        vcJSONdata["credential_ID"] = credentialID
-        vcJSONdata["credential_type"] = "vc_json"
-        vcJSONdata["vc"] = vc
+        // Create the entity for save jwt token
+        val vcJWTData = HashMap<String,Any>()
+        // The id of the entity is the credential ID
+        vcJWTData["id"] = credentialID
+        // The type of the entity is vc_jwt
+        vcJWTData["type"] = "vc_jwt"
+        // The user ID is the user ID
+        val vcJWTDataUserID = HashMap<String,String>()
+            vcJWTDataUserID["type"] = "String"
+            vcJWTDataUserID["value"] = userid
+        vcJWTData["user_ID"] = vcJWTDataUserID
 
-        val vcJWT = HashMap<String,Any>()
-        vcJWT["id"] = "Room1"
-        vcJWT["type"] = "Room"
-        vcJWT["vc"] = vcJWTdata
-        saveVC(vcJWT)
-//        saveVC(vcJSON)
+        val vcJWTDataCredential = HashMap<String,String>()
+            vcJWTDataCredential["type"] = "String"
+            vcJWTDataCredential["value"] = vc
+
+        vcJWTData["vc"] = vcJWTDataCredential
+
+        saveVC(vcJWTData)
+
+        // Saving the VC in the FIWARE Context Broker in format json
+
+        val vcJSONData = HashMap<String,Any>()
+        vcJSONData["id"] = credentialID
+        vcJSONData["type"] = "vc_json"
+        vcJSONData["user_ID"] = vcJWTDataUserID
+
+        val vcJSONDataCredential = HashMap<String,String>()
+            vcJSONDataCredential["type"] = "String"
+            vcJSONDataCredential["value"] = payloadToJson.toString()
+        vcJSONData["vc"] = vcJSONDataCredential
+
+        saveVC(vcJSONData)
 
     }
 
@@ -81,7 +98,17 @@ class PersistenceServiceImpl:PersistenceService{
 
 
     override fun getVCs(userid: String): String {
-        TODO()
+        val client = HttpClient.newBuilder().build()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create("$FIWARE_URL/v2/entities/$userid?type=UserInfo"))
+            .GET()
+            .build()
+        println("$FIWARE_URL/v2/entities/$userid?type=UserInfo")
+        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        if (response.get().statusCode() == 404) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+        }
+        return response.get().body()
     }
 
     override fun deleteVC(userid: String, vcId: String) {
