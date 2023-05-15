@@ -21,10 +21,10 @@ class AuthController(private val appUserService: AppUserService){
         try {
             uuid = appUserService.registerUser(appUser.username)
         } catch (e: Exception) {
-            if (e.message == "User already exists") {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists")
+            return if (e.message == "User already exists") {
+                ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists")
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user")
+                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user")
             }
         }
 
@@ -36,7 +36,7 @@ class AuthController(private val appUserService: AppUserService){
             .toUri()
         println(location)
         val headers = HttpHeaders()
-        headers.set("Location", location.toString())
+        headers["Location"] = location.toString()
         return ResponseEntity.created(location)
             .headers(headers)
             .body("User created with uuid: $uuid")
