@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:dbtest
+    username: in2admin #root
+    password: in2pass #1234
+  jpa:
+    open-in-view: false
+    properties:
+      jakarta.persistence.sharedCache.mode: UNSPECIFIED
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    generate-ddl: true
+    database-platform: org.hibernate.dialect.H2Dialect
+  security:
+    user:
+      name: in2test
+      password: in2pass
+
+server:
+  port: 8083
+
+# Documentation
+springdoc:
+  # swagger-ui custom path
+  swagger-ui:
+    path: /swagger-ui.html
+  # /api-docs endpoint custom path
+  api-docs:
+    path: /api-docs
+  show-actuator: true
+  use-management-port: true
+
+# open all Actuator endpoints
+management:
+  server:
+    port: 9093
+  endpoints:
+    web:
+      exposure:
+        include: "*" # openapi, swagger-ui
+
+app:
+  url:
+    api: https://localhost:8083
