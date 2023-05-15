@@ -29,6 +29,7 @@ class AppUserServiceImplTest {
             AppUser(uuid3,"user3")
         )
         Mockito.`when`(mockRepository.findAll()).thenReturn(allAppUsers)
+        Mockito.`when`(mockRepository.findByUsername("user2")).thenReturn(AppUser(uuid2,"user2"))
         val expected = AppUser(uuid2,"user2")
         val actual = appUserService.getUserByUsername("user2")
         assertEquals(expected, actual)
