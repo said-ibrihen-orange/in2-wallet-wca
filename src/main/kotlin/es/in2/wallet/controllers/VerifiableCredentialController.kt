@@ -4,6 +4,7 @@ import es.in2.wallet.services.PersistenceService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -16,17 +17,39 @@ import org.springframework.web.bind.annotation.RestController
 class VerifiableCredentialController(private val persistenceService: PersistenceService) {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createVerifiableCredential(@RequestBody verifiableCredential: String) {
+    fun createVerifiableCredential(
+        @RequestBody verifiableCredential: String) {
         persistenceService.saveVC(verifiableCredential, "1")
     }
 
-    @GetMapping
-    fun getVerifiableCredential(@RequestParam userid: String): String {
+    @GetMapping("/{userid}")
+    fun getVerifiableCredential(
+        @PathVariable userid: String): String {
         return persistenceService.getVCs(userid)
     }
 
-    @DeleteMapping
-    fun deleteVerifiableCredential(@RequestParam userid: String, @RequestParam verifiableCredentialId: String) {
+    @GetMapping("/{userid}/type/{type}")
+    fun getVerifiableCredentialByType(
+        @PathVariable type: String,
+        @PathVariable userid: String
+    ): String {
+        return persistenceService.getVCsByType(userid, type)
+    }
 
+    @GetMapping("/{userid}/{verifiableCredentialId}/type/{type}")
+    fun getVerifiableCredentialById(
+        @PathVariable userid: String,
+        @PathVariable verifiableCredentialId: String,
+        @PathVariable type: String
+    ): String {
+        return persistenceService.getVCByType(userid,verifiableCredentialId, type)
+    }
+
+    @DeleteMapping("/{userid}/{verifiableCredentialId}")
+    fun deleteVerifiableCredential(
+        @PathVariable userid: String,
+        @PathVariable verifiableCredentialId: String
+    ) {
+        persistenceService.deleteVC(userid, verifiableCredentialId)
     }
 }
