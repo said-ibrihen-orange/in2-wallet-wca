@@ -4,6 +4,8 @@ plugins {
 	distribution
 	id("org.springframework.boot") version "3.0.5"
 	id("io.spring.dependency-management") version "1.1.0"
+	id("jacoco")
+	id("org.sonarqube") version "4.0.0.2929"
 	kotlin("jvm") version "1.7.22"
 	kotlin("plugin.spring") version "1.7.22"
 	kotlin("plugin.jpa") version "1.7.22"
@@ -58,7 +60,8 @@ dependencies {
 	implementation("com.nimbusds:nimbus-jose-jwt:9.30.2")
 	//implementation("com.nimbusds:oauth2-oidc-sdk:10.7")
 
-	// dome demo dependencies
+	// persistence
+	testImplementation("com.h2database:h2:2.1.214")
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// lombok
@@ -76,6 +79,11 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
+	// testing
+	testImplementation ("org.junit.jupiter:junit-jupiter-api:5.8.1")
+	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+	testImplementation("org.mockito:mockito-core:3.12.4")
+	testImplementation("io.mockk:mockk:1.13.5")
 }
 
 tasks.withType<KotlinCompile> {
@@ -86,5 +94,16 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
+	//systemProperty("spring.profiles.active", "dev")
 	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required.set(true)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+	}
 }

@@ -4,12 +4,11 @@ import java.util.*
 
 @Entity
 @Table(name = "app_users")
-class AppUser(
+data class AppUser(
     @Id @GeneratedValue(strategy = GenerationType.UUID) val id: UUID?,
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     val username: String,
 
 ){
-    constructor(username: String):this(null,username){
-    }
+
 }
