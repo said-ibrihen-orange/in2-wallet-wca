@@ -2,7 +2,7 @@ package es.in2.wallet.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
-import es.in2.wallet.FIWARE_URL
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -22,7 +22,10 @@ interface PersistenceService {
 
 @Service
 class PersistenceServiceImpl:PersistenceService{
+    @Value("\${fiware.url}")
+    private var fiwareURL: String? = null
     override fun saveVC(vc: String, userid: String) {
+
         // Parse the VC to get the credential ID the json
         val parsedVerifiableCredential = SignedJWT.parse(vc)
         val payloadToJson = parsedVerifiableCredential.payload.toJSONObject()
@@ -82,7 +85,7 @@ class PersistenceServiceImpl:PersistenceService{
     override fun getVCByType(userid:String,vcId: String, vcType: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$FIWARE_URL/v2/entities/$vcId?type=$vcType&user_ID=$userid"))
+            .uri(URI.create("$fiwareURL/v2/entities/$vcId?type=$vcType&q=user_ID==$userid"))
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
@@ -101,7 +104,7 @@ class PersistenceServiceImpl:PersistenceService{
 
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$FIWARE_URL/v2/entities"))
+            .uri(URI.create("$fiwareURL/v2/entities"))
             .headers("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build()
@@ -116,7 +119,7 @@ class PersistenceServiceImpl:PersistenceService{
     override fun getVCs(userid: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$FIWARE_URL/v2/entities?user_ID=$userid"))
+            .uri(URI.create("$fiwareURL/v2/entities?q=user_ID==$userid"))
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
@@ -129,7 +132,7 @@ class PersistenceServiceImpl:PersistenceService{
     override fun getVCsByType(userid: String, type: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$FIWARE_URL/v2/entities?user_ID=$userid&type=$type"))
+            .uri(URI.create("$fiwareURL/v2/entities?type=$type&q=user_ID==$userid"))
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
@@ -142,7 +145,7 @@ class PersistenceServiceImpl:PersistenceService{
     override fun deleteVC(userid: String, vcId: String) {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$FIWARE_URL/v2/entities/$vcId?type=vc_jwt"))
+            .uri(URI.create("$fiwareURL/v2/entities/$vcId?type=vc_jwt"))
             .DELETE()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
@@ -151,13 +154,22 @@ class PersistenceServiceImpl:PersistenceService{
         }
 
         val request2 = HttpRequest.newBuilder()
-            .uri(URI.create("$FIWARE_URL/v2/entities/$vcId?type=vc_json"))
+            .uri(URI.create("$fiwareURL/v2/entities/$vcId?type=vc_json"))
             .DELETE()
             .build()
         val response2 = client.sendAsync(request2, HttpResponse.BodyHandlers.ofString())
         if (response2.get().statusCode() == 404) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
         }
+    }
+
+    /**
+     * This method is used to initialize the url of the FIWARE Context Broker only for testing purposes
+     * @param url the url of the FIWARE Context Broker
+     */
+    fun initUrl(url: String){
+        if (fiwareURL == null)
+            fiwareURL = url
     }
 }
 

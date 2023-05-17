@@ -15,11 +15,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/vc")
 class VerifiableCredentialController(private val persistenceService: PersistenceService) {
-    @PostMapping
+    @PostMapping("/{userid}")
     @ResponseStatus(HttpStatus.CREATED)
     fun createVerifiableCredential(
-        @RequestBody verifiableCredential: String) {
-        persistenceService.saveVC(verifiableCredential, "1")
+        @RequestBody verifiableCredential: String,
+        @PathVariable userid: String
+    ) {
+        persistenceService.saveVC(verifiableCredential, userid)
     }
 
     @GetMapping("/{userid}")
