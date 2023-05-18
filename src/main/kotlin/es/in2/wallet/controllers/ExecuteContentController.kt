@@ -11,7 +11,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpStatus
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.*
+
+
 
 @RestController
 @RequestMapping("/api/execute-content")
@@ -21,6 +24,17 @@ class ExecuteContentController(
 ) {
 
     private val log: Logger = LogManager.getLogger(ExecuteContentController::class.java)
+
+    @PostMapping
+    fun executeContent(@RequestBody qrContent: QrContent,
+                       @RequestHeader headers:HashMap<String,String>): String {
+        val UserUUid = headers["Location"]
+        log.info("ExecuteContentController - executeContent() - QR Content: ${qrContent.content}")
+
+        return "Hole"
+    }
+
+
 
     @PostMapping("/get-siop-authentication-request")
     @ResponseStatus(HttpStatus.OK)

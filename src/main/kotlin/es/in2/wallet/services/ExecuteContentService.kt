@@ -12,8 +12,9 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 interface ExecuteContentService {
+    fun executeQR(contentQR: String): String
     fun getAuthenticationRequest(url: String): AuthRequestContent
-    fun sendAuthenticationResponse(siopAuthenticationRequest: String, vp: String): String
+    fun sendAuthenticationResponse( siopAuthenticationRequest: String, vp: String): String
 }
 
 @Service
@@ -22,6 +23,52 @@ class ExecuteContentImpl(
 ) : ExecuteContentService {
 
     private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
+    enum class QRType {
+        LOGIN_URL,
+        AUTH_REQUEST,
+        VC_URL,
+        VC_CONTENT,
+        UNKNOWN
+    }
+    private fun checkQRType(content: String): QRType {
+        val loginUrlRegex = Regex("https://.*")
+        val authRequestRegex = Regex("openid://.*")
+        val vcUrlRegex = Regex("https://.*")
+        val vcContentRegex = Regex("ey.*")
+        return when {
+            loginUrlRegex.matches(content) -> QRType.LOGIN_URL
+            authRequestRegex.matches(content) -> QRType.AUTH_REQUEST
+            vcUrlRegex.matches(content) -> QRType.VC_URL
+            vcContentRegex.matches(content) -> QRType.VC_CONTENT
+            else -> QRType.UNKNOWN
+        }
+    }
+
+    override fun executeQR(contentQR: String): String {
+        return when(checkQRType(contentQR)){
+            QRType.LOGIN_URL -> executeLoginUrl(contentQR)
+            QRType.AUTH_REQUEST -> executeAuthRequest(contentQR)
+            QRType.VC_URL -> executeVCUrl(contentQR)
+            QRType.VC_CONTENT -> executeVCContent(contentQR)
+            QRType.UNKNOWN -> "Unknown QR Type"
+        }
+    }
+    private fun executeLoginUrl(contentQR: String): String {
+        return "Login URL"
+    }
+    private fun executeAuthRequest(contentQR: String): String {
+        return "Auth Request"
+    }
+
+    private fun executeVCUrl(contentQR: String): String {
+        // Todo - get VC from URL
+        return "VC URL"
+    }
+    private fun executeVCContent(contentQR: String): String {
+        // TODO - i need the uuis of the user
+
+        return "VC Content"
+    }
 
     override fun getAuthenticationRequest(url: String): AuthRequestContent {
         log.info("ExecuteContentImpl - getAuthenticationRequest() - URL: $url")
