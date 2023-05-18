@@ -44,3 +44,6 @@ management:
 app:
   url:
     api: https://walletapidev.in2.es
+
+fiware:
+  url: http://localhost:1026
