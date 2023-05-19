@@ -10,16 +10,17 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-
+import es.in2.wallet.services.PersistenceService
 interface ExecuteContentService {
-    fun executeQR(contentQR: String): String
+    fun executeQR(contentQR: String): Any
     fun getAuthenticationRequest(url: String): AuthRequestContent
     fun sendAuthenticationResponse( siopAuthenticationRequest: String, vp: String): String
 }
 
 @Service
 class ExecuteContentImpl(
-    private val requestTokenVerificationService: RequestTokenVerificationService
+    private val requestTokenVerificationService: RequestTokenVerificationService,
+    private val persistenceService: PersistenceService
 ) : ExecuteContentService {
 
     private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
@@ -31,10 +32,11 @@ class ExecuteContentImpl(
         UNKNOWN
     }
     private fun checkQRType(content: String): QRType {
-        val loginUrlRegex = Regex("https://.*")
+        val loginUrlRegex = Regex("(https|http).*?(verifier).*")
         val authRequestRegex = Regex("openid://.*")
         val vcUrlRegex = Regex("https://.*")
         val vcContentRegex = Regex("ey.*")
+        println("Matches loginUrlRegex: ${loginUrlRegex.matches(content)}")
         return when {
             loginUrlRegex.matches(content) -> QRType.LOGIN_URL
             authRequestRegex.matches(content) -> QRType.AUTH_REQUEST
@@ -44,7 +46,8 @@ class ExecuteContentImpl(
         }
     }
 
-    override fun executeQR(contentQR: String): String {
+    override fun executeQR(contentQR: String): Any {
+
         return when(checkQRType(contentQR)){
             QRType.LOGIN_URL -> executeLoginUrl(contentQR)
             QRType.AUTH_REQUEST -> executeAuthRequest(contentQR)
@@ -53,21 +56,38 @@ class ExecuteContentImpl(
             QRType.UNKNOWN -> "Unknown QR Type"
         }
     }
-    private fun executeLoginUrl(contentQR: String): String {
-        return "Login URL"
+    private fun executeLoginUrl(contentQR: String): ArrayList<String> {
+        log.info("ExecuteContentImpl - executeLoginUrl() - contentQR: $contentQR")
+        val authRequest = this.getAuthenticationRequest(contentQR).authRequest
+        return this.executeAuthRequest(authRequest)
     }
-    private fun executeAuthRequest(contentQR: String): String {
-        return "Auth Request"
+
+    /**
+     * This method is used to execute the authentication request
+     * @param contentQR
+     * @return VC
+     * Return a collections of VC that the scope this the sama type of the vc
+     */
+    private fun executeAuthRequest(contentQR: String): ArrayList<String> {
+        log.info("ExecuteContentImpl - executeAuthRequest() - contentQR: $contentQR")
+        // Get the scope from the authRequest
+        val scopeRegex = Regex("scope=\\[([^]]+)]")
+        val scope = scopeRegex.find(contentQR)
+        val listCredentialType = scope?.groupValues?.get(1)?.split(",")
+        return persistenceService.getVCsByVCType("1", listCredentialType!!)
     }
 
     private fun executeVCUrl(contentQR: String): String {
+        log.info("ExecuteContentImpl - executeVCUrl() - contentQR: $contentQR")
         // Todo - get VC from URL
+
         return "VC URL"
     }
     private fun executeVCContent(contentQR: String): String {
+        log.info("ExecuteContentImpl - executeVCContent() - contentQR: $contentQR")
         // TODO - i need the uuis of the user
-
-        return "VC Content"
+        persistenceService.saveVC(contentQR, "uuid")
+        return "VC_SAVED"
     }
 
     override fun getAuthenticationRequest(url: String): AuthRequestContent {

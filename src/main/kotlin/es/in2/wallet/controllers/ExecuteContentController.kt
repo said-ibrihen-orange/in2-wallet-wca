@@ -27,11 +27,11 @@ class ExecuteContentController(
 
     @PostMapping
     fun executeContent(@RequestBody qrContent: QrContent,
-                       @RequestHeader headers:HashMap<String,String>): String {
+                       @RequestHeader headers:HashMap<String,String>): Any {
         val UserUUid = headers["Location"]
         log.info("ExecuteContentController - executeContent() - QR Content: ${qrContent.content}")
+        return executeContentService.executeQR(qrContent.content)
 
-        return "Hole"
     }
 
 

@@ -1,7 +1,10 @@
 package es.in2.wallet.services
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusds.jose.JWSObject
 import com.nimbusds.jwt.SignedJWT
+import org.json.JSONArray
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -18,6 +21,7 @@ interface PersistenceService {
     fun getVCsByType(userid: String, type: String): String
     fun deleteVC(userid: String, vcId: String)
 
+    fun getVCsByVCType(userid: String, vcType: List<String>): ArrayList<String>
 }
 
 @Service
@@ -82,6 +86,9 @@ class PersistenceServiceImpl:PersistenceService{
 
     }
 
+    /**
+     * Get the VC by type (vc_jwt or vc_json)
+     */
     override fun getVCByType(userid:String,vcId: String, vcType: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
@@ -129,6 +136,9 @@ class PersistenceServiceImpl:PersistenceService{
         return response.get().body()
     }
 
+    /**
+     * Get the VCs by type (vc_jwt or vc_json)
+     */
     override fun getVCsByType(userid: String, type: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
@@ -163,6 +173,39 @@ class PersistenceServiceImpl:PersistenceService{
         }
     }
 
+    override fun getVCsByVCType(userid: String, vcTypes: List<String>): ArrayList<String> {
+        var result = arrayListOf<String>()
+        for (vcType in vcTypes){
+            var vcTypeWithoutSpace = vcType.replace(" ".toRegex(), "")
+            println("contextBrokerURL: $fiwareURL/v2/entities?q=user_ID==$userid&q=vc.vc.type:$vcTypeWithoutSpace")
+            val client = HttpClient.newBuilder().build()
+            val request = HttpRequest.newBuilder()
+                .uri(URI.create("$fiwareURL/v2/entities?q=user_ID==$userid&q=vc.vc.type:$vcTypeWithoutSpace"))
+                .GET()
+                .build()
+            val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            if (response.get().statusCode() == 404) {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            }
+
+
+            val vcArray = JSONArray(response.get().body())
+            for (i in 0 until vcArray.length()) {
+                val vc = vcArray.getJSONObject(i)
+                val vcID = vc.getString("id")
+                println("vcID: $vcID")
+                result.add(vcID)
+            }
+
+
+        }
+        println("result: $result")
+        return result
+
+
+
+    }
+
     /**
      * This method is used to initialize the url of the FIWARE Context Broker only for testing purposes
      * @param url the url of the FIWARE Context Broker
@@ -171,5 +214,10 @@ class PersistenceServiceImpl:PersistenceService{
         if (fiwareURL == null)
             fiwareURL = url
     }
+
 }
 
+class VCResponse (@JsonProperty("id") val id: String,
+                  @JsonProperty("type") val type: String,
+                  @JsonProperty("user_ID") val user_ID: String,
+                  @JsonProperty("vc") val vc: Any)

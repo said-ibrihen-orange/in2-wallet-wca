@@ -84,6 +84,11 @@ dependencies {
 	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 	testImplementation("org.mockito:mockito-core:3.12.4")
 	testImplementation("io.mockk:mockk:1.13.5")
+
+	// Json
+	implementation("org.json:json:20230227")
+	implementation("com.googlecode.json-simple:json-simple:1.1.1")
+	implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.withType<KotlinCompile> {
