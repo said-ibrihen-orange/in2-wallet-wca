@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
+import java.net.InetSocketAddress
+import java.net.ProxySelector
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -29,12 +31,15 @@ class CredentialOfferServiceImpl() : CredentialOfferService {
     private fun getCredentialIssuerMetadata(responseBody: String): String {
         val credentialOffer = ObjectMapper().readTree(responseBody)
         val credentialIssuerMetadata = credentialOffer["credentialIssuer"].asText() +
-                    "/.well-known/openid-credential-issuer"
+                    "/api/.well-known/openid-credential-issuer"
         return executeGetRequest(credentialIssuerMetadata)
     }
 
     private fun executeGetRequest(url: String): String {
-        val client = HttpClient.newBuilder().build()
+        val client = HttpClient
+            .newBuilder()
+            //.proxy(ProxySelector.of(InetSocketAddress("localhost", 9080)))
+            .build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .headers("Content-Type", "application/x-www-form-urlencoded")
