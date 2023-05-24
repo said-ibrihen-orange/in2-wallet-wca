@@ -124,7 +124,7 @@ class PersistenceServiceImpl:PersistenceService{
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
         }
         return response.get().body()
     }
@@ -137,7 +137,7 @@ class PersistenceServiceImpl:PersistenceService{
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with type: $type not found")
         }
         return response.get().body()
     }
@@ -150,7 +150,7 @@ class PersistenceServiceImpl:PersistenceService{
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Credential $vcId with type jwt not found")
         }
 
         val request2 = HttpRequest.newBuilder()
@@ -159,7 +159,7 @@ class PersistenceServiceImpl:PersistenceService{
             .build()
         val response2 = client.sendAsync(request2, HttpResponse.BodyHandlers.ofString())
         if (response2.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Credential $vcId with type json not found")
         }
     }
 
