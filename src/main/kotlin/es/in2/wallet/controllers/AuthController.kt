@@ -39,6 +39,6 @@ class AuthController(private val appUserService: AppUserService){
         headers["Location"] = location.toString()
         return ResponseEntity.created(location)
             .headers(headers)
-            .body("User created with uuid: $uuid")
+            .build()
     }
 }

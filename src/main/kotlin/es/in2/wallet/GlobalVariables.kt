@@ -1,6 +1,5 @@
 package es.in2.wallet
 
-import org.springframework.beans.factory.annotation.Value
 
 class GlobalVariables()
 

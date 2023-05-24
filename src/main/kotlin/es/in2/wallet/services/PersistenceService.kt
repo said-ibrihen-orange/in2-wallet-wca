@@ -92,7 +92,7 @@ class PersistenceServiceImpl:PersistenceService{
     override fun getVCByType(userid:String,vcId: String, vcType: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$fiwareURL/v2/entities/$vcId?type=$vcType&q=user_ID==$userid"))
+            .uri(URI.create("$fiwareURL/v2/entities/$vcId?type=$vcType&user_ID=$userid"))
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
@@ -126,12 +126,12 @@ class PersistenceServiceImpl:PersistenceService{
     override fun getVCs(userid: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$fiwareURL/v2/entities?q=user_ID==$userid"))
+            .uri(URI.create("$fiwareURL/v2/entities?user_ID=$userid"))
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
         }
         return response.get().body()
     }
@@ -142,12 +142,12 @@ class PersistenceServiceImpl:PersistenceService{
     override fun getVCsByType(userid: String, type: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$fiwareURL/v2/entities?type=$type&q=user_ID==$userid"))
+            .uri(URI.create("$fiwareURL/v2/entities?type=$type&user_ID=$userid"))
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with type: $type not found")
         }
         return response.get().body()
     }
@@ -160,7 +160,7 @@ class PersistenceServiceImpl:PersistenceService{
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Credential $vcId with type jwt not found")
         }
 
         val request2 = HttpRequest.newBuilder()
@@ -169,7 +169,7 @@ class PersistenceServiceImpl:PersistenceService{
             .build()
         val response2 = client.sendAsync(request2, HttpResponse.BodyHandlers.ofString())
         if (response2.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Credential $vcId with type json not found")
         }
     }
 
