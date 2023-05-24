@@ -33,7 +33,7 @@ class AuthorizationServiceImpl() : AuthorizationService {
 
         //Get new Token
         val data = mapOf(
-            "grant_type" to "client_credentials",
+            "grant_type" to grantType,
             "pre-authorized_code" to preAuthorizedCode
         )
         var jsonBody = executePostRequest(this.issuerURI, data);
@@ -44,21 +44,22 @@ class AuthorizationServiceImpl() : AuthorizationService {
         log.info("**** Endpoint response [Object]: " +  jsonBody);
 
         //TODO move to next endpoint
-//        var token = jsonObject["access_token"].asText()
-//        //Validate preauthCode
-//        var response = executeGetRequest("http://localhost:8082/api/credential-offers/$preAuthorizedCode", token)
-//
-//        log.info("*** Credential Offers response: " +  response);
-//       var responseObject = ObjectMapper().readTree(response)
-//        if(preAuthorizedCode != responseObject["grants"]["urn:ietf:params:oauth:grant-type:pre-authorized_code"]["preAuthorizedCode"].asText()){
-//            throw Exception("PreAuthorizedCode is not valid")
-//        }
+        var token = jsonObject["access_token"].asText()
+        //Validate preauthCode
+        var response = executeGetRequest("http://localhost:8081/api/credential-offers/$preAuthorizedCode", token)
+
+        log.info("*** Credential Offers response: " +  response);
+       var responseObject = ObjectMapper().readTree(response)
+        if(preAuthorizedCode != responseObject["grants"]["urn:ietf:params:oauth:grant-type:pre-authorized_code"]["preAuthorizedCode"].asText()){
+            throw Exception("PreAuthorizedCode is not valid")
+        }
 //
 //        //TODO validate userPin
 //
 //        //Create Response
 
-        return jsonObject.asText()
+        return response
+            //jsonObject.asText()
     }
 
     fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
@@ -74,7 +75,7 @@ class AuthorizationServiceImpl() : AuthorizationService {
     private fun executeGetRequest(url: String, token: String): String {
         val client = HttpClient
             .newBuilder()
-            //.proxy(ProxySelector.of(InetSocketAddress("localhost", 9080)))
+            //.proxy(ProxySelector.of(InetSocketAddress("localhost", 8085)))
             .build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))
@@ -93,7 +94,7 @@ class AuthorizationServiceImpl() : AuthorizationService {
 
         val client = HttpClient
             .newBuilder()
-            //.proxy(ProxySelector.of(InetSocketAddress("localhost", 9080)))
+            //.proxy(ProxySelector.of(InetSocketAddress("localhost", 8085)))
             .build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))
