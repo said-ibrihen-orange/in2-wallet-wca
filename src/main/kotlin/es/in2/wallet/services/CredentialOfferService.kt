@@ -13,16 +13,18 @@ import java.net.http.HttpResponse
 import java.net.InetSocketAddress
 import java.net.ProxySelector
 
-interface CredentialOfferService {
-    fun getCredentialOffer(credentialOfferUri: String): String
+fun interface CredentialOfferService {
+    fun getCredentialOffer(credentialOfferUri: String, user: String): String
 }
 
 @Service
-class CredentialOfferServiceImpl() : CredentialOfferService {
+class CredentialOfferServiceImpl(
+    private val persistenceService: PersistenceService
+) : CredentialOfferService {
 
     private val log: Logger = LogManager.getLogger(CredentialOfferServiceImpl::class.java)
 
-    override fun getCredentialOffer(credentialOfferUri: String): String {
+    override fun getCredentialOffer(credentialOfferUri: String, user: String): String {
         //1. Call credentialOfferUri, save credentialIssuer and preauth code
         val credentialOffer = ObjectMapper().readTree(executeGetRequest(credentialOfferUri))
         log.info("Credential Offer: $credentialOffer")
@@ -42,7 +44,7 @@ class CredentialOfferServiceImpl() : CredentialOfferService {
         val credential = executePostRequestWithAuth(credentialEndpoint, mapOf() ,authToken)
 
         //5. Save credential into wallet DB memory table
-
+        persistenceService.saveVC(credential, user)
         //TODO return base64 Certificate
         return credential
     }

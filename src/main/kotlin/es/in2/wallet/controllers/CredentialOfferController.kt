@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/wallet/credential-offers")
+@RequestMapping("/api/credential-offers")
 class CredentialOfferController(
     private val credentialOfferService: CredentialOfferService,
     private val authorizationService: AuthorizationService
@@ -14,10 +14,12 @@ class CredentialOfferController(
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun getCredentialOfferFromCredentialOfferUri(@RequestParam(name = "credential_offer_uri") credentialOfferUri: String): String {
-        return credentialOfferService.getCredentialOffer(credentialOfferUri)
+    fun getCredentialOfferFromCredentialOfferUri(@RequestParam(name = "credential_offer_uri") credentialOfferUri: String,
+                                                 @RequestParam(name = "credential_offer_uri") user: String): String {
+        return credentialOfferService.getCredentialOffer(credentialOfferUri, user)
     }
 
+    @Deprecated("Don't use")
     @GetMapping("/token")
     @ResponseStatus(HttpStatus.OK)
     fun getToken(@RequestParam(name = "grant_type") grantType: String,
