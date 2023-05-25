@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.net.URI
-import java.util.UUID
+import java.util.*
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,17 +28,17 @@ class AuthController(private val appUserService: AppUserService){
             }
         }
 
-        // Put location header
-        val location: URI = ServletUriComponentsBuilder
-            .fromCurrentRequest()
-            .path("/{id}")
-            .buildAndExpand(uuid)
-            .toUri()
-        println(location)
+        val location: URI = URI.create("$uuid")
+
         val headers = HttpHeaders()
         headers["Location"] = location.toString()
         return ResponseEntity.created(location)
             .headers(headers)
             .build()
+    }
+
+    @GetMapping("/users/{uuid}")
+    fun getUserId(@PathVariable uuid: String): Optional<AppUser> {
+        return appUserService.getUserById(UUID.fromString(uuid))
     }
 }
