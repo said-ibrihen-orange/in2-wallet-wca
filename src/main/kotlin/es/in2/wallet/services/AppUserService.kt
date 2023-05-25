@@ -8,7 +8,8 @@ import java.util.*
 
 interface AppUserService {
     fun getUserByUsername(username: String): AppUser?
-    fun saveUser(appUser: AppUser)
+    fun getUserById(uuid: UUID): Optional<AppUser>
+    fun saveUser(appUser: AppUser): UUID?
     fun deleteUsers()
     fun getUsers(): List<AppUser>
     fun registerUser(username: String):UUID
@@ -24,8 +25,14 @@ class AppUserServiceImpl(
         return appUserRepository.findByUsername(username)
     }
 
-    override fun saveUser(appUser: AppUser) {
-        appUserRepository.save(appUser)
+    override fun getUserById(uuid: UUID): Optional<AppUser> {
+        println(appUserRepository.findAll())
+        return appUserRepository.findById(uuid)
+    }
+
+    override fun saveUser(appUser: AppUser): UUID? {
+        return appUserRepository.save(appUser).id
+
     }
 
     override fun deleteUsers() {
@@ -43,8 +50,8 @@ class AppUserServiceImpl(
         }
         val uuid = UUID.randomUUID()
         // Save user
-        this.saveUser(AppUser(uuid,username))
-        return uuid
+        return this.saveUser(AppUser(uuid,username))!!
+
     }
 
 
