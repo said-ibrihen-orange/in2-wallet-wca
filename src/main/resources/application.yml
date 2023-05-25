@@ -43,3 +43,6 @@ management:
 app:
   url:
     api: https://localhost:8083
+
+fiware:
+  url: http://localhost:1026

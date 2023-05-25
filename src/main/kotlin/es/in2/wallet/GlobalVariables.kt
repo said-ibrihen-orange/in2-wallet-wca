@@ -1,5 +1,6 @@
 package es.in2.wallet
 
+
 class GlobalVariables()
 
 const val JWT = "JWT"
@@ -20,6 +21,7 @@ const val ISSUER_TOKEN_PROPERTY_NAME = "iss"
 const val VERIFIABLE_CREDENTIAL_PROPERTY_NAME = "verifiableCredential"
 const val UNIVERSAL_RESOLVER_URL = "https://dev.uniresolver.io/1.0/identifiers"
 
+const val FIWARE_URL = "http://localhost:1026"
 
 
 
