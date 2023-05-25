@@ -14,8 +14,8 @@ class CredentialOfferController(
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun getCredentialOfferFromCredentialOfferUri(@RequestParam(name = "credential_offer_uri") credentialOfferUri: String) {
-        credentialOfferService.getCredentialOffer(credentialOfferUri)
+    fun getCredentialOfferFromCredentialOfferUri(@RequestParam(name = "credential_offer_uri") credentialOfferUri: String): String {
+        return credentialOfferService.getCredentialOffer(credentialOfferUri)
     }
 
     @GetMapping("/token")

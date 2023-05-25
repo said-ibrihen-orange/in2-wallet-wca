@@ -13,6 +13,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
+@Deprecated("Not Use AuthorizationService")
 interface AuthorizationService {
     fun getToken(grantType: String, preAuthorizedCode : String, userPin : String): String
 }
