@@ -19,8 +19,8 @@ class VerifiableCredentialController(private val persistenceService: Persistence
     fun createVerifiableCredential(
         @RequestBody verifiableCredential: String,
         @PathVariable userid: String
-    ) {
-        persistenceService.saveVC(verifiableCredential, userid)
+    ): String {
+        return persistenceService.saveVC(verifiableCredential, userid)
     }
 
     @GetMapping("/{userid}")

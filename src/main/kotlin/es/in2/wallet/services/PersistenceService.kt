@@ -15,7 +15,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 interface PersistenceService {
-    fun saveVC(vc: String, userid: String)
+    fun saveVC(vc: String, userid: String): String
     fun getVCByType(userid:String,vcId:String,vcType: String): String
     fun getVCs(userid: String): String
     fun getVCsByType(userid: String, type: String): String
@@ -28,7 +28,14 @@ interface PersistenceService {
 class PersistenceServiceImpl:PersistenceService{
     @Value("\${fiware.url}")
     private var fiwareURL: String? = null
-    override fun saveVC(vc: String, userid: String) {
+
+    /**
+     * Save the VC in the FIWARE Context Broker
+     * @param vcData the VC data
+     * @return the id of the entity
+     */
+
+    override fun saveVC(vc: String, userid: String): String {
 
         // Parse the VC to get the credential ID the json
         val parsedVerifiableCredential = SignedJWT.parse(vc)
@@ -83,7 +90,7 @@ class PersistenceServiceImpl:PersistenceService{
         vcJSONData["vc"] = vcJSONDataCredential
 
         saveVC(vcJSONData)
-
+        return credentialID.toString()
     }
 
     /**

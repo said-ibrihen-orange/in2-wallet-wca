@@ -10,7 +10,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import es.in2.wallet.services.PersistenceService
+
 interface ExecuteContentService {
     fun executeQR(contentQR: String): Any
     fun getAuthenticationRequest(url: String): AuthRequestContent
@@ -20,7 +20,8 @@ interface ExecuteContentService {
 @Service
 class ExecuteContentImpl(
     private val requestTokenVerificationService: RequestTokenVerificationService,
-    private val persistenceService: PersistenceService
+    private val persistenceService: PersistenceService,
+    private val credentialOfferService: CredentialOfferService
 ) : ExecuteContentService {
 
     private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
@@ -34,7 +35,7 @@ class ExecuteContentImpl(
     private fun checkQRType(content: String): QRType {
         val loginUrlRegex = Regex("(https|http).*?(verifier).*")
         val authRequestRegex = Regex("openid://.*")
-        val vcUrlRegex = Regex("https://.*")
+        val vcUrlRegex = Regex("(https|http).*?(credential-offer)")
         val vcContentRegex = Regex("ey.*")
         println("Matches loginUrlRegex: ${loginUrlRegex.matches(content)}")
         return when {
@@ -79,15 +80,14 @@ class ExecuteContentImpl(
 
     private fun executeVCUrl(contentQR: String): String {
         log.info("ExecuteContentImpl - executeVCUrl() - contentQR: $contentQR")
-        // Todo - get VC from URL
-
-        return "VC URL"
+        // Todo - return credential id
+        return credentialOfferService.getCredentialOffer(contentQR, "1")
     }
     private fun executeVCContent(contentQR: String): String {
         log.info("ExecuteContentImpl - executeVCContent() - contentQR: $contentQR")
         // TODO - i need the uuis of the user
-        persistenceService.saveVC(contentQR, "uuid")
-        return "VC_SAVED"
+        return persistenceService.saveVC(contentQR, "uuid")
+
     }
 
     override fun getAuthenticationRequest(url: String): AuthRequestContent {
