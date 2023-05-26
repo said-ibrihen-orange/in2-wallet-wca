@@ -22,6 +22,11 @@ const val VERIFIABLE_CREDENTIAL_PROPERTY_NAME = "verifiableCredential"
 const val UNIVERSAL_RESOLVER_URL = "https://dev.uniresolver.io/1.0/identifiers"
 
 const val FIWARE_URL = "http://localhost:1026"
+const val PRE_AUTH_CODE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+const val CONTENT_TYPE = "Content-Type"
+const val APPLICATION_JSON = "application/json"
+const val URL_ENCODED_FORM = "application/x-www-form-urlencoded"
+const val HEADER_AUTHORIZATION = "Authorization"
 
 
 

@@ -1,6 +1,6 @@
 package es.in2.wallet.controllers
 
-import es.in2.wallet.entities.AppUser
+import es.in2.wallet.domain.entities.AppUser
 import es.in2.wallet.services.AppUserService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus

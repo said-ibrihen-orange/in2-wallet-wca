@@ -1,6 +1,7 @@
 package es.in2.wallet.controllers
 
 import es.in2.wallet.exceptions.DidVerificationException
+import es.in2.wallet.exceptions.NoSuchQrContentException
 import es.in2.wallet.exceptions.RequestTokenException
 import es.in2.wallet.exceptions.VerificationException
 import org.apache.logging.log4j.LogManager
@@ -33,6 +34,12 @@ class WalletGlobalControllerExceptionHandler {
     @ExceptionHandler(RequestTokenException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleRequestTokenVerificationException(e: Exception): ResponseEntity<Unit> {
+        log.error(e.message)
+        return ResponseEntity(HttpStatus.BAD_REQUEST)
+    }
+    @ExceptionHandler(NoSuchQrContentException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleNoSuchQrContentException(e: Exception): ResponseEntity<Unit> {
         log.error(e.message)
         return ResponseEntity(HttpStatus.BAD_REQUEST)
     }

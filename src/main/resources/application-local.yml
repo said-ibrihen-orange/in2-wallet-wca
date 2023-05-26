@@ -17,7 +17,15 @@ spring:
     user:
       name: in2test
       password: in2pass
-
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/EAAProvider
+#          resource-id: oidc4vci-client
+#          resource-secret: f0GZ3F5Okjgptrrf9WMjmlkqRK5kyTF1
+          did: did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa
+          token-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/verifiable-credential/${spring.security.oauth2.resourceserver.jwt.did}/token
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
 server:
   port: 8083
 

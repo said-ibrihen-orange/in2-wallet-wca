@@ -1,5 +1,6 @@
 package es.in2.wallet.controllers
 
+
 import es.in2.wallet.services.CredentialOfferService
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -12,8 +13,11 @@ class CredentialOfferController(
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun getCredentialOfferFromCredentialOfferUri(@RequestParam(name = "credential_offer_uri") credentialOfferUri: String) {
-        credentialOfferService.getCredentialOffer(credentialOfferUri)
+    fun getCredentialOfferFromCredentialOfferUri(@RequestParam(name = "credential_offer_uri") credentialOfferUri: String,
+                                                 @RequestParam(name = "credential_offer_uri") user: String) {
+        credentialOfferService.getCredentialOffer(credentialOfferUri, user)
     }
+
+
 
 }
