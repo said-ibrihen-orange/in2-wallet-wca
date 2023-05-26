@@ -41,6 +41,7 @@ dependencies {
 	//implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server:3.0.5")
 	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-aop")
 
 	// Kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

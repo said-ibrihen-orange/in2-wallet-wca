@@ -1,8 +1,6 @@
 package es.in2.wallet.services
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.nimbusds.jose.JWSObject
 import com.nimbusds.jwt.SignedJWT
 import org.json.JSONArray
 import org.springframework.beans.factory.annotation.Value
@@ -18,23 +16,22 @@ interface PersistenceService {
     fun saveVC(vc: String, userid: String): String
     fun getVCByType(userid:String,vcId:String,vcType: String): String
     fun getVCs(userid: String): String
-    fun getVCsByType(userid: String, type: String): String
+    fun getVCsByFormat(userid: String, vcFormat: String): String
     fun deleteVC(userid: String, vcId: String)
-
-    fun getVCsByVCType(userid: String, vcType: List<String>): ArrayList<String>
+    fun getVCsByVCType(userid: String, vcTypeList: List<String>): ArrayList<String>
 }
 
 @Service
-class PersistenceServiceImpl:PersistenceService{
+class PersistenceServiceImpl: PersistenceService {
+
     @Value("\${fiware.url}")
     private var fiwareURL: String? = null
 
     /**
      * Save the VC in the FIWARE Context Broker
-     * @param vcData the VC data
+     * @param vc the VC data
      * @return the id of the entity
      */
-
     override fun saveVC(vc: String, userid: String): String {
 
         // Parse the VC to get the credential ID the json
@@ -106,7 +103,6 @@ class PersistenceServiceImpl:PersistenceService{
         if (response.get().statusCode() == 404) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
         }
-
         return response.get().body()
     }
 
@@ -115,7 +111,6 @@ class PersistenceServiceImpl:PersistenceService{
         val requestBody = objectMapper
             .writerWithDefaultPrettyPrinter()
             .writeValueAsString(vcJWT)
-
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create("$fiwareURL/v2/entities"))
@@ -127,8 +122,6 @@ class PersistenceServiceImpl:PersistenceService{
             throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Entity already exists")
         }
     }
-
-
 
     override fun getVCs(userid: String): String {
         val client = HttpClient.newBuilder().build()
@@ -146,15 +139,15 @@ class PersistenceServiceImpl:PersistenceService{
     /**
      * Get the VCs by type (vc_jwt or vc_json)
      */
-    override fun getVCsByType(userid: String, type: String): String {
+    override fun getVCsByFormat(userid: String, vcFormat: String): String {
         val client = HttpClient.newBuilder().build()
         val request = HttpRequest.newBuilder()
-            .uri(URI.create("$fiwareURL/v2/entities?type=$type&user_ID=$userid"))
+            .uri(URI.create("$fiwareURL/v2/entities?type=$vcFormat&user_ID=$userid"))
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with type: $type not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with type: $vcFormat not found")
         }
         return response.get().body()
     }
@@ -180,11 +173,10 @@ class PersistenceServiceImpl:PersistenceService{
         }
     }
 
-    override fun getVCsByVCType(userid: String, vcTypes: List<String>): ArrayList<String> {
-        var result = arrayListOf<String>()
-        for (vcType in vcTypes){
-            var vcTypeWithoutSpace = vcType.replace(" ".toRegex(), "")
-            println("contextBrokerURL: $fiwareURL/v2/entities?q=user_ID==$userid&q=vc.vc.type:$vcTypeWithoutSpace")
+    override fun getVCsByVCType(userid: String, vcTypeList: List<String>): ArrayList<String> {
+        val result = arrayListOf<String>()
+        for (vcType in vcTypeList){
+            val vcTypeWithoutSpace = vcType.replace(" ".toRegex(), "")
             val client = HttpClient.newBuilder().build()
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("$fiwareURL/v2/entities?q=user_ID==$userid&q=vc.vc.type:$vcTypeWithoutSpace"))
@@ -194,8 +186,6 @@ class PersistenceServiceImpl:PersistenceService{
             if (response.get().statusCode() == 404) {
                 throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
             }
-
-
             val vcArray = JSONArray(response.get().body())
             for (i in 0 until vcArray.length()) {
                 val vc = vcArray.getJSONObject(i)
@@ -203,14 +193,8 @@ class PersistenceServiceImpl:PersistenceService{
                 println("vcID: $vcID")
                 result.add(vcID)
             }
-
-
         }
-        println("result: $result")
         return result
-
-
-
     }
 
     /**
@@ -224,7 +208,4 @@ class PersistenceServiceImpl:PersistenceService{
 
 }
 
-class VCResponse (@JsonProperty("id") val id: String,
-                  @JsonProperty("type") val type: String,
-                  @JsonProperty("user_ID") val user_ID: String,
-                  @JsonProperty("vc") val vc: Any)
+

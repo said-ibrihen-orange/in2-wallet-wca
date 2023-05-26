@@ -3,6 +3,7 @@ package es.in2.wallet.services
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.nimbusds.jose.JWSObject
 import es.in2.wallet.OPEN_ID_PREFIX
+import es.in2.wallet.exceptions.NoSuchQrContentException
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
@@ -11,20 +12,20 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-interface ExecuteContentService {
-    fun executeQR(contentQR: String): Any
+interface ExecuteQrContentService {
+    fun executeQR(username:String,contentQR: String): Any
     fun getAuthenticationRequest(url: String): AuthRequestContent
     fun sendAuthenticationResponse( siopAuthenticationRequest: String, vp: String): String
 }
 
 @Service
-class ExecuteContentImpl(
+class ExecuteQrContentImpl(
     private val requestTokenVerificationService: RequestTokenVerificationService,
     private val persistenceService: PersistenceService,
     private val credentialOfferService: CredentialOfferService
-) : ExecuteContentService {
+) : ExecuteQrContentService {
 
-    private val log: Logger = LogManager.getLogger(ExecuteContentImpl::class.java)
+    private val log: Logger = LogManager.getLogger(ExecuteQrContentImpl::class.java)
     enum class QRType {
         LOGIN_URL,
         AUTH_REQUEST,
@@ -33,9 +34,9 @@ class ExecuteContentImpl(
         UNKNOWN
     }
     private fun checkQRType(content: String): QRType {
-        val loginUrlRegex = Regex("(https|http).*?(verifier).*")
+        val loginUrlRegex = Regex("(https|http).*?(authentication-request|authentication-requests).*")
         val authRequestRegex = Regex("openid://.*")
-        val vcUrlRegex = Regex("(https|http).*?(credential-offer)")
+        val vcUrlRegex = Regex("(https|http).*?(credential-offer|credential-offers).*")
         val vcContentRegex = Regex("ey.*")
         println("Matches loginUrlRegex: ${loginUrlRegex.matches(content)}")
         return when {
@@ -47,20 +48,19 @@ class ExecuteContentImpl(
         }
     }
 
-    override fun executeQR(contentQR: String): Any {
-
+    override fun executeQR(username: String,contentQR: String): Any {
         return when(checkQRType(contentQR)){
-            QRType.LOGIN_URL -> executeLoginUrl(contentQR)
-            QRType.AUTH_REQUEST -> executeAuthRequest(contentQR)
-            QRType.VC_URL -> executeVCUrl(contentQR)
-            QRType.VC_CONTENT -> executeVCContent(contentQR)
-            QRType.UNKNOWN -> "Unknown QR Type"
+            QRType.LOGIN_URL -> executeLoginUrl(username,contentQR)
+            QRType.AUTH_REQUEST -> executeSiopAuthRequest(username,contentQR)
+            QRType.VC_URL -> executeCredentialOfferUri(username,contentQR)
+            QRType.VC_CONTENT -> saveVcJwtInContextBroker(username,contentQR)
+            QRType.UNKNOWN -> NoSuchQrContentException("Unknown QR Type")
         }
     }
-    private fun executeLoginUrl(contentQR: String): ArrayList<String> {
-        log.info("ExecuteContentImpl - executeLoginUrl() - contentQR: $contentQR")
-        val authRequest = this.getAuthenticationRequest(contentQR).authRequest
-        return this.executeAuthRequest(authRequest)
+    private fun executeLoginUrl(username: String,loginRequestUrl: String): ArrayList<String> {
+        log.info("ExecuteContentImpl - executeLoginUrl() - contentQR: $loginRequestUrl")
+        val siopAuthRequest = this.getAuthenticationRequest(loginRequestUrl).authRequest
+        return this.executeSiopAuthRequest(username,siopAuthRequest)
     }
 
     /**
@@ -69,25 +69,22 @@ class ExecuteContentImpl(
      * @return VC
      * Return a collections of VC that the scope this the sama type of the vc
      */
-    private fun executeAuthRequest(contentQR: String): ArrayList<String> {
-        log.info("ExecuteContentImpl - executeAuthRequest() - contentQR: $contentQR")
+    private fun executeSiopAuthRequest(username: String,siopAuthenticationRequest: String): ArrayList<String> {
+        log.info("ExecuteContentImpl - executeAuthRequest() - contentQR: $siopAuthenticationRequest")
         // Get the scope from the authRequest
         val scopeRegex = Regex("scope=\\[([^]]+)]")
-        val scope = scopeRegex.find(contentQR)
-        val listCredentialType = scope?.groupValues?.get(1)?.split(",")
-        return persistenceService.getVCsByVCType("1", listCredentialType!!)
+        val scope = scopeRegex.find(siopAuthenticationRequest)
+        val listCredentialType = scope!!.groupValues[1].split(",")
+        return persistenceService.getVCsByVCType(username, listCredentialType)
     }
 
-    private fun executeVCUrl(contentQR: String): String {
-        log.info("ExecuteContentImpl - executeVCUrl() - contentQR: $contentQR")
-        // Todo - return credential id
-        return credentialOfferService.getCredentialOffer(contentQR, "1")
+    private fun executeCredentialOfferUri(username: String,credentialOfferUri: String){
+        log.info("ExecuteContentImpl - executeVCUrl() - contentQR: $credentialOfferUri")
+        credentialOfferService.getCredentialOffer(credentialOfferUri, username)
     }
-    private fun executeVCContent(contentQR: String): String {
-        log.info("ExecuteContentImpl - executeVCContent() - contentQR: $contentQR")
-        // TODO - i need the uuis of the user
-        return persistenceService.saveVC(contentQR, "uuid")
-
+    private fun saveVcJwtInContextBroker(username: String,vcJWT: String){
+        log.info("ExecuteContentImpl - executeVCContent() - contentQR: $vcJWT")
+        persistenceService.saveVC(vcJWT, username)
     }
 
     override fun getAuthenticationRequest(url: String): AuthRequestContent {

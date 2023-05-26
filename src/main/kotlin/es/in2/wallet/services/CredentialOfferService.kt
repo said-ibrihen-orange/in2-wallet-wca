@@ -2,6 +2,11 @@ package es.in2.wallet.services
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import es.in2.wallet.CONTENT_TYPE
+import es.in2.wallet.HEADER_AUTHORIZATION
+import es.in2.wallet.PRE_AUTH_CODE_GRANT_TYPE
+import es.in2.wallet.URL_ENCODED_FORM
+import es.in2.wallet.exceptions.FailedCommunicationException
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
@@ -10,11 +15,9 @@ import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.net.InetSocketAddress
-import java.net.ProxySelector
 
 fun interface CredentialOfferService {
-    fun getCredentialOffer(credentialOfferUri: String, user: String): String
+    fun getCredentialOffer(credentialOfferUri: String, user: String)
 }
 
 @Service
@@ -24,7 +27,7 @@ class CredentialOfferServiceImpl(
 
     private val log: Logger = LogManager.getLogger(CredentialOfferServiceImpl::class.java)
 
-    override fun getCredentialOffer(credentialOfferUri: String, user: String): String {
+    override fun getCredentialOffer(credentialOfferUri: String, user: String) {
         //1. Call credentialOfferUri, save credentialIssuer and preauth code
         val credentialOffer = ObjectMapper().readTree(executeGetRequest(credentialOfferUri))
         log.info("Credential Offer: $credentialOffer")
@@ -42,58 +45,37 @@ class CredentialOfferServiceImpl(
         val credentialType = credentialOffer["credentials"][0].asText()
         val credentialEndpoint = credentialIssuerMetadataObject["credentialEndpoint"].asText() + credentialType
         val credential = executePostRequestWithAuth(credentialEndpoint, mapOf() ,authToken)
-
         //5. Save credential into wallet DB memory table
         persistenceService.saveVC(credential, user)
-        //TODO return base64 Certificate
-        return credential
     }
 
     private fun getCredentialIssuerMetadata(credentialIssuerMetadataUri: String): String {
-        //val credentialOffer = ObjectMapper().readTree(responseBody)
-        //val credentialIssuerMetadata = credentialOffer["credentialIssuer"].asText() +
-        //            "/.well-known/openid-credential-issuer"
         return executeGetRequest(credentialIssuerMetadataUri)
     }
 
     private fun getCredentialToken(credentialOffer: JsonNode, tokenEndpoint: String): String {
-        //val credentialOfferObject = ObjectMapper().readTree(credentialOfferBody)
-        val preAuthorizedCodeObject = credentialOffer["grants"]["urn:ietf:params:oauth:grant-type:pre-authorized_code"]
-        val authToken = getToken(tokenEndpoint,"urn:ietf:params:oauth:grant-type:pre-authorized_code",
-            preAuthorizedCodeObject["preAuthorizedCode"].asText(), "")
-        return authToken
+        val preAuthorizedCodeObject = credentialOffer["grants"][PRE_AUTH_CODE_GRANT_TYPE]
+        return getToken(tokenEndpoint, preAuthorizedCodeObject["preAuthorizedCode"].asText(), "")
     }
 
-    private fun getToken(tokenEndpoint: String, grantType: String, preAuthorizedCode : String, userPin : String): String {
+    private fun getToken(tokenEndpoint: String, preAuthorizedCode : String,
+                         userPin : String): String {
 
         //Get new Token
         //TODO send code
         val data = mapOf(
-            "grant_type" to grantType,
+            "grant_type" to PRE_AUTH_CODE_GRANT_TYPE,
             "pre-authorized_code" to preAuthorizedCode
         )
-        var jsonBody = executePostRequest(tokenEndpoint, data);
-        log.info("**** Endpoint response: " +  jsonBody);
+        val jsonBody = executePostRequest(tokenEndpoint, data);
+        log.info("**** Endpoint response: $jsonBody");
 
         val jsonObject = ObjectMapper().readTree(jsonBody)
         //: AuthorizationResponse = gson.fromJson(jsonBody, AuthorizationResponse::class.java)
-        log.info("**** Endpoint response [Object]: " +  jsonBody);
+        log.info("**** Endpoint response [Object]: $jsonBody");
 
-//        //TODO move to next endpoint
-//        var token = jsonObject["access_token"].asText()
-//        //Validate preauthCode
-//        var response = executeGetRequest("http://localhost:8081/api/credential-offers/$preAuthorizedCode", token)
-//
-//        log.info("*** Credential Offers response: " +  response);
-//        var responseObject = ObjectMapper().readTree(response)
-//        if(preAuthorizedCode != responseObject["grants"]["urn:ietf:params:oauth:grant-type:pre-authorized_code"]["preAuthorizedCode"].asText()){
-//            throw Exception("PreAuthorizedCode is not valid")
-//        }
-
-//
-//        //TODO validate userPin
-//
-//        //Create Response
+        // TODO validate userPin
+        log.info(userPin)
 
         return jsonObject["access_token"].asText()
     }
@@ -105,35 +87,34 @@ class CredentialOfferServiceImpl(
             .build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .headers("Content-Type", "application/x-www-form-urlencoded")
+            .headers(CONTENT_TYPE, URL_ENCODED_FORM)
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() != 200) {
-            throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+            throw FailedCommunicationException("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         return response.get().body()
     }
 
-    private fun executePostRequest(url: String?, data: Map<String, String?>): String {
-
+    private fun executePostRequest(url: String, data: Map<String, String>): String {
         val client = HttpClient
             .newBuilder()
             //.proxy(ProxySelector.of(InetSocketAddress("localhost", 8085)))
             .build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .headers("Content-Type", "application/x-www-form-urlencoded")
+            .headers(CONTENT_TYPE, URL_ENCODED_FORM)
             .POST(formData(data))
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() != 200) {
-            throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+            throw FailedCommunicationException("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         return response.get().body()
     }
 
-    private fun executePostRequestWithAuth(url: String?, data: Map<String, String?>, authToken: String): String {
+    private fun executePostRequestWithAuth(url: String, data: Map<String, String>, authToken: String): String {
 
         val client = HttpClient
             .newBuilder()
@@ -141,23 +122,21 @@ class CredentialOfferServiceImpl(
             .build()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .headers("Content-Type", "application/x-www-form-urlencoded", "Authorization", "Bearer $authToken")
+            .headers(CONTENT_TYPE, URL_ENCODED_FORM,  HEADER_AUTHORIZATION, "Bearer $authToken")
             .POST(formData(data))
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() !in 200..299) {
-            throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+            throw FailedCommunicationException("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         return response.get().body()
     }
 
-    fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
+    fun String.utf8(): String = URLEncoder.encode(this,"UTF-8")
 
     fun formData(data: Map<String, String?>): HttpRequest.BodyPublisher? {
-
         val res = data.map { (k, v) -> "${(k.utf8())}=${v?.utf8()}" }
             .joinToString("&")
-
         return HttpRequest.BodyPublishers.ofString(res)
     }
 

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/dome?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3309/dome?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     username: in2admin #root
     password: in2pass #1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -26,7 +26,6 @@ spring:
           did: did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa
           token-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/verifiable-credential/${spring.security.oauth2.resourceserver.jwt.did}/token
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
-
 server:
   port: 8083
 

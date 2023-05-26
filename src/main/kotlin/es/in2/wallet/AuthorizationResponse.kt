@@ -1,25 +1,23 @@
 package es.in2.wallet
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.serialization.Serializable
+import com.fasterxml.jackson.annotation.JsonProperty
 
-@Serializable
 data class AuthorizationResponse(
-    val access_token: String,
-    val expires_in: Int,
-    val refresh_expires_in: Int,
-    val token_type : String,
-    val not_before_val_policy : Int,
+    @JsonProperty("access_token") val accessToken: String,
+    @JsonProperty("expires_in") val expiresIn: Int,
+    @JsonProperty("refresh_expires_in") val refreshExpiresIn: Int,
+    @JsonProperty("token_type") val tokenType : String,
+    @JsonProperty("not_before_val_policy") val notBeforeValPolicy : Int,
     val scope : String
 ) {
 
     override fun toString(): String {
-        return "Authorization Response [access_token: ${this.access_token}, " +
-                "expires_in: ${this.expires_in}, " +
-                "token_type: ${this.token_type}, " +
-                "not_before_val_policy: ${this.not_before_val_policy}, " +
+        return "Authorization Response [access_token: ${this.accessToken}, " +
+                "expires_in: ${this.expiresIn}, " +
+                "token_type: ${this.tokenType}, " +
+                "not_before_val_policy: ${this.notBeforeValPolicy}, " +
                 "scope: ${this.scope}, " +
-                "refresh_expires_in: ${this.refresh_expires_in}]"
+                "refresh_expires_in: ${this.refreshExpiresIn}]"
     }
+
 }

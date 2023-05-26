@@ -1,6 +1,6 @@
 package es.in2.wallet.services
 
-import es.in2.wallet.entities.AppUser
+import es.in2.wallet.domain.entities.AppUser
 import es.in2.wallet.repositories.AppUserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -50,7 +50,7 @@ class AppUserServiceImpl(
         }
         val uuid = UUID.randomUUID()
         // Save user
-        return this.saveUser(AppUser(uuid,username))!!
+        return this.saveUser(AppUser(uuid,username,"example.com"))!!
 
     }
 

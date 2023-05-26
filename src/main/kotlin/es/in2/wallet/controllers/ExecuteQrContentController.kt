@@ -1,9 +1,10 @@
 package es.in2.wallet.controllers
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import es.in2.wallet.JWT
+import es.in2.wallet.domain.dtos.QrContentDto
+import es.in2.wallet.domain.dtos.VpRequestDto
 import es.in2.wallet.services.AuthRequestContent
-import es.in2.wallet.services.ExecuteContentService
+import es.in2.wallet.services.ExecuteQrContentService
 import es.in2.wallet.services.SiopVerifiablePresentationService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -11,26 +12,26 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpStatus
-import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.*
-
 
 
 @RestController
 @RequestMapping("/api/execute-content")
-class ExecuteContentController(
-    private val executeContentService: ExecuteContentService,
+class ExecuteQrContentController(
+    private val executeContentService: ExecuteQrContentService,
     private val siopVerifiablePresentationService: SiopVerifiablePresentationService
 ) {
 
-    private val log: Logger = LogManager.getLogger(ExecuteContentController::class.java)
+    private val log: Logger = LogManager.getLogger(ExecuteQrContentController::class.java)
 
     @PostMapping
-    fun executeContent(@RequestBody qrContent: QrContent,
+    @ResponseStatus(HttpStatus.CREATED)
+    fun executeQrContent(@RequestBody qrContentDto: QrContentDto,
                        @RequestHeader headers:HashMap<String,String>): Any {
-        val UserUUid = headers["Location"]
-        log.info("ExecuteContentController - executeContent() - QR Content: ${qrContent.content}")
-        return executeContentService.executeQR(qrContent.content)
+        log.info("ExecuteContentController - executeContent() - QR Content: ${qrContentDto.content}")
+        //Fixme capture the user from principal and pass it to the service
+        val userUUID = "1"
+        return executeContentService.executeQR(userUUID,qrContentDto.content)
 
     }
 
@@ -38,8 +39,8 @@ class ExecuteContentController(
 
     @PostMapping("/get-siop-authentication-request")
     @ResponseStatus(HttpStatus.OK)
-    fun executeURL(@RequestBody qrContent: QrContent): AuthRequestContent {
-        return executeContentService.getAuthenticationRequest(qrContent.content)
+    fun executeURL(@RequestBody qrContentDto: QrContentDto): AuthRequestContent {
+        return executeContentService.getAuthenticationRequest(qrContentDto.content)
     }
 
     @Operation(summary = "Create a Verifiable Presentation with the Verifiable Credentials attached.")
@@ -53,26 +54,18 @@ class ExecuteContentController(
     )
     @PostMapping("/vp")
     @ResponseStatus(HttpStatus.OK)
-    fun executeURLVP(@RequestBody vpRequest: VpRequest): String {
+    fun executeURLVP(@RequestBody vpRequestDto: VpRequestDto): String {
         // create a verifiable presentation
         log.info("building Verifiable Presentation")
         val vp = siopVerifiablePresentationService.createVerifiablePresentation(
-            vpRequest.verifiableCredentials, JWT
+            vpRequestDto.verifiableCredentials, JWT
         )
         log.info("executing the post Authentication Response ")
         // send the verifiable presentation to the dome backend
         return executeContentService.sendAuthenticationResponse(
-            vpRequest.siopAuthenticationRequest, vp
+            vpRequestDto.siopAuthenticationRequest, vp
         )
     }
 }
 
-class VpRequest(
-    @JsonProperty("siop_authentication_request") val siopAuthenticationRequest: String,
-    @JsonProperty("vc_list") val verifiableCredentials: List<String>
-)
-
-class QrContent(
-    @JsonProperty("qr_content") val content: String
-)
 

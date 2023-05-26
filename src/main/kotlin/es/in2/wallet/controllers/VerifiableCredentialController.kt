@@ -34,7 +34,7 @@ class VerifiableCredentialController(private val persistenceService: Persistence
         @PathVariable type: String,
         @PathVariable userid: String
     ): String {
-        return persistenceService.getVCsByType(userid, type)
+        return persistenceService.getVCsByFormat(userid, type)
     }
 
     @GetMapping("/{userid}/{verifiableCredentialId}/type/{type}")
