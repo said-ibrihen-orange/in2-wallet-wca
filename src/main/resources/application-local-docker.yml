@@ -46,4 +46,4 @@ app:
     api: http://localhost:8083
 
 fiware:
-  url: http://localhost:1026
+  url: http://orion:1026
