@@ -2,6 +2,7 @@ package es.in2.wallet.services
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.nimbusds.jose.JWSObject
+import es.in2.wallet.JWT
 import es.in2.wallet.OPEN_ID_PREFIX
 import es.in2.wallet.exceptions.NoSuchQrContentException
 import org.apache.logging.log4j.LogManager
@@ -13,18 +14,22 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import org.json.JSONObject
 
 interface ExecuteQrContentService {
     fun executeQR(username:String,contentQR: String): Any
     fun getAuthenticationRequest(url: String): AuthRequestContent
     fun sendAuthenticationResponse( siopAuthenticationRequest: String, vp: String): String
+
+    fun executeVP(username: String,vps: List<String>, siopAuthenticationRequest: String): String
 }
 
 @Service
 class ExecuteQrContentImpl(
     private val requestTokenVerificationService: RequestTokenVerificationService,
     private val persistenceService: PersistenceService,
-    private val credentialOfferService: CredentialOfferService
+    private val credentialOfferService: CredentialOfferService,
+    private val siopVerifiablePresentationService: SiopVerifiablePresentationService
 ) : ExecuteQrContentService {
 
     private val log: Logger = LogManager.getLogger(ExecuteQrContentImpl::class.java)
@@ -77,7 +82,13 @@ class ExecuteQrContentImpl(
         val scopeRegex = Regex("scope=\\[([^]]+)]")
         val scope = scopeRegex.find(siopAuthenticationRequest)
         val listCredentialType = scope!!.groupValues[1].split(",")
-        return persistenceService.getVCsByVCTypes(username, listCredentialType)
+        val result = arrayListOf<String>()
+        result.add(siopAuthenticationRequest)
+        val vcs = persistenceService.getVCsByVCTypes(username, listCredentialType)
+        for (vc in vcs){
+            result.add(vc)
+        }
+        return result
     }
 
     private fun executeCredentialOfferUri(username: String,credentialOfferUri: String){
@@ -87,6 +98,25 @@ class ExecuteQrContentImpl(
     private fun saveVcJwtInContextBroker(username: String,vcJWT: String){
         log.info("ExecuteContentImpl - executeVCContent() - contentQR: $vcJWT")
         persistenceService.saveVC(vcJWT, username)
+    }
+
+    override fun executeVP(username: String,vps: List<String>, siopAuthenticationRequest: String): String {
+        log.info("building Verifiable Presentation")
+        val verifiableCredentials = ArrayList<String>()
+        for (vp in vps){
+            val tmp = persistenceService.getVCByFormat(username,vp,"vc_jwt")
+            val vc = JSONObject(tmp)
+            val token = vc.getJSONObject("vc").getString("value")
+            verifiableCredentials.add(token)
+        }
+        val vp = siopVerifiablePresentationService.createVerifiablePresentation(
+            verifiableCredentials, JWT
+        )
+        log.info("executing the post Authentication Response ")
+        // send the verifiable presentation to the dome backend
+        return this.sendAuthenticationResponse(
+            siopAuthenticationRequest, vp
+        )
     }
 
     override fun getAuthenticationRequest(url: String): AuthRequestContent {
@@ -110,7 +140,7 @@ class ExecuteQrContentImpl(
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() != 200) {
-            throw ResponseStatusException(HttpStatus.MULTI_STATUS,"Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         return response.get().body()
     }

@@ -1,6 +1,6 @@
 package es.in2.wallet.domain.entities
+
 import jakarta.persistence.*
-import jakarta.validation.constraints.Email
 import java.util.*
 
 @Entity
@@ -10,6 +10,4 @@ data class AppUser(
     @Column(unique = true, nullable = false)
     val username: String,
     var email: String,
-){
-
-}
+)

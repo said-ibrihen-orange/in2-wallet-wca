@@ -14,6 +14,8 @@ FROM docker.io/gradle:8.0.2-jdk AS build-env
 ARG SKIP_TESTS
 WORKDIR /appbuild
 COPY . /appbuild
+COPY src/main/resources/libs/waltid-ssikit.jar /appbuild/src/main/resources/libs/waltid-ssikit.jar
+COPY src/main/resources/libs/waltid-servicematrix-1.1.3.jar /appbuild/src/main/resources/libs/waltid-servicematrix-1.1.3.jar
 COPY --from=dos2unix-env /convert/gradlew .
 VOLUME /home/gradle/.gradle
 RUN if [ -z "$SKIP_TESTS" ]; \
