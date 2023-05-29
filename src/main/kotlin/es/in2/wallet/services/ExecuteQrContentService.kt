@@ -6,7 +6,9 @@ import es.in2.wallet.OPEN_ID_PREFIX
 import es.in2.wallet.exceptions.NoSuchQrContentException
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -75,7 +77,7 @@ class ExecuteQrContentImpl(
         val scopeRegex = Regex("scope=\\[([^]]+)]")
         val scope = scopeRegex.find(siopAuthenticationRequest)
         val listCredentialType = scope!!.groupValues[1].split(",")
-        return persistenceService.getVCsByVCType(username, listCredentialType)
+        return persistenceService.getVCsByVCTypes(username, listCredentialType)
     }
 
     private fun executeCredentialOfferUri(username: String,credentialOfferUri: String){
@@ -108,7 +110,7 @@ class ExecuteQrContentImpl(
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         if (response.get().statusCode() != 200) {
-            throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+            throw ResponseStatusException(HttpStatus.MULTI_STATUS,"Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         return response.get().body()
     }
@@ -134,7 +136,7 @@ class ExecuteQrContentImpl(
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         log.info("response = ${response.get().statusCode()}")
         if (response.get().statusCode() != 200) {
-            throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+            throw ResponseStatusException(HttpStatus.MULTI_STATUS,"Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
         }
         // access_token returned
         return response.get().body()
