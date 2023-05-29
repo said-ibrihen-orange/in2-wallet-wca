@@ -19,8 +19,8 @@ class VerifiableCredentialController(private val persistenceService: Persistence
     fun createVerifiableCredential(
         @RequestBody verifiableCredential: String,
         @PathVariable userid: String
-    ): String {
-        return persistenceService.saveVC(verifiableCredential, userid)
+    ){
+        persistenceService.saveVC(verifiableCredential, userid)
     }
 
     @GetMapping("/{userid}")
@@ -29,24 +29,25 @@ class VerifiableCredentialController(private val persistenceService: Persistence
         return persistenceService.getVCs(userid)
     }
 
-    @GetMapping("/{userid}/type/{type}")
-    fun getVerifiableCredentialByType(
-        @PathVariable type: String,
+    @GetMapping("/{userid}/format/{format}")
+    fun getVerifiableCredentialByFormat(
+        @PathVariable format: String,
         @PathVariable userid: String
     ): String {
-        return persistenceService.getVCsByFormat(userid, type)
+        return persistenceService.getVCsByFormat(userid, format)
     }
 
-    @GetMapping("/{userid}/{verifiableCredentialId}/type/{type}")
+    @GetMapping("/{userid}/{verifiableCredentialId}/format/{format}")
     fun getVerifiableCredentialById(
         @PathVariable userid: String,
         @PathVariable verifiableCredentialId: String,
-        @PathVariable type: String
+        @PathVariable format: String
     ): String {
-        return persistenceService.getVCByType(userid,verifiableCredentialId, type)
+        return persistenceService.getVCByFormat(userid,verifiableCredentialId,format )
     }
 
     @DeleteMapping("/{userid}/{verifiableCredentialId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteVerifiableCredential(
         @PathVariable userid: String,
         @PathVariable verifiableCredentialId: String
