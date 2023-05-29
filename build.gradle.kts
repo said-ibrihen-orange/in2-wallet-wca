@@ -20,8 +20,8 @@ configurations.implementation {
 }
 
 repositories {
-	mavenLocal()
 	mavenCentral()
+	mavenLocal()
 	maven("https://jitpack.io")
 	maven("https://maven.walt.id/repository/waltid/")
 	maven("https://maven.walt.id/repository/waltid-ssi-kit/")
@@ -37,8 +37,6 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-security")
-	//implementation("org.springframework.boot:spring-boot-starter-oauth2-client:3.0.5")
-	//implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server:3.0.5")
 	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-aop")
@@ -54,12 +52,11 @@ dependencies {
 	implementation("com.beust:klaxon:5.6")
 
 	// walt.id
-	implementation("id.walt:waltid-ssikit:1.2304101159.0")
+	implementation("id.walt:waltid-ssikit:1.2305121558.0") //1.2305121558.0 //1.2303271054.0
 	implementation("id.walt.servicematrix:WaltID-ServiceMatrix:1.1.3")
 
 	// nimbus
 	implementation("com.nimbusds:nimbus-jose-jwt:9.30.2")
-	//implementation("com.nimbusds:oauth2-oidc-sdk:10.7")
 
 	// persistence
 	testImplementation("com.h2database:h2:2.1.214")
@@ -86,7 +83,7 @@ dependencies {
 	testImplementation("org.mockito:mockito-core:3.12.4")
 	testImplementation("io.mockk:mockk:1.13.5")
 
-	// Json
+	// json
 	implementation("org.json:json:20230227")
 	implementation("com.googlecode.json-simple:json-simple:1.1.1")
 	implementation("com.google.code.gson:gson:2.10.1")
@@ -100,7 +97,6 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
-	//systemProperty("spring.profiles.active", "dev")
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)
 }
