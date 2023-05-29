@@ -21,14 +21,13 @@ configurations.implementation {
 
 repositories {
 	mavenCentral()
-	mavenLocal()
-	maven("https://jitpack.io")
-	maven("https://maven.walt.id/repository/waltid/")
-	maven("https://maven.walt.id/repository/waltid-ssi-kit/")
-	maven("https://repo.danubetech.com/repository/maven-public/")
 }
 
 dependencies {
+
+	// walt.id
+	implementation(files("src/main/resources/libs/waltid-ssikit.jar"))
+	implementation(files("src/main/resources/libs/waltid-servicematrix-1.1.3.jar"))
 
 	// Spring Boot
 	implementation("org.springframework.boot:spring-boot-starter")
@@ -50,10 +49,6 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
 	implementation("com.google.guava:guava:31.1-jre")
 	implementation("com.beust:klaxon:5.6")
-
-	// walt.id
-	implementation("id.walt:waltid-ssikit:1.2305121558.0") //1.2305121558.0 //1.2303271054.0
-	implementation("id.walt.servicematrix:WaltID-ServiceMatrix:1.1.3")
 
 	// nimbus
 	implementation("com.nimbusds:nimbus-jose-jwt:9.30.2")
