@@ -66,6 +66,19 @@ class ExecuteQrContentController(
             vpRequestDto.siopAuthenticationRequest, vp
         )
     }
+
+
+    @PostMapping("/vp/v2")
+    @ResponseStatus(HttpStatus.OK)
+    fun executeVPv2(@RequestBody vpRequestDto: VpRequestDto): String {
+        println("executing the post Authentication Response - verfiableaCredentials: ${vpRequestDto.verifiableCredentials}")
+        //Fixme capture the user from principal and pass it to the service
+        val username = "1"
+        return executeContentService.executeVP(username,vpRequestDto.verifiableCredentials, vpRequestDto.siopAuthenticationRequest)
+    }
+
+
+
 }
 
 
