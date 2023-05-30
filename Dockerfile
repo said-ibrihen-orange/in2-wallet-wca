@@ -9,5 +9,5 @@ FROM openjdk:17
 WORKDIR /app
 COPY --from=TEMP_BUILD /home/gradle/src/service-matrix.properties /app/
 COPY --from=TEMP_BUILD /home/gradle/src/configs /app/configs
-COPY --from=TEMP_BUILD /home/gradle/src/build/libs/*.jar /app/wallet-api-1.5.0.jar
+COPY --from=TEMP_BUILD /home/gradle/src/build/libs/*.jar /app/
 ENTRYPOINT ["java", "-jar", "/app/wallet-api-1.5.0.jar"]
