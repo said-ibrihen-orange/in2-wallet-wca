@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "es.in2"
-version = "2.0.0-SNAPSHOT"
+version = "1.5.0"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 configurations.implementation {
@@ -20,41 +20,42 @@ configurations.implementation {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven("https://jitpack.io")
+	maven("https://maven.walt.id/repository/waltid/")
+	maven("https://maven.walt.id/repository/waltid-ssi-kit/")
+	maven("https://repo.danubetech.com/repository/maven-public/")
 }
 
 dependencies {
 
-	// walt.id
-	implementation(files("src/main/resources/libs/waltid-ssikit.jar"))
-	implementation(files("src/main/resources/libs/waltid-servicematrix-1.1.3.jar"))
-
 	// Spring Boot
-	implementation("org.springframework.boot:spring-boot-starter")
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-security")
-	testImplementation("org.springframework.security:spring-security-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-aop")
 
 	// Kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-	// Works with @Json() or @Serializable
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
-	implementation("com.google.guava:guava:31.1-jre")
-	implementation("com.beust:klaxon:5.6")
+	// walt.id
+	implementation("id.walt:waltid-ssikit:1.2305121558.0")
+	implementation("id.walt.servicematrix:WaltID-ServiceMatrix:1.1.3")
 
-	// nimbus
+	// nimbus-jjwt
 	implementation("com.nimbusds:nimbus-jose-jwt:9.30.2")
+	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
-	// persistence
-	testImplementation("com.h2database:h2:2.1.214")
+	// json
+	implementation("org.json:json:20230227")
+	implementation("com.googlecode.json-simple:json-simple:1.1.1")
+	implementation("com.google.code.gson:gson:2.10.1")
+
+	// mysql
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// lombok
@@ -67,21 +68,16 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-common:2.0.4")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4")
 
-	// security
-	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
-	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
-
 	// testing
+	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-aop")
+	testImplementation("com.h2database:h2:2.1.214")
 	testImplementation ("org.junit.jupiter:junit-jupiter-api:5.8.1")
 	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 	testImplementation("org.mockito:mockito-core:3.12.4")
 	testImplementation("io.mockk:mockk:1.13.5")
 
-	// json
-	implementation("org.json:json:20230227")
-	implementation("com.googlecode.json-simple:json-simple:1.1.1")
-	implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.withType<KotlinCompile> {
