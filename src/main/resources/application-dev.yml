@@ -46,4 +46,4 @@ app:
     api: https://walletapidev.in2.es
 
 fiware:
-  url: http://localhost:1026
+  url: http://wallet-orion:1026
