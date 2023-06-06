@@ -2,6 +2,7 @@ package es.in2.wallet.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
+import es.in2.wallet.exceptions.NoSuchVerifiableCredentialException
 import org.json.JSONArray
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -192,6 +193,11 @@ class PersistenceServiceImpl: PersistenceService {
                 result.retainAll(tmpResult.toSet())
             }
         }
+
+        if(result.isEmpty()) {
+            throw NoSuchVerifiableCredentialException("There is no Verifiable Credential stored in Context Broker")
+        }
+
         return result
     }
 

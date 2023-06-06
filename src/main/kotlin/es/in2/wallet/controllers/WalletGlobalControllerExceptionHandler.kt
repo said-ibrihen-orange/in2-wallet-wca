@@ -1,9 +1,6 @@
 package es.in2.wallet.controllers
 
-import es.in2.wallet.exceptions.DidVerificationException
-import es.in2.wallet.exceptions.NoSuchQrContentException
-import es.in2.wallet.exceptions.RequestTokenException
-import es.in2.wallet.exceptions.VerificationException
+import es.in2.wallet.exceptions.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpStatus
@@ -42,6 +39,13 @@ class WalletGlobalControllerExceptionHandler {
     fun handleNoSuchQrContentException(e: Exception): ResponseEntity<Unit> {
         log.error(e.message)
         return ResponseEntity(HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(NoSuchVerifiableCredentialException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun handleNoSuchVerifiableCredentialException(e: Exception): ResponseEntity<Unit> {
+        log.error(e.message)
+        return ResponseEntity(HttpStatus.NOT_FOUND)
     }
 
 }
