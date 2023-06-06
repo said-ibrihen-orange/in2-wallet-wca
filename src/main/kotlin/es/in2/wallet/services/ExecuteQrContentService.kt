@@ -71,23 +71,33 @@ class ExecuteQrContentImpl(
     }
 
     /**
-     * This method is used to execute the authentication request
+     * This method is used to execute the SIOP Authentication Request (openid://)
      * @param contentQR
      * @return VC
-     * Return a collections of VC that the scope this the sama type of the vc
+     * Return a collections of VC that the scope this the same type of the vc
      */
     private fun executeSiopAuthRequest(username: String,siopAuthenticationRequest: String): ArrayList<String> {
         log.info("ExecuteContentImpl - executeAuthRequest() - contentQR: $siopAuthenticationRequest")
         // Get the scope from the authRequest
+
         val scopeRegex = Regex("scope=\\[([^]]+)]")
         val scope = scopeRegex.find(siopAuthenticationRequest)
-        val listCredentialType = scope!!.groupValues[1].split(",")
+
+        // Check if scope is null, if it is null use the default, if not, use the scope list attached
+        val listCredentialType: List<String> = if(scope != null) {
+            scope.groupValues[1].split(",")
+        } else {
+            listOf("VerifiableId")
+        }
+
+        // Esto es temporal, se usa para pasar el openid:// porque no tenemos sesión establecida aún
         val result = arrayListOf<String>()
         result.add(siopAuthenticationRequest)
-        val vcs = persistenceService.getVCsByVCTypes(username, listCredentialType)
-        for (vc in vcs){
-            result.add(vc)
-        }
+
+        val storedVerifiableCredentialList = persistenceService.getVCsByVCTypes(username, listCredentialType)
+
+        storedVerifiableCredentialList.forEach { result.add(it) }
+
         return result
     }
 
