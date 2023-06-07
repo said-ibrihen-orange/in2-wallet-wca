@@ -1,7 +1,15 @@
 package es.in2.wallet.security
 
-import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.security.Keys
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.nimbusds.jose.JWSVerifier
+import com.nimbusds.jose.crypto.ECDSAVerifier
+import com.nimbusds.jose.jwk.ECKey
+import com.nimbusds.jwt.SignedJWT
+import es.in2.wallet.exception.AccessTokenException
+import es.in2.wallet.util.BEARER_PREFIX
+import es.in2.wallet.util.USER_ROLE
+import es.in2.wallet.util.WalletUtils
+import es.in2.wallet.waltid.CustomKeyService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
@@ -11,43 +19,62 @@ import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import java.io.IOException
-import java.security.Key
 
 class JWTAuthorizationFilter(
     authenticationManager: AuthenticationManager,
-    private val customUserDetailsService: CustomUserDetailsService
+    private val customKeyService: CustomKeyService
 ) : BasicAuthenticationFilter(authenticationManager) {
 
     private val log: Logger = LogManager.getLogger(JWTAuthorizationFilter::class.java)
 
+    private val walletDID = WalletUtils.walletIssuerDID
+
     @Throws(IOException::class, ServletException::class)
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
-        val authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain
+    ) {
+        // get access_token from header
+        val accessToken = request.getHeader(HttpHeaders.AUTHORIZATION)
+        // verify if access_token starts with bearer prefix and is not null
+        if (accessToken == null || !accessToken.startsWith(BEARER_PREFIX)) {
             log.info("No JWT token found in request headers")
             chain.doFilter(request, response)
             return
         }
-        val secret = "dRgUkXp2s5v8x/A?D(G+KbPeShVmYq3t6w9z/B&E)H@McQfTjWnZr4u7x!A%D*G-"
-        val key: Key? = Keys.hmacShaKeyFor(secret.toByteArray())
-        val claims = Jwts.parserBuilder()
-            .setSigningKey(key)
-            .build()
-            .parseClaimsJws(authorizationHeader.replace("Bearer ", ""))
-        val userDetail = customUserDetailsService.loadUserByUsername(claims.body.subject)
-        if (userDetail.username != null) {
-            log.info("Username: ${userDetail.username}")
-            val principalDetails = User(userDetail.username, "", userDetail.authorities)
-            val authentication = UsernamePasswordAuthenticationToken(
-                principalDetails, null, userDetail.authorities
-            )
-            SecurityContextHolder.getContext().authentication = authentication
-        }
+        // parse access_token to SignedJWT
+        val signedJwtAccessToken = SignedJWT.parse(accessToken.replace(BEARER_PREFIX, ""))
+        // Verify access_token signature
+        accessTokenVerification(signedJwtAccessToken)
+        // get JWT Claims Set
+        val jwtClaimsSet = ObjectMapper().readTree(signedJwtAccessToken.jwtClaimsSet.toString())
+        // build user
+        val username = jwtClaimsSet["username"].asText()
+        val authorities = ArrayList<GrantedAuthority>()
+        authorities.add(SimpleGrantedAuthority(USER_ROLE))
+        val principalDetails = User(username, "", authorities)
+        val authentication = UsernamePasswordAuthenticationToken(principalDetails, null, authorities)
+        SecurityContextHolder.getContext().authentication = authentication
+
         chain.doFilter(request, response)
+    }
+
+    private fun accessTokenVerification(signedJwtAccessToken: SignedJWT): Boolean {
+        val ecKey: ECKey = customKeyService.getECKeyFromKid(walletDID)
+        val ecPublicJWK: ECKey = ecKey.toPublicJWK()
+        val verifier: JWSVerifier = ECDSAVerifier(ecPublicJWK)
+        return if (signedJwtAccessToken.verify(verifier)) {
+            true
+        } else {
+            throw AccessTokenException("The 'access_token' is not valid")
+        }
     }
 
 }

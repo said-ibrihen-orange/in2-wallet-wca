@@ -9,11 +9,12 @@ import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import es.in2.wallet.model.dto.BasicAuthCredentialsDTO
+import es.in2.wallet.service.AppUserService
+import es.in2.wallet.util.BEARER_PREFIX
 import es.in2.wallet.util.SIOP_AUDIENCE
+import es.in2.wallet.util.USER_ROLE
+import es.in2.wallet.util.WalletUtils
 import es.in2.wallet.waltid.CustomKeyService
-import es.in2.wallet.waltid.impl.CustomDidServiceImpl
-import es.in2.wallet.waltid.impl.CustomKeyServiceImpl
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -35,20 +36,22 @@ import java.util.*
 @Slf4j
 class JWTAuthenticationFilter(
     private val authenticationManager: AuthenticationManager,
-    private val customKeyService: CustomKeyService
+    private val customKeyService: CustomKeyService,
+    private val appUserService: AppUserService,
 ) : UsernamePasswordAuthenticationFilter() {
 
     private val log: Logger = LoggerFactory.getLogger(JWTAuthenticationFilter::class.java)
 
-    //generate did:key for the Wallet Organization
-    private val walletIssuerDID = CustomDidServiceImpl(CustomKeyServiceImpl()).generateDidKey()
+    private val walletDID = WalletUtils.walletIssuerDID
 
     @Throws(AuthenticationException::class)
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         try {
-            val credentials = ObjectMapper().readValue(request.inputStream, BasicAuthCredentialsDTO::class.java)
+            val credentials = ObjectMapper().readTree(request.inputStream)
+            val username = credentials["username"]
+            val password = credentials["password"]
             return authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(credentials.username, credentials.password, ArrayList())
+                UsernamePasswordAuthenticationToken(username.asText(), password.asText(), ArrayList())
             )
         } catch (e: IOException) {
             log.error(e.message)
@@ -67,38 +70,49 @@ class JWTAuthenticationFilter(
                 element.forEach { authClaims.add(it.toString()) }
             }
             // create the access_token
-            val accessToken = createAccessToken()
+            val accessToken = createAccessToken(authentication)
             // add access_token to the response HttpServletResponse
-            response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
+            response.addHeader(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken)
+
         } catch (e: Exception) {
             log.error(e.message)
         }
     }
 
-    private fun createAccessToken(): String {
+    private fun createAccessToken(authentication: Authentication): String {
+
         // get ECKey
-        val ecJWK: ECKey = customKeyService.getECKeyFromKid(walletIssuerDID)
+        val ecJWK: ECKey = customKeyService.getECKeyFromKid(walletDID)
+
         // build Signer of the JWS
         val signer: JWSSigner = ECDSASigner(ecJWK)
+
         // create the JWT Header
         val jwsHeader = JWSHeader.Builder(JWSAlgorithm.ES256)
-            .keyID(walletIssuerDID)
+            .keyID(walletDID)
             .type(JOSEObjectType.JWT)
             .build()
+
         // create the JWT Payload
+        val userData = appUserService.getUserByUsername(authentication.name).get()
         val instant = Instant.now()
         val claimsSet: JWTClaimsSet = JWTClaimsSet.Builder()
-            .issuer(walletIssuerDID)
-            .subject(walletIssuerDID)
+            .issuer(walletDID)
+            .subject(userData.id.toString())
             .audience(SIOP_AUDIENCE)
             .issueTime(Date.from(instant))
             .expirationTime(Date.from(instant.plusSeconds(6000)))
-            .claim("", "")
+            .claim("username", userData.username)
+            .claim("email", userData.email)
+            .claim("roles", listOf(USER_ROLE))
             .build()
+
         // build JWT
         val signedJWT = SignedJWT(jwsHeader, claimsSet)
+
         // execute signature
         signedJWT.sign(signer)
+
         return signedJWT.serialize()
     }
 

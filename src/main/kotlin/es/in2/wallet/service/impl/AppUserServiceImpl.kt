@@ -20,6 +20,7 @@ class AppUserServiceImpl(
     private val log: Logger = LoggerFactory.getLogger(AppUserServiceImpl::class.java)
 
     override fun registerUser(appUserRequestDTO: AppUserRequestDTO) {
+        log.info("AppUserServiceImpl.registerUser()")
         checkIfUsernameAlreadyExist(appUserRequestDTO)
         checkIfEmailAlreadyExist(appUserRequestDTO)
         val appUser = AppUser(
@@ -28,36 +29,44 @@ class AppUserServiceImpl(
             email = appUserRequestDTO.email,
             password = BCryptPasswordEncoder().encode(appUserRequestDTO.password)
         )
+        log.info(appUser.id.toString())
         saveUser(appUser)
     }
 
     override fun getUsers(): List<AppUser> {
+        log.info("AppUserServiceImpl.getUsers()")
         return listOf(appUserRepository.findAll()).flatten()
     }
 
     override fun getUserById(uuid: UUID): Optional<AppUser> {
+        log.info("AppUserServiceImpl.getUserById()")
         return appUserRepository.findById(uuid)
     }
 
     override fun getUserByUsername(username: String): Optional<AppUser> {
-        return appUserRepository.findByUsername(username)
+        log.info("AppUserServiceImpl.getUserByUsername()")
+        return appUserRepository.findAppUserByUsername(username)
     }
 
     override fun getUserByEmail(email: String): Optional<AppUser> {
-        return appUserRepository.findByEmail(email)
+        log.info("AppUserServiceImpl.getUserByEmail()")
+        return appUserRepository.findAppUserByEmail(email)
     }
 
     private fun saveUser(appUser: AppUser) {
+        log.info("AppUserServiceImpl.saveUser()")
         appUserRepository.save(appUser)
     }
 
     private fun checkIfUsernameAlreadyExist(appUserRequestDTO: AppUserRequestDTO) {
+        log.info("AppUserServiceImpl.checkIfUsernameAlreadyExist()")
         if (getUserByUsername(appUserRequestDTO.username).isPresent) {
             throw UsernameAlreadyExistsException("Username already exists: ${appUserRequestDTO.username}")
         }
     }
 
     private fun checkIfEmailAlreadyExist(appUserRequestDTO: AppUserRequestDTO) {
+        log.info("AppUserServiceImpl.checkIfEmailAlreadyExist()")
         if (getUserByEmail(appUserRequestDTO.email).isPresent) {
             throw EmailAlreadyExistsException("Email already exists: ${appUserRequestDTO.email}")
         }

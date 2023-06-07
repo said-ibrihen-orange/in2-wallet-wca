@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Component
+import java.util.*
+import kotlin.collections.ArrayList
 
 @Slf4j
 @Component
@@ -33,10 +35,10 @@ class CustomUserDetailsService(
     private fun checkIfUserExists(username: String): AppUser {
         log.debug("CustomUserDetailsService.checkIfUserExists()")
         val userFound = appUserService.getUserByUsername(username)
-        if (userFound.isEmpty) {
-            throw NoSuchElementException("The username $username does not exist.")
-        } else {
+        if (userFound.isPresent) {
             return userFound.get()
+        } else {
+            throw NoSuchElementException("The username $username does not exist.")
         }
     }
 

@@ -16,26 +16,21 @@ class OpenAPIConfig(
 ) {
 
     @Bean
-    fun myOpenAPI(): OpenAPI? {
+    fun myOpenAPI(): OpenAPI {
         // defining servers info
-
         val localServer = Server()
         localServer.url = localUrl
         localServer.description = "Server URL in Local environment"
-
         val devServer = Server()
         devServer.url = devUrl
         devServer.description = "Server URL in Dev environment"
-
         // defining contact info
         val contact = Contact()
         contact.email = "oriol.canades@in2.es"
         contact.name = "IN2"
         contact.url = "https://in2.es"
-
         // defining license info
         val mitLicense: License = License().name("MIT License").url("https://choosealicense.com/licenses/mit/")
-
         // defining application info
         val info: Info = Info()
             .title("IN2 Wallet API")
@@ -45,7 +40,6 @@ class OpenAPIConfig(
             // TODO define Terms Of Service
             .termsOfService("https://www.in2.es")
             .license(mitLicense)
-
         return OpenAPI().info(info).servers(listOf(localServer, devServer))
     }
 
