@@ -1,5 +1,6 @@
 package es.in2.wallet.security
 
+import es.in2.wallet.waltid.CustomKeyService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -23,7 +24,9 @@ const val ALL = "*"
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 class WebSecurityConfig(
-    private val authConfiguration: AuthenticationConfiguration
+    private val authConfiguration: AuthenticationConfiguration,
+    private val customKeyService: CustomKeyService,
+    private val customUserDetailsService: CustomUserDetailsService
 ) {
 
     @Bean
@@ -46,8 +49,15 @@ class WebSecurityConfig(
                 disable()
             }
             authorizeRequests {
-                authorize(HttpMethod.GET, "/api/**", permitAll)
+                authorize(HttpMethod.GET, "/api/**", authenticated)
+                authorize(HttpMethod.POST, "/api/**", authenticated)
             }
+            addFilterAt<JWTAuthenticationFilter>(
+                JWTAuthenticationFilter(authenticationManager(), customKeyService)
+            )
+            addFilterAt<JWTAuthorizationFilter>(
+                JWTAuthorizationFilter(authenticationManager(), customUserDetailsService)
+            )
             sessionManagement {
                 sessionCreationPolicy = SessionCreationPolicy.STATELESS
             }

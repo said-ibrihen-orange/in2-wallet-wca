@@ -1,99 +1,66 @@
 package es.in2.wallet.services
 
-import es.in2.wallet.domain.entities.AppUser
-import es.in2.wallet.repositories.AppUserRepository
+import es.in2.wallet.exception.EmailAlreadyExistsException
+import es.in2.wallet.exception.UsernameAlreadyExistsException
+import es.in2.wallet.model.AppUser
+import es.in2.wallet.model.dto.AppUserRequestDTO
+import es.in2.wallet.repository.AppUserRepository
+import es.in2.wallet.service.AppUserService
+import es.in2.wallet.service.impl.AppUserServiceImpl
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.mockito.Mockito
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.*
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
 import java.util.*
 
 @SpringBootTest
 class AppUserServiceImplTest {
 
-    private var mockRepository = Mockito.mock(AppUserRepository::class.java)
-    private var appUserService = AppUserServiceImpl(mockRepository)
+    private val appUserRepository: AppUserRepository = mock(AppUserRepository::class.java)
+    private val appUserService: AppUserService = AppUserServiceImpl(appUserRepository)
 
-    @BeforeEach
-    fun setUp() {
-        mockRepository = Mockito.mock(AppUserRepository::class.java)
-        appUserService = AppUserServiceImpl(mockRepository)
+    @Test
+    fun testRegisterUser() {
+        val appUserRequestDTO = AppUserRequestDTO(username = "jdoe", email = "jdoe@example.com", password = "1234")
+        val appUser = AppUser(UUID.randomUUID(), "jdoe", "jdoe@example.com", "hashedPassword")
+        `when`(appUserRepository.findByUsername(appUserRequestDTO.username)).thenReturn(Optional.empty())
+        `when`(appUserRepository.findByEmail(appUserRequestDTO.email)).thenReturn(Optional.empty())
+        `when`(appUserRepository.save(any(AppUser::class.java))).thenReturn(appUser)
+        appUserService.registerUser(appUserRequestDTO)
+        verify(appUserRepository).findByUsername(appUserRequestDTO.username)
+        verify(appUserRepository).findByEmail(appUserRequestDTO.email)
+        verify(appUserRepository).save(any(AppUser::class.java))
     }
 
     @Test
-    fun getUserByUsername() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
-        val allAppUsers = listOf(
-            AppUser(uuid1,"user1","example.com"),
-            AppUser(uuid2,"user2","example.com"),
-            AppUser(uuid3,"user3","example.com")
-        )
-        Mockito.`when`(mockRepository.findAll()).thenReturn(allAppUsers)
-        Mockito.`when`(mockRepository.findByUsername("user2")).thenReturn(AppUser(uuid2,"user2","example.com"))
-        val expected = AppUser(uuid2,"user2","example.com")
-        val actual = appUserService.getUserByUsername("user2")
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun getUsers() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
-        val allAppUsers = listOf(
-            AppUser(uuid1,"user1","example.com"),
-            AppUser(uuid2,"user2","example.com"),
-            AppUser(uuid3,"user3","example.com")
-        )
-        Mockito.`when`(mockRepository.findAll()).thenReturn(allAppUsers)
-        val expected = listOf(
-            AppUser(uuid1,"user1","example.com"),
-            AppUser(uuid2,"user2","example.com"),
-            AppUser(uuid3,"user3","example.com")
-        )
-        val actual = appUserService.getUsers()
-        assertEquals(expected, actual, "The lists of users are not equal")
-    }
-
-    @Test
-    fun registerUser() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
-        val uuidRegister = UUID.randomUUID()
-        val allAppUsers = listOf(
-            AppUser(uuid1,"user1","example.com"),
-            AppUser(uuid2,"user2","example.com"),
-            AppUser(uuid3,"user3","example.com")
-        )
-        Mockito.`when`(mockRepository.findAll()).thenReturn(allAppUsers)
-        Mockito.`when`(mockRepository.findByUsername("user4")).thenReturn(null)
-        Mockito.`when`(mockRepository.save(AppUser(uuidRegister,"user4","example.com"))).thenReturn(AppUser(uuidRegister,"user4","example.com"))
-        // val actual = appUserService.registerUser("user4")
-        // Can´t check the uuid because it is generated randomly -> assert it is not null
-        // assertNotNull( actual, "The uuid is null") remove this test tmp
-    }
-
-    @Test
-    fun registerUserAlreadyExists() {
-        val uuid1 = UUID.randomUUID()
-        val uuid2 = UUID.randomUUID()
-        val uuid3 = UUID.randomUUID()
-        val allAppUsers = listOf(
-            AppUser(uuid1,"user1","example.com"),
-            AppUser(uuid2,"user2","example.com"),
-            AppUser(uuid3,"user3","example.com")
-        )
-        Mockito.`when`(mockRepository.findAll()).thenReturn(allAppUsers)
-        Mockito.`when`(mockRepository.findByUsername("user3")).thenReturn(AppUser(uuid3,"user3","example.com"))
-        assertThrows(Exception::class.java) {
-            appUserService.registerUser("user3")
+    fun testRegisterUser_UsernameAlreadyExists() {
+        val appUserRequestDTO = AppUserRequestDTO(username = "jdoe", email = "jdoe@example.com", password = "1234")
+        val existingUser = AppUser(UUID.randomUUID(), "jdoe", "jdoe@example.com", "hashedPassword")
+        `when`(appUserRepository.findByUsername(appUserRequestDTO.username)).thenReturn(Optional.of(existingUser))
+        try {
+            appUserService.registerUser(appUserRequestDTO)
+        } catch (e: UsernameAlreadyExistsException) {
+            assertThat(e.message).isEqualTo("Username already exists: ${appUserRequestDTO.username}")
         }
+        verify(appUserRepository).findByUsername(appUserRequestDTO.username)
+        verifyNoMoreInteractions(appUserRepository)
+    }
+
+    @Test
+    fun testRegisterUser_EmailAlreadyExists() {
+        val appUserRequestDTO = AppUserRequestDTO(username = "jdoe", email = "jdoe@example.com", password = "1234")
+        val existingUser = AppUser(UUID.randomUUID(), "jdoe", "jdoe@example.com", "hashedPassword")
+        `when`(appUserRepository.findByUsername(appUserRequestDTO.username)).thenReturn(Optional.empty())
+        `when`(appUserRepository.findByEmail(appUserRequestDTO.email)).thenReturn(Optional.of(existingUser))
+        try {
+            appUserService.registerUser(appUserRequestDTO)
+        } catch (e: EmailAlreadyExistsException) {
+            assertThat(e.message).isEqualTo("Email already exists: ${appUserRequestDTO.email}")
+        }
+        verify(appUserRepository).findByUsername(appUserRequestDTO.username)
+        verify(appUserRepository).findByEmail(appUserRequestDTO.email)
+        verifyNoMoreInteractions(appUserRepository)
     }
 
 }
