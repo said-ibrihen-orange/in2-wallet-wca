@@ -60,7 +60,17 @@ class AppUserControllerTest {
     @Test
     fun testGetUserByUUID() {
         given(appUserService.getUserById(uuid)).willReturn(Optional.of(appUser))
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/users/users/$uuid"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users/uuid?uuid=$uuid"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(uuid.toString()))
+            .andExpect(jsonPath("$.username").value("jdoe"))
+            .andExpect(jsonPath("$.email").value("jdoe@example.com"))
+    }
+
+    @Test
+    fun testGetUserByUsername() {
+        given(appUserService.getUserByUsername(appUser.username)).willReturn(Optional.of(appUser))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users/username?username=${appUser.username}"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(uuid.toString()))
             .andExpect(jsonPath("$.username").value("jdoe"))
