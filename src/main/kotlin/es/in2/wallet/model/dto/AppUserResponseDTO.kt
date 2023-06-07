@@ -1,6 +1,6 @@
 package es.in2.wallet.model.dto
 
-class AppUserResponseDTO(
+data class AppUserResponseDTO(
     val uuid: String,
     val username: String,
     val email: String,

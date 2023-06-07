@@ -11,8 +11,10 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.springframework.boot.test.context.SpringBootTest
 import java.util.*
 
+@SpringBootTest
 class SiopServiceImplTest {
 
     private var tokenVerificationService: TokenVerificationService = Mockito.mock(TokenVerificationService::class.java)
@@ -24,46 +26,24 @@ class SiopServiceImplTest {
             "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." +
             "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
-    @Test
-    fun testGetSiopAuthenticationRequest_ValidUri() {
-//        // Mock dependencies
-//        `when`(personalDataSpaceService.getVerifiableCredentialsByVcType(userUUID, listOf("VerifiableId")))
-//            .thenReturn(mutableListOf("vc1", "vc2"))
-//        // Call the method
-//        val result = siopService.getSiopAuthenticationRequest(userUUID, siopAuthRequestUri)
-//        // Verify the calls and assertions
-//        verify(tokenVerificationService).verifySiopAuthRequestAsJwsFormat(siopAuthRequest)
-//        verify(personalDataSpaceService).getVerifiableCredentialsByVcType(userUUID, listOf("VerifiableId"))
-//        assertEquals(mutableListOf(siopAuthRequest, "vc1", "vc2"), result)
-    }
 
     @Test
-    fun testGetSiopAuthenticationRequest_InvalidUri() {
-//        // Call the method and assert the exception
-//        assertThrows<Exception> {
-//            siopService.getSiopAuthenticationRequest(userUUID, siopAuthRequestUri)
-//        }
-    }
-
-    @Test
-    fun testProcessSiopAuthenticationRequest() {
-//        // Mock dependencies
-//        `when`(personalDataSpaceService.getVerifiableCredentialsByVcType(userUUID, listOf("VerifiableId")))
-//            .thenReturn(mutableListOf("vc1", "vc2"))
-//        // Call the method
-//        val result = siopService.processSiopAuthenticationRequest(userUUID, siopAuthRequest)
-//        // Verify the calls and assertions
-//        verify(personalDataSpaceService).getVerifiableCredentialsByVcType(userUUID, listOf("VerifiableId"))
-//        assertEquals(mutableListOf(siopAuthRequest, "vc1", "vc2"), result)
-    }
-
-    @Test
-    fun testSendAuthenticationResponse() {
-//        // Mock dependencies
-//        // Call the method
-//        val response = siopService.sendAuthenticationResponse(siopAuthRequest, "vp")
-//        // Verify the calls and assertions
-//        // Add your assertions for the response as per your requirements
+    fun testGetSiopAuthenticationRequest() {
+        // Mock the behavior of getSiopAuthenticationRequestInJwsFormat
+        `when`(siopService.getSiopAuthenticationRequest(userUUID, siopAuthRequestUri))
+            .thenReturn(mutableListOf("VerifiableId"))
+        // Mock the behavior of getAuthRequestClaim
+        val siopAuthenticationRequest = "siopAuthenticationRequest"
+        `when`(siopService.processSiopAuthenticationRequest(userUUID, siopAuthRequestUri))
+            .thenReturn(mutableListOf("VerifiableId"))
+        // Mock the behavior of processSiopAuthenticationRequest
+        val result = mutableListOf("VerifiableId")
+        `when`(siopService.processSiopAuthenticationRequest(userUUID, siopAuthenticationRequest))
+            .thenReturn(result)
+        // Call the getSiopAuthenticationRequest method
+        val response = siopService.getSiopAuthenticationRequest(userUUID, siopAuthRequestUri)
+        // Verify the result
+        assertEquals(result, response)
     }
 
 }

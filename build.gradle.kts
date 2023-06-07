@@ -40,8 +40,9 @@ dependencies {
 	// Kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    testImplementation("org.testng:testng:7.1.0")
 
-	// Persistence Layer
+    // Persistence Layer
 	runtimeOnly("com.h2database:h2:2.1.214")
 	runtimeOnly("com.mysql:mysql-connector-j")
 
