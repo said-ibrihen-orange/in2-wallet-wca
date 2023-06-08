@@ -69,12 +69,10 @@ class QrCodeProcessorServiceImplTest {
         val qrContent =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9" +
                     "lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-        `when`(personalDataSpaceService.saveVC(qrContent)).thenReturn("SavedVC")
         // Call the method
         val result = qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
         verify(personalDataSpaceService).saveVC(qrContent)
-        Assertions.assertEquals("SavedVC", result)
     }
 
     @Test

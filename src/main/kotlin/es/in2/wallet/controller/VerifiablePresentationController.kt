@@ -36,7 +36,7 @@ class VerifiablePresentationController(
             )
         ]
     )
-    @PostMapping("/vp")
+    @PostMapping
     @ResponseStatus(HttpStatus.OK)
     fun executeURLVP(@RequestBody vpRequestDto: VpRequestDTO): String {
         // create a verifiable presentation
@@ -49,10 +49,8 @@ class VerifiablePresentationController(
     @PostMapping("/vp/v2")
     @ResponseStatus(HttpStatus.OK)
     fun executeVPv2(@RequestBody vpRequestDto: VpRequestDTO): String {
-        val authentication: Authentication = SecurityContextHolder.getContext().authentication
-        val appUser = authentication.principal as AppUser
-        val userUUID: UUID = appUser.id!!
-        return verifiablePresentationService.executeVP(userUUID, vpRequestDto.verifiableCredentials,
+
+        return verifiablePresentationService.executeVP(vpRequestDto.verifiableCredentials,
             vpRequestDto.siopAuthenticationRequest)
     }
 

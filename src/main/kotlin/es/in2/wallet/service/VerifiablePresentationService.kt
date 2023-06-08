@@ -4,6 +4,6 @@ import java.util.UUID
 
 interface VerifiablePresentationService {
     fun createVerifiablePresentation(verifiableCredentials: List<String>, format: String): String
-    fun executeVP(userUUID: UUID, vps: List<String>, siopAuthenticationRequest: String): String
+    fun executeVP(vps: List<String>, siopAuthenticationRequest: String): String
 }
 

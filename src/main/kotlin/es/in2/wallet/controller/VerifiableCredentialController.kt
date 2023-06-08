@@ -18,14 +18,14 @@ class VerifiableCredentialController(
         personalDataSpaceService.saveVC(verifiableCredential)
     }
 
-    @GetMapping("/{userid}")
-    fun getVerifiableCredential(@PathVariable userid: String): String {
-        return personalDataSpaceService.getVCs()
+    @GetMapping
+    fun getVerifiableCredential(): MutableList<String> {
+        return personalDataSpaceService.getAllVerifiableCredentialsByAppUser()
     }
 
     @GetMapping("/{userid}/format/{format}")
     fun getVerifiableCredentialByFormat(@PathVariable format: String, @PathVariable userid: String): String {
-        return personalDataSpaceService.getVCsByFormat(format)
+        return personalDataSpaceService.getVcListByFormat(format)
     }
 
     @GetMapping("/{userid}/{verifiableCredentialId}/format/{format}")
@@ -33,7 +33,7 @@ class VerifiableCredentialController(
         @PathVariable userid: String, @PathVariable verifiableCredentialId: String,
         @PathVariable format: String
     ): String {
-        return personalDataSpaceService.getVCByFormat(verifiableCredentialId, format)
+        return personalDataSpaceService.getVcByFormat(verifiableCredentialId, format)
     }
 
     @DeleteMapping("/{userid}/{verifiableCredentialId}")

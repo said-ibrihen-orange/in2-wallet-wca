@@ -1,19 +1,12 @@
 package es.in2.wallet.service
 
-import java.util.*
-
 interface PersonalDataSpaceService {
-
-    fun getVcListByVcTypeList(vcTypeList: List<String>): List<String>
-
-    fun saveVC(vcJwt: String): String
-
-
-    fun getVCByFormat(vcId: String, vcFormat: String): String
-    fun getVCs(): String
-    fun getVCsByFormat(vcFormat: String): String
-    fun deleteVC(vcId: String)
-//    fun getVCsByVCTypes(userUUID: UUID, vcTypeList: List<String>): ArrayList<String>
+    fun saveVC(vcJwt: String)
+    fun getAllVerifiableCredentialsByAppUser(): MutableList<String>
+    fun getVcIdListByVcTypeList(vcTypeList: List<String>): List<String>
+    fun getVcByFormat(vcId: String, vcFormat: String): String
+    fun getVcListByFormat(vcFormat: String): String
+    fun deleteVC(id: String)
 }
 
 

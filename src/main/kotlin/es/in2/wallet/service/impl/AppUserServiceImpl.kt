@@ -22,6 +22,7 @@ class AppUserServiceImpl(
     private val log: Logger = LoggerFactory.getLogger(AppUserServiceImpl::class.java)
 
     override fun getUserWithContextAuthentication(): AppUser {
+        log.info("AppUserServiceImpl.getUserWithContextAuthentication()")
         val authentication: Authentication = SecurityContextHolder.getContext().authentication
         return getUserByUsername(authentication.name).get()
     }

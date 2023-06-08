@@ -1,10 +1,15 @@
 package es.in2.wallet.service.impl
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
 import com.nimbusds.jwt.SignedJWT
-import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
 import es.in2.wallet.service.AppUserService
+import es.in2.wallet.service.PersonalDataSpaceService
+import es.in2.wallet.util.ApplicationUtils
+import es.in2.wallet.util.VC_JSON
+import es.in2.wallet.util.VC_JWT
 import org.json.JSONArray
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -12,158 +17,80 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.util.*
 
 @Service
 class PersonalDataSpaceServiceImpl(
-    private val appUserService : AppUserService,
+    private val appUserService: AppUserService,
+    private val applicationUtils: ApplicationUtils,
     @Value("\${app.url.orion_context_broker}") private val contextBrokerEntitiesURL: String
-): PersonalDataSpaceService {
+) : PersonalDataSpaceService {
 
     private val log: Logger = LoggerFactory.getLogger(PersonalDataSpaceServiceImpl::class.java)
 
-    override fun getVcListByVcTypeList(vcTypeList: List<String>): List<String> {
-        log.info("PersonalDataSpaceServiceImpl.getVcListByVcTypeList()")
+    override fun saveVC(vcJwt: String) {
+        log.info("PersonalDataSpaceServiceImpl.saveVC()")
+        val userUUID = getUserUUIDFromContextAuthentication()
+        // Get the vc stored in the vc_jwt and parsed in JSON format
+        val vcInJsonFormat = getVcInJsonFormatFromVcInJwtFormat(vcJwt)
+        // Get VerifiableCredentialId
+        val verifiableCredentialId = getVerifiableCredentialIdFromVcInVcJwt(vcInJsonFormat)
+        // Persist the Verifiable Credential in JWT format
+        val vcAsJwtContextBrokerObject =
+            buildContextBrokerObjectWithVcInJwtFormat(userUUID, verifiableCredentialId, vcJwt)
+        persistVcInContextBroker(vcAsJwtContextBrokerObject)
+        // Persist the Verifiable Credential in JSON format
+        val vcAsJsonContextBrokerObject =
+            buildContextBrokerObjectWithVcInJsonFormat(userUUID, verifiableCredentialId, vcInJsonFormat)
+        persistVcInContextBroker(vcAsJsonContextBrokerObject)
+    }
 
-        // get user session
-        val userSession = appUserService.getUserWithContextAuthentication()
-        val userUUID = userSession.id!!
-
+    override fun getAllVerifiableCredentialsByAppUser(): MutableList<String> {
+        log.info("PersonalDataSpaceServiceImpl.getAllVerifiableCredentialsByAppUser()")
+        val userUUID = getUserUUIDFromContextAuthentication()
+        val body = applicationUtils.getRequest("$contextBrokerEntitiesURL?user_ID=$userUUID")
         val result = mutableListOf<String>()
+        JSONArray(body).forEach {
+            result.add(it.toString())
+        }
+        return result
+    }
 
-        vcTypeList.forEach {
-            val vcTypeFormatted = it.replace(" ".toRegex(), "")
-            val tmpResult = arrayListOf<String>()
-
-            val responseBody =
-                getRequestToContextBroker("$contextBrokerEntitiesURL?user_ID=$userUUID&q=vc.type:$vcTypeFormatted")
-
-            val vcArray = JSONArray(responseBody)
-            for (i in 0 until vcArray.length()) {
-                val vc = vcArray.getJSONObject(i)
-                val vcID = vc.getString("id")
-                println("vcID: $vcID")
-                tmpResult.add(vcID)
-            }
-            if (result.isEmpty()) {
-                result.addAll(tmpResult)
-            } else {
-                result.retainAll(tmpResult.toSet())
+    override fun getVcIdListByVcTypeList(vcTypeList: List<String>): List<String> {
+        log.info("PersonalDataSpaceServiceImpl.getVcListByVcTypeList()")
+        val result = mutableListOf<String>()
+        val parsedAppUserVcList = ObjectMapper().readTree(getVcListByFormat(VC_JSON))
+        parsedAppUserVcList.forEach {
+            val tempList = mutableListOf<String>()
+            // Capture vc_types from VC (it)
+            it["vc"]["value"]["type"].forEach { at -> tempList.add(at.asText()) }
+            // If vc_types matches with vc_types requested, save vc_id
+            if(tempList.containsAll(vcTypeList)) {
+                result.add(it["id"].asText())
             }
         }
         checkIfResultIsEmpty(result)
         return result
     }
 
-    private fun getRequestToContextBroker(url: String): String {
-        val client = HttpClient.newBuilder().build()
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .GET()
-            .build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        checkStatusResponse(response.get().statusCode())
-        return response.get().body()
+    override fun getVcByFormat(vcId: String, vcFormat: String): String {
+        // Get user session
+        val userUUID = getUserUUIDFromContextAuthentication()
+        return applicationUtils.getRequest("$contextBrokerEntitiesURL/$vcId?type=$vcFormat&user_ID=$userUUID")
     }
 
-
-    // To refactor
-
-    /**
-     * Save the Verifiable Credential in the User Personal Data Space
-     */
-    override fun saveVC(vcJwt: String): String {
-        // get user session
-        val userSession = appUserService.getUserWithContextAuthentication()
-        val userUUID = userSession.id!!
-
-        // Parse the VC to get the credential ID the json
-        val verifiableCredentialId = getVerifiableCredentialIdFromVcJwt(vcJwt)
-        // Persist the Verifiable Credential in JWT format
-        val vcJwtContextBrokerObject = buildVcJwtFormatObject(verifiableCredentialId, userUUID, vcJwt)
-        persistVcInContextBroker(vcJwtContextBrokerObject)
-        // Persist the Verifiable Credential in JSON format
-        val vcJsonContextBrokerObject = buildVcJsonFormatObject(verifiableCredentialId, userUUID)
-        persistVcInContextBroker(vcJsonContextBrokerObject)
-        // FIXME por qué devolemos algo?
-        return verifiableCredentialId
+    // FIXME si devuelve VCs debe ser List<String> no String
+    override fun getVcListByFormat(vcFormat: String): String {
+        // Get user session
+        val userUUID = getUserUUIDFromContextAuthentication()
+        return applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID")
     }
 
-    private fun buildVcJwtFormatObject(verifiableCredentialId: String, userUUID: UUID, vcJwtFormat: String):
-            MutableMap<String, Any> {
-        return mutableMapOf(
-            Pair("id", verifiableCredentialId),
-            Pair("type", "vc_jwt"),
-            Pair("user_ID", mutableMapOf(
-                Pair("type", "String"),
-                Pair("value", userUUID.toString())
-            )),
-            Pair("vc", mutableMapOf(
-                Pair("type", "String"),
-                Pair("value", vcJwtFormat)
-            ))
-        )
-    }
-
-    private fun buildVcJsonFormatObject(verifiableCredentialId: String, userUUID: UUID): MutableMap<String, Any> {
-        return mutableMapOf(
-            Pair("id", verifiableCredentialId),
-            Pair("type", "vc_json"),
-            Pair("user_ID", mutableMapOf(
-                Pair("type", "String"),
-                Pair("value", userUUID.toString())
-            )),
-            Pair("vc", mutableMapOf(
-                Pair("type", "JSON"),
-                Pair("value", verifiableCredentialId)
-            ))
-        )
-    }
-
-    private fun persistVcInContextBroker(vcJWT: MutableMap<String, Any>) {
-        val objectMapper = ObjectMapper()
-        val requestBody = objectMapper
-            .writerWithDefaultPrettyPrinter()
-            .writeValueAsString(vcJWT)
-        val client = HttpClient.newBuilder().build()
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(contextBrokerEntitiesURL))
-            .headers("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-            .build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        if (response.get().statusCode() == 422) {
-            throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Entity already exists")
-        }
-    }
-
-    private fun getVerifiableCredentialIdFromVcJwt(vc: String): String {
-        val parsedVerifiableCredential = SignedJWT.parse(vc)
-        val payloadToJson = parsedVerifiableCredential.payload.toJSONObject()
-        val verifiableCredential = payloadToJson["vc"]
-        val verifiableCredentialID = if (verifiableCredential is MutableMap<*, *>) {
-            verifiableCredential["id"].toString()
-        } else {
-            null
-        }
-        checkIfCredentialIdIsNullOrEmpty(verifiableCredentialID)
-        return verifiableCredentialID.toString()
-    }
-
-    private fun checkIfCredentialIdIsNullOrEmpty(credentialID: Any?) {
-        if(credentialID == null) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Verifiable Credential does not contain an id")
-        }
-    }
-
-    private fun checkStatusResponse(statusCode: Int) {
-        if (statusCode == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
-        }
+    override fun deleteVC(id: String) {
+        //delete vc_jwt
+        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=vc_jwt")
+        // delete vc_json
+        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=vc_json")
     }
 
     private fun checkIfResultIsEmpty(result: MutableList<String>) {
@@ -172,108 +99,90 @@ class PersonalDataSpaceServiceImpl(
         }
     }
 
-
-
-    // TODO to refactor
-
-
-
-
-
-    /**
-     * Get the VC by format (vc_jwt or vc_json)
-     */
-    override fun getVCByFormat(vcId: String, vcFormat: String): String {
-        // get user session
+    private fun getUserUUIDFromContextAuthentication(): UUID {
         val userSession = appUserService.getUserWithContextAuthentication()
-        val userUUID = userSession.id!!
-
-        val client = HttpClient.newBuilder().build()
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("$contextBrokerEntitiesURL/$vcId?type=$vcFormat&user_ID=$userUUID"))
-            .GET()
-            .build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found")
-        }
-        return response.get().body()
+        return userSession.id!!
     }
 
-
-
-    override fun getVCs(): String {
-        // get user session
-        val userSession = appUserService.getUserWithContextAuthentication()
-        val userUUID = userSession.id!!
-
-        val client = HttpClient.newBuilder().build()
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("$contextBrokerEntitiesURL?user_ID=$userUUID"))
-            .GET()
-            .build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
-        }
-        return response.get().body()
+    private fun getVcInJsonFormatFromVcInJwtFormat(vcJwt: String): JsonNode {
+        log.info("PersonalDataSpaceServiceImpl.getVcInJsonFormatFromVcInJwtFormat()")
+        // Parse the vc_jwt to a readable JSWObject
+        val parsedVcJwt = SignedJWT.parse(vcJwt)
+        // Get the payload from vc_jwt
+        val parsedVcJwtPayload = ObjectMapper().readTree(parsedVcJwt.payload.toString())
+        // Get 'vc' claim of the payload
+        return parsedVcJwtPayload["vc"]
     }
 
-    /**
-     * Get the VCs by type (vc_jwt or vc_json)
-     */
-    override fun getVCsByFormat(vcFormat: String): String {
-
-        // get user session
-        val userSession = appUserService.getUserWithContextAuthentication()
-        val userUUID = userSession.id!!
-
-        val client = HttpClient.newBuilder().build()
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID"))
-            .GET()
-            .build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Entity with type: $vcFormat not found")
-        }
-        return response.get().body()
+    private fun getVerifiableCredentialIdFromVcInVcJwt(vcInJsonFormat: JsonNode): String {
+        log.info("PersonalDataSpaceServiceImpl.getVerifiableCredentialIdFromVcInVcJwt()")
+        // Get the ID of the Verifiable Credential and verify it is not null or empty
+        val verifiableCredentialId = vcInJsonFormat["id"]
+        checkIfCredentialIdIsNull(verifiableCredentialId)
+        // return the verifiable_credential_id as a String
+        return verifiableCredentialId.asText()
     }
 
-    override fun deleteVC(vcId: String) {
+    private fun buildContextBrokerObjectWithVcInJwtFormat(
+        userUUID: UUID, verifiableCredentialId: String,
+        vcJwtFormat: String
+    ): MutableMap<String, Any> {
+        log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJwtFormat()")
+        return mutableMapOf(
+            Pair("id", verifiableCredentialId),
+            Pair("type", "vc_jwt"),
+            Pair(
+                "user_ID", mutableMapOf(
+                    Pair("type", "String"),
+                    Pair("value", userUUID.toString())
+                )
+            ),
+            Pair(
+                "vc", mutableMapOf(
+                    Pair("type", "String"),
+                    Pair("value", vcJwtFormat)
+                )
+            )
+        )
+    }
 
-        // get user session
-        val userSession = appUserService.getUserWithContextAuthentication()
-        val userUUID = userSession.id!!
+    private fun buildContextBrokerObjectWithVcInJsonFormat(
+        userUUID: UUID, verifiableCredentialId: String,
+        vcInJsonFormat: JsonNode
+    ): MutableMap<String, Any> {
+        log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJsonFormat()")
+        return mutableMapOf(
+            Pair("id", verifiableCredentialId),
+            Pair("type", "vc_json"),
+            Pair(
+                "user_ID", mutableMapOf(
+                    Pair("type", "String"),
+                    Pair("value", userUUID)
+                )
+            ),
+            Pair(
+                "vc", mutableMapOf(
+                    Pair("type", "String"),
+                    Pair("value", vcInJsonFormat)
+                )
+            )
+        )
+    }
 
-        val client = HttpClient.newBuilder().build()
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create("$contextBrokerEntitiesURL/$vcId?type=vc_jwt"))
-            .DELETE()
-            .build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        if (response.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Credential $vcId with type jwt not found")
-        }
-
-        val request2 = HttpRequest.newBuilder()
-            .uri(URI.create("$contextBrokerEntitiesURL/$vcId?type=vc_json"))
-            .DELETE()
-            .build()
-        val response2 = client.sendAsync(request2, HttpResponse.BodyHandlers.ofString())
-        if (response2.get().statusCode() == 404) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Credential $vcId with type json not found")
+    private fun checkIfCredentialIdIsNull(verifiableCredentialId: JsonNode) {
+        log.info("PersonalDataSpaceServiceImpl.checkIfCredentialIdIsNullOrEmpty()")
+        if (verifiableCredentialId.isNull) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Verifiable Credential does not contain an id")
         }
     }
 
-
-
-//    /**
-//     * This method is used to initialize the url of the FIWARE Context Broker only for testing purposes
-//     * @param url the url of the FIWARE Context Broker
-//     */
-//    fun initUrl(url: String) {
-//        if (contextBrokerEntitiesURL.isBlank()) { contextBrokerEntitiesURL = url }
-//    }
+    private fun persistVcInContextBroker(contextBrokerObject: MutableMap<String, Any>) {
+        log.info("PersonalDataSpaceServiceImpl.persistVcInContextBroker()")
+        val url = contextBrokerEntitiesURL
+        val requestBody = ObjectMapper()
+            .writerWithDefaultPrettyPrinter()
+            .writeValueAsString(contextBrokerObject)
+        applicationUtils.postRequest(url, requestBody)
+    }
 
 }

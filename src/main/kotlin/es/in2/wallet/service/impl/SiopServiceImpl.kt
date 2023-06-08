@@ -62,7 +62,7 @@ class SiopServiceImpl(
         val scopeList = extractScopeClaimOfTheSiopAuthRequest(siopAuthenticationRequest)
 
         // Find if User has a Verifiable Credential that matches with all the scopes requested
-        val verifiableCredentialList = personalDataSpaceService.getVcListByVcTypeList(scopeList)
+        val verifiableCredentialList = personalDataSpaceService.getVcIdListByVcTypeList(scopeList)
 
         // Populate the response to the Wallet Front-End adding the SIOP Authentication Request and a List of the
         // Verifiable Credential IDs that match with the requested scope

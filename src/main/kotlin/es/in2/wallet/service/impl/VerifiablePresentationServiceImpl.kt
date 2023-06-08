@@ -48,11 +48,11 @@ class VerifiablePresentationServiceImpl(
         )
     }
 
-    override fun executeVP(userUUID: UUID, vps: List<String>, siopAuthenticationRequest: String): String {
+    override fun executeVP(vps: List<String>, siopAuthenticationRequest: String): String {
         log.info("building Verifiable Presentation")
         val verifiableCredentials = ArrayList<String>()
         for (vp in vps) {
-            val tmp = personalDataSpaceService.getVCByFormat(vp, "vc_jwt")
+            val tmp = personalDataSpaceService.getVcByFormat(vp, "vc_jwt")
             val vc = JSONObject(tmp)
             val token = vc.getJSONObject("vc").getString("value")
             verifiableCredentials.add(token)
