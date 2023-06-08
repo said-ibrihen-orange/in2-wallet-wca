@@ -26,72 +26,64 @@ class QrCodeProcessorServiceImplTest {
     @Test
     fun testProcessQrContentSiopAuthRequestUri() {
         // Mock behavior
-        val userUUID = UUID.randomUUID()
         val qrContent = "https://example.com/authentication-requests/12345"
-        `when`(siopService.getSiopAuthenticationRequest(userUUID, qrContent)).thenReturn(mutableListOf("VerifiableId"))
+        `when`(siopService.getSiopAuthenticationRequest(qrContent)).thenReturn(mutableListOf("VerifiableId"))
         // Call the method
-        val result = qrCodeProcessorService.processQrContent(userUUID, qrContent)
+        val result = qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
-        verify(siopService).getSiopAuthenticationRequest(userUUID, qrContent)
+        verify(siopService).getSiopAuthenticationRequest(qrContent)
         Assertions.assertEquals(mutableListOf("VerifiableId"), result)
     }
 
     @Test
     fun testProcessQrContentSiopAuthRequest() {
         // Mock behavior
-        val userUUID = UUID.randomUUID()
         val qrContent =
             "openid://?scope=VerifiableId&response_type=vp_token&response_mode=direct_post" +
                     "&client_id=did:elsi:packetdelivery" +
                     "&redirect_uri=https://www.packetdelivery.com/api/authentication_response&state=af0ifjsldkj" +
                     "&nonce=n-0S6_WzA2Mj"
         `when`(
-            siopService.processSiopAuthenticationRequest(
-                userUUID,
-                qrContent
-            )
+            siopService.processSiopAuthenticationRequest(qrContent)
         ).thenReturn(mutableListOf("VerifiableId"))
         // Call the method
-        val result = qrCodeProcessorService.processQrContent(userUUID, qrContent)
+        val result = qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
-        verify(siopService).processSiopAuthenticationRequest(userUUID, qrContent)
+        verify(siopService).processSiopAuthenticationRequest(qrContent)
         Assertions.assertEquals(mutableListOf("VerifiableId"), result)
     }
 
     @Test
     fun testProcessQrContentCredentialOfferUri() {
         // Mock behavior
-        val userUUID = UUID.randomUUID()
         val qrContent = "https://example.com/credential-offers/12345"
         // Call the method
-        qrCodeProcessorService.processQrContent(userUUID, qrContent)
+        qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
-        verify(verifiableCredentialService).getVerifiableCredential(userUUID, qrContent)
+        verify(verifiableCredentialService).getVerifiableCredential(qrContent)
     }
 
     @Test
     fun testProcessQrContentVcJwt() {
         // Mock behavior
-        val userUUID = UUID.randomUUID()
         val qrContent =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9" +
                     "lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-        `when`(personalDataSpaceService.saveVC(userUUID, qrContent)).thenReturn("SavedVC")
+        `when`(personalDataSpaceService.saveVC(qrContent)).thenReturn("SavedVC")
         // Call the method
-        val result = qrCodeProcessorService.processQrContent(userUUID, qrContent)
+        val result = qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
-        verify(personalDataSpaceService).saveVC(userUUID, qrContent)
+        verify(personalDataSpaceService).saveVC(qrContent)
         Assertions.assertEquals("SavedVC", result)
     }
 
     @Test
     fun testProcessQrContentUnknown() {
         // Call the method with unknown QR content
-        val userUUID = UUID.randomUUID()
         val qrContent = "unknown-content"
         // Call the method
         val exception = assertThrows(NoSuchQrContentException::class.java) {
-            qrCodeProcessorService.processQrContent(userUUID, qrContent)
+            qrCodeProcessorService.processQrContent(qrContent)
         }
         // Verify behavior and assertions
         Assertions.assertEquals("The received QR content cannot be processed", exception.message)

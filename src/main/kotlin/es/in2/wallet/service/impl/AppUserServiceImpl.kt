@@ -8,6 +8,8 @@ import es.in2.wallet.exception.EmailAlreadyExistsException
 import es.in2.wallet.exception.UsernameAlreadyExistsException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.*
@@ -18,6 +20,11 @@ class AppUserServiceImpl(
 ) : AppUserService {
 
     private val log: Logger = LoggerFactory.getLogger(AppUserServiceImpl::class.java)
+
+    override fun getUserWithContextAuthentication(): AppUser {
+        val authentication: Authentication = SecurityContextHolder.getContext().authentication
+        return getUserByUsername(authentication.name).get()
+    }
 
     override fun registerUser(appUserRequestDTO: AppUserRequestDTO) {
         log.info("AppUserServiceImpl.registerUser()")

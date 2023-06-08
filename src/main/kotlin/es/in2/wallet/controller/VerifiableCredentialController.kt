@@ -15,17 +15,17 @@ class VerifiableCredentialController(
     @PostMapping("/{userid}")
     @ResponseStatus(HttpStatus.CREATED)
     fun createVerifiableCredential(@RequestBody verifiableCredential: String, @PathVariable userid: String) {
-        personalDataSpaceService.saveVC(UUID.fromString(userid), verifiableCredential)
+        personalDataSpaceService.saveVC(verifiableCredential)
     }
 
     @GetMapping("/{userid}")
     fun getVerifiableCredential(@PathVariable userid: String): String {
-        return personalDataSpaceService.getVCs(UUID.fromString(userid))
+        return personalDataSpaceService.getVCs()
     }
 
     @GetMapping("/{userid}/format/{format}")
     fun getVerifiableCredentialByFormat(@PathVariable format: String, @PathVariable userid: String): String {
-        return personalDataSpaceService.getVCsByFormat(UUID.fromString(userid), format)
+        return personalDataSpaceService.getVCsByFormat(format)
     }
 
     @GetMapping("/{userid}/{verifiableCredentialId}/format/{format}")
@@ -33,13 +33,13 @@ class VerifiableCredentialController(
         @PathVariable userid: String, @PathVariable verifiableCredentialId: String,
         @PathVariable format: String
     ): String {
-        return personalDataSpaceService.getVCByFormat(UUID.fromString(userid), verifiableCredentialId, format)
+        return personalDataSpaceService.getVCByFormat(verifiableCredentialId, format)
     }
 
     @DeleteMapping("/{userid}/{verifiableCredentialId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteVerifiableCredential(@PathVariable userid: String, @PathVariable verifiableCredentialId: String) {
-        personalDataSpaceService.deleteVC(UUID.fromString(userid), verifiableCredentialId)
+        personalDataSpaceService.deleteVC(verifiableCredentialId)
     }
 
 }

@@ -52,7 +52,7 @@ class VerifiablePresentationServiceImpl(
         log.info("building Verifiable Presentation")
         val verifiableCredentials = ArrayList<String>()
         for (vp in vps) {
-            val tmp = personalDataSpaceService.getVCByFormat(userUUID, vp, "vc_jwt")
+            val tmp = personalDataSpaceService.getVCByFormat(vp, "vc_jwt")
             val vc = JSONObject(tmp)
             val token = vc.getJSONObject("vc").getString("value")
             verifiableCredentials.add(token)

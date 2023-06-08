@@ -26,23 +26,28 @@ class VerifiableCredentialServiceImpl(
 
     private val log: Logger = LogManager.getLogger(VerifiableCredentialServiceImpl::class.java)
 
-    override fun getVerifiableCredential(userUUID: UUID, credentialOfferUri: String) {
+    override fun getVerifiableCredential(credentialOfferUri: String) {
+
         // get credential_offer executing the credential_offer_uri
         val credentialOffer = ObjectMapper().readTree(getCredentialOffer(credentialOfferUri))
+
         // generate dynamic URL to get the credential_issuer_metadata
         val credentialIssuerMetadataUri =
             credentialOffer["credentialIssuer"].asText() + "/.well-known/openid-credential-issuer"
         val credentialIssuerMetadataObject =
             ObjectMapper().readTree(getCredentialIssuerMetadata(credentialIssuerMetadataUri))
+
         // request access_token using credential_offer and credential_issuer_metadata claims
         val tokenEndpoint = credentialIssuerMetadataObject["credentialToken"].asText()
         val accessToken = getAccessToken(credentialOffer, tokenEndpoint)
+
         // request credential using the access_token received
         val credentialType = credentialOffer["credentials"][0].asText()
         val credentialEndpoint = credentialIssuerMetadataObject["credentialEndpoint"].asText() + credentialType
-        val credential = executePostRequestWithAccessToken(credentialEndpoint, mapOf(), accessToken)
+        val verifiableCredential = executePostRequestWithAccessToken(credentialEndpoint, mapOf(), accessToken)
+
         // stores the received credential in the user Personal Data Space
-        personalDataSpaceService.saveVC(userUUID, credential)
+        personalDataSpaceService.saveVC(verifiableCredential)
     }
 
     private fun getCredentialOffer(credentialOfferUri: String): String {

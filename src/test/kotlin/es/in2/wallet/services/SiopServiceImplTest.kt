@@ -30,18 +30,18 @@ class SiopServiceImplTest {
     @Test
     fun testGetSiopAuthenticationRequest() {
         // Mock the behavior of getSiopAuthenticationRequestInJwsFormat
-        `when`(siopService.getSiopAuthenticationRequest(userUUID, siopAuthRequestUri))
+        `when`(siopService.getSiopAuthenticationRequest(siopAuthRequestUri))
             .thenReturn(mutableListOf("VerifiableId"))
         // Mock the behavior of getAuthRequestClaim
         val siopAuthenticationRequest = "siopAuthenticationRequest"
-        `when`(siopService.processSiopAuthenticationRequest(userUUID, siopAuthRequestUri))
+        `when`(siopService.processSiopAuthenticationRequest(siopAuthRequestUri))
             .thenReturn(mutableListOf("VerifiableId"))
         // Mock the behavior of processSiopAuthenticationRequest
         val result = mutableListOf("VerifiableId")
-        `when`(siopService.processSiopAuthenticationRequest(userUUID, siopAuthenticationRequest))
+        `when`(siopService.processSiopAuthenticationRequest(siopAuthenticationRequest))
             .thenReturn(result)
         // Call the getSiopAuthenticationRequest method
-        val response = siopService.getSiopAuthenticationRequest(userUUID, siopAuthRequestUri)
+        val response = siopService.getSiopAuthenticationRequest(siopAuthRequestUri)
         // Verify the result
         assertEquals(result, response)
     }

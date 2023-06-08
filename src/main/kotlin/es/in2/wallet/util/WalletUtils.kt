@@ -1,5 +1,8 @@
 package es.in2.wallet.util
 
+import org.springframework.stereotype.Component
+
+@Component
 object WalletUtils {
     var walletIssuerDID: String = ""
 }

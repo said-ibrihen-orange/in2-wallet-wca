@@ -1,21 +1,19 @@
 package es.in2.wallet.service
 
 import java.util.*
-import kotlin.collections.ArrayList
 
 interface PersonalDataSpaceService {
 
-    fun getVerifiableCredentialsByVcType(userUUID: UUID, vcTypeList: List<String>): List<String>
+    fun getVcListByVcTypeList(vcTypeList: List<String>): List<String>
 
-    fun saveVC(userUUID: UUID, vc: String): String
+    fun saveVC(vcJwt: String): String
 
-    // TODO to refactor
 
-    fun getVCByFormat(userUUID: UUID, vcId:String, vcFormat: String): String
-    fun getVCs(userUUID: UUID): String
-    fun getVCsByFormat(userUUID: UUID, vcFormat: String): String
-    fun deleteVC(userUUID: UUID, vcId: String)
-    fun getVCsByVCTypes(userUUID: UUID, vcTypeList: List<String>): ArrayList<String>
+    fun getVCByFormat(vcId: String, vcFormat: String): String
+    fun getVCs(): String
+    fun getVCsByFormat(vcFormat: String): String
+    fun deleteVC(vcId: String)
+//    fun getVCsByVCTypes(userUUID: UUID, vcTypeList: List<String>): ArrayList<String>
 }
 
 
