@@ -27,7 +27,6 @@ class WalletDidConfig {
      * @return The initialized DidKeyGenerator bean.
      */
     @Bean
-    @Profile("!default")
     fun didKeyGenerator(): WalletDidKeyGenerator {
         val keyId: String = generateKey()
         val didKey = generateDidKey(keyId)
