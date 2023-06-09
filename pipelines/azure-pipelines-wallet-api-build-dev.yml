@@ -47,7 +47,7 @@ stages:
           - task: Gradle@3
             inputs:
                gradleWrapperFile: 'gradlew'
-               tasks: 'build --stacktrace --debug'
+               tasks: 'build test --stacktrace'
                publishJUnitResults: true
                testResultsFiles: '**/TEST-*.xml'
                javaHomeOption: 'JDKVersion'
