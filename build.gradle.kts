@@ -40,7 +40,7 @@ dependencies {
 	// Kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    testImplementation("org.testng:testng:7.1.0")
+    testImplementation("org.testng:testng:7.7.0")
 
     // Persistence Layer
 	runtimeOnly("com.h2database:h2:2.1.214")
@@ -68,12 +68,6 @@ dependencies {
 	implementation("org.json:json:20230227")
 	implementation("com.googlecode.json-simple:json-simple:1.1.1")
 	implementation("com.google.code.gson:gson:2.10.1")
-
-
-
-
-
-
 
 	// testing
 	testImplementation("org.springframework.security:spring-security-test")
