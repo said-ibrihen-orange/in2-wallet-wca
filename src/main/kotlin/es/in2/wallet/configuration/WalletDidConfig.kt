@@ -20,6 +20,12 @@ import org.springframework.context.annotation.Profile
 class WalletDidConfig {
 
     private val log: Logger = LogManager.getLogger(CustomDidService::class.java)
+    
+    @Bean
+    @Profile("default")
+    fun didKeyGeneratorTest(): WalletDidKeyGenerator {
+        return WalletDidKeyGenerator("")
+    }
 
     /**
      * Defines a bean for DidKeyGenerator.
@@ -27,6 +33,7 @@ class WalletDidConfig {
      * @return The initialized DidKeyGenerator bean.
      */
     @Bean
+    @Profile("!default")
     fun didKeyGenerator(): WalletDidKeyGenerator {
         val keyId: String = generateKey()
         val didKey = generateDidKey(keyId)
