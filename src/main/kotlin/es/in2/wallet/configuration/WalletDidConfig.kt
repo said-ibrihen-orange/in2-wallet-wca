@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 
 /**
  * Configuration class for Waltid that provides bean definitions and initialization logic.
@@ -26,7 +27,8 @@ class WalletDidConfig {
      * @return The initialized DidKeyGenerator bean.
      */
     @Bean
-    fun didKeyGenerator2(): WalletDidKeyGenerator {
+    @Profile("!default")
+    fun didKeyGenerator(): WalletDidKeyGenerator {
         val keyId: String = generateKey()
         val didKey = generateDidKey(keyId)
         return WalletDidKeyGenerator(didKey)
