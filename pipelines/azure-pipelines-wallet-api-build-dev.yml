@@ -57,10 +57,12 @@ stages:
                gradleOptions: '-Xmx3072m'
                sqGradlePluginVersionChoice: 'specify'
                sonarQubeGradlePluginVersion: '3.3'
-
           - task: SonarCloudPublish@1
             inputs:
                     pollingTimeoutSec: '300'
+          - script: |
+              echo "URL del informe de pruebas: $(Build.Repository.Uri)/_build/results?buildId=$(Build.BuildId)"
+              displayName: 'Imprimir URL del informe de pruebas'
 
 
               
