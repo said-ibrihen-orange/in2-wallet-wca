@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
-class VerifiableCredentialExceptionHandler {
+class PersonalDataSpaceExceptionHandler {
 
     private val log: Logger = LoggerFactory.getLogger(VerifiablePresentationExceptionHandler::class.java)
 

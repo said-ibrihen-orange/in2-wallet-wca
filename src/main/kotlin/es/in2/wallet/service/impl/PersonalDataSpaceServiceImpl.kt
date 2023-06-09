@@ -2,7 +2,6 @@ package es.in2.wallet.service.impl
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.gson.Gson
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
 import es.in2.wallet.service.AppUserService
@@ -27,7 +26,6 @@ class PersonalDataSpaceServiceImpl(
 ) : PersonalDataSpaceService {
 
     private val log: Logger = LoggerFactory.getLogger(PersonalDataSpaceServiceImpl::class.java)
-
     override fun saveVC(vcJwt: String) {
         log.info("PersonalDataSpaceServiceImpl.saveVC()")
         val userUUID = getUserUUIDFromContextAuthentication()
@@ -45,7 +43,7 @@ class PersonalDataSpaceServiceImpl(
         persistVcInContextBroker(vcAsJsonContextBrokerObject)
     }
 
-    override fun getAllVerifiableCredentialsByAppUser(): MutableList<String> {
+    override fun getAllVerifiableCredentials(): MutableList<String> {
         log.info("PersonalDataSpaceServiceImpl.getAllVerifiableCredentialsByAppUser()")
         val userUUID = getUserUUIDFromContextAuthentication()
         val body = applicationUtils.getRequest("$contextBrokerEntitiesURL?user_ID=$userUUID")
@@ -56,41 +54,51 @@ class PersonalDataSpaceServiceImpl(
         return result
     }
 
+    override fun getAllVerifiableCredentialsByFormat(vcFormat: String): MutableList<String> {
+        // Get user session
+        val userUUID = getUserUUIDFromContextAuthentication()
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID")
+        return parseStringResponseInMutableList(response)
+    }
+
     override fun getVcIdListByVcTypeList(vcTypeList: List<String>): List<String> {
         log.info("PersonalDataSpaceServiceImpl.getVcListByVcTypeList()")
         val result = mutableListOf<String>()
-        val parsedAppUserVcList = ObjectMapper().readTree(getVcListByFormat(VC_JSON))
-        parsedAppUserVcList.forEach {
-            val tempList = mutableListOf<String>()
+        val vcListByFormat = getAllVerifiableCredentialsByFormat(VC_JSON)
+        val objectMapper = ObjectMapper()
+        vcListByFormat.forEach {
+            val vc = objectMapper.readTree(it)
             // Capture vc_types from VC (it)
-            it["vc"]["value"]["type"].forEach { at -> tempList.add(at.asText()) }
+            val tempList = mutableListOf<String>()
+            vc["vc"]["value"]["type"].forEach { at -> tempList.add(at.asText()) }
             // If vc_types matches with vc_types requested, save vc_id
-            if(tempList.containsAll(vcTypeList)) {
-                result.add(it["id"].asText())
+            if (tempList.containsAll(vcTypeList)) {
+                result.add(vc["id"].asText())
             }
         }
         checkIfResultIsEmpty(result)
         return result
     }
 
-    override fun getVcByFormat(vcId: String, vcFormat: String): String {
+    override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String {
         // Get user session
         val userUUID = getUserUUIDFromContextAuthentication()
-        return applicationUtils.getRequest("$contextBrokerEntitiesURL/$vcId?type=$vcFormat&user_ID=$userUUID")
+        return applicationUtils.getRequest("$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID")
     }
 
-    // FIXME si devuelve VCs debe ser List<String> no String
-    override fun getVcListByFormat(vcFormat: String): String {
-        // Get user session
-        val userUUID = getUserUUIDFromContextAuthentication()
-        return applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID")
+
+    private fun parseStringResponseInMutableList(response: String): MutableList<String> {
+        val parsedResponse = ObjectMapper().readTree(response)
+        val result: MutableList<String> = mutableListOf()
+        parsedResponse.forEach {
+            result.add(it.asText())
+        }
+        return result
     }
 
-    override fun deleteVC(id: String) {
-        //delete vc_jwt
-        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=vc_jwt")
-        // delete vc_json
-        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=vc_json")
+    override fun deleteVerifiableCredential(id: String) {
+        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=$VC_JWT")
+        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=$VC_JSON")
     }
 
     private fun checkIfResultIsEmpty(result: MutableList<String>) {

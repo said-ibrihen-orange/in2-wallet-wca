@@ -5,6 +5,7 @@ import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.SiopService
 import es.in2.wallet.service.VerifiablePresentationService
 import es.in2.wallet.util.JWT
+import es.in2.wallet.util.VC_JWT
 import es.in2.wallet.waltid.CustomDidService
 import id.walt.custodian.Custodian
 import org.apache.logging.log4j.LogManager
@@ -12,7 +13,6 @@ import org.apache.logging.log4j.Logger
 import org.json.JSONObject
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.UUID
 
 @Service
 class VerifiablePresentationServiceImpl(
@@ -24,6 +24,7 @@ class VerifiablePresentationServiceImpl(
     private val log: Logger = LogManager.getLogger(VerifiablePresentationServiceImpl::class.java)
 
     override fun createVerifiablePresentation(verifiableCredentials: List<String>, format: String): String {
+        log.info("building Verifiable Presentation")
         val verifiableCredential = verifiableCredentials[0]
         log.info("VerifiableCredential: $verifiableCredential")
         val parsedVerifiableCredential = SignedJWT.parse(verifiableCredential)
@@ -48,19 +49,20 @@ class VerifiablePresentationServiceImpl(
         )
     }
 
-    override fun executeVP(vps: List<String>, siopAuthenticationRequest: String): String {
+    override fun executeVP(vcIdList: List<String>, siopAuthenticationRequest: String): String {
         log.info("building Verifiable Presentation")
-        val verifiableCredentials = ArrayList<String>()
-        for (vp in vps) {
-            val tmp = personalDataSpaceService.getVcByFormat(vp, "vc_jwt")
-            val vc = JSONObject(tmp)
-            val token = vc.getJSONObject("vc").getString("value")
+        val verifiableCredentials: MutableList<String> = mutableListOf()
+
+        vcIdList.forEach {
+            val vcJwtContextBrokerObject = personalDataSpaceService.getVerifiableCredentialByIdAndFormat(it, VC_JWT)
+            val parsedVcJwtContextBrokerObject = JSONObject(vcJwtContextBrokerObject)
+            val token = parsedVcJwtContextBrokerObject.getJSONObject("vc").getString("value")
             verifiableCredentials.add(token)
         }
-        val vp = createVerifiablePresentation(verifiableCredentials, JWT)
+        val verifiablePresentation = createVerifiablePresentation(verifiableCredentials, JWT)
         log.info("executing the post Authentication Response ")
         // send the verifiable presentation to the dome backend
-        return siopService.sendAuthenticationResponse(siopAuthenticationRequest, vp)
+        return siopService.sendAuthenticationResponse(siopAuthenticationRequest, verifiablePresentation)
     }
 
 }
