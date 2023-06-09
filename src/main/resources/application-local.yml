@@ -1,10 +1,13 @@
 spring:
+  application:
+    name: WalletAPI
   datasource:
-    url: jdbc:mysql://localhost:3309/dome?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: in2admin #root
-    password: in2pass #1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:h2:mem:dbtest
+    driver-class-name: org.h2.Driver
+    username: in2admin
+    password: in2pass
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     open-in-view: false
     properties:
       jakarta.persistence.sharedCache.mode: UNSPECIFIED
@@ -12,7 +15,6 @@ spring:
       ddl-auto: update
     show-sql: true
     generate-ddl: true
-    database-platform: org.hibernate.dialect.MySQLDialect
   security:
     user:
       name: in2test
@@ -26,32 +28,16 @@ spring:
           did: did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa
           token-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/verifiable-credential/${spring.security.oauth2.resourceserver.jwt.did}/token
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
 server:
   port: 8083
 
-# Documentation
-springdoc:
-  # swagger-ui custom path
-  swagger-ui:
-    path: /swagger-ui.html
-  # /api-docs endpoint custom path
-  api-docs:
-    path: /api-docs
-  show-actuator: true
-  use-management-port: true
-
-# open all Actuator endpoints
-management:
-  server:
-    port: 9093
-  endpoints:
-    web:
-      exposure:
-        include: "*" # openapi, swagger-ui
+in2:
+  openapi:
+    local-url: http://localhost:8083
+    dev-url: https://walletapidev.in2.es
 
 app:
   url:
     api: http://localhost:8083
-
-fiware:
-  url: http://localhost:1026
+    orion_context_broker: http://localhost:1026/v2/entities

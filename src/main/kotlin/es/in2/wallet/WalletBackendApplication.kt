@@ -9,3 +9,6 @@ class WalletBackendApplication
 fun main(args: Array<String>) {
     runApplication<WalletBackendApplication>(*args)
 }
+
+
+

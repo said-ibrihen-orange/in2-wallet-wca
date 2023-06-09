@@ -1,8 +1,13 @@
 # temp build
 FROM docker.io/gradle:8.0.2-jdk AS TEMP_BUILD
+ARG SKIP_TESTS=false
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon
+RUN if [ "$SKIP_TESTS" = "true" ]; then \
+    gradle build --no-daemon -x test; \
+  else \
+    gradle build --no-daemon; \
+  fi
 
 # build image
 FROM openjdk:17

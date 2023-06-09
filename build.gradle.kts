@@ -34,11 +34,25 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 
 	// Kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    testImplementation("org.testng:testng:7.7.0")
+
+    // Persistence Layer
+	runtimeOnly("com.h2database:h2:2.1.214")
+	runtimeOnly("com.mysql:mysql-connector-j")
+
+	// lombok
+	compileOnly("org.projectlombok:lombok:1.18.26")
+	annotationProcessor("org.projectlombok:lombok:1.18.26")
+
+	// OpenAPI
+	//implementation("org.springdoc:springdoc-openapi-starter-common:2.0.4")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4")
 
 	// walt.id
 	implementation("id.walt:waltid-ssikit:1.2305121558.0")
@@ -55,19 +69,6 @@ dependencies {
 	implementation("com.googlecode.json-simple:json-simple:1.1.1")
 	implementation("com.google.code.gson:gson:2.10.1")
 
-	// mysql
-	runtimeOnly("com.mysql:mysql-connector-j")
-
-	// lombok
-	compileOnly("org.projectlombok:lombok:1.18.26")
-	annotationProcessor("org.projectlombok:lombok:1.18.26")
-	testCompileOnly("org.projectlombok:lombok:1.18.26")
-	testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
-
-	// documentation
-	implementation("org.springdoc:springdoc-openapi-starter-common:2.0.4")
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4")
-
 	// testing
 	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -77,6 +78,8 @@ dependencies {
 	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 	testImplementation("org.mockito:mockito-core:3.12.4")
 	testImplementation("io.mockk:mockk:1.13.5")
+	testCompileOnly("org.projectlombok:lombok:1.18.26")
+	testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
 
 }
 
