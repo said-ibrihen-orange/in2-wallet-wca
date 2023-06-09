@@ -22,7 +22,9 @@ class CustomKeyServiceImpl : CustomKeyService {
     override fun generateKey(): KeyId {
         log.info("Key Service - Generate Key")
         ServiceMatrix(SERVICE_MATRIX)
-        return KeyService.getService().generate(KeyAlgorithm.ECDSA_Secp256r1)
+        val keyId = KeyService.getService().generate(KeyAlgorithm.ECDSA_Secp256r1)
+        log.info("KeyId = {}", keyId)
+        return keyId
     }
 
     override fun getECKeyFromKid(kid: String): ECKey {

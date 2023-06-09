@@ -1,5 +1,6 @@
 package es.in2.wallet.security
 
+import es.in2.wallet.configuration.WalletDidKeyGenerator
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.util.ALL
 import es.in2.wallet.waltid.CustomKeyService
@@ -24,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 class WebSecurityConfig(
+    private val walletDidKeyGenerator: WalletDidKeyGenerator,
     private val authConfiguration: AuthenticationConfiguration,
     private val customKeyService: CustomKeyService,
     private val appUserService: AppUserService,
@@ -54,10 +56,10 @@ class WebSecurityConfig(
                 authorize(HttpMethod.POST, "/api/**", authenticated)
             }
             addFilterAt<JWTAuthenticationFilter>(
-                JWTAuthenticationFilter(authenticationManager(), customKeyService, appUserService)
+                JWTAuthenticationFilter(authenticationManager(), walletDidKeyGenerator, customKeyService, appUserService)
             )
             addFilterAt<JWTAuthorizationFilter>(
-                JWTAuthorizationFilter(authenticationManager(), customKeyService)
+                JWTAuthorizationFilter(authenticationManager(), walletDidKeyGenerator, customKeyService)
             )
             sessionManagement {
                 sessionCreationPolicy = SessionCreationPolicy.STATELESS

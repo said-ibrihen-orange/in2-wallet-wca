@@ -33,14 +33,15 @@ class UserAdminConfig(
     @Bean
     @Profile("!default")
     fun defaultUserAdmin(): AppUser {
-        log.info("UserAdminConfiguration.defaultUserAdmin()")
-        // check if user is already persisted in past instances
+        log.info("Initializing defaultUserAdmin()")
         val existingUser = appUserRepository.findAppUserByEmail(defaultEmail)
         return if (existingUser.isPresent) {
+            log.info("Default admin user already exists. Retrieving user details.")
             setSession()
             setContextBrokerDataSet(personalDataSpaceService)
             existingUser.get()
         } else {
+            log.info("Default admin user does not exist. Creating a new user.")
             val adminUser = setAppUser()
             appUserRepository.save(adminUser)
             setSession()
@@ -50,30 +51,38 @@ class UserAdminConfig(
     }
 
     private fun setAppUser(): AppUser {
-        return AppUser(
+        log.debug("Creating default AppUser")
+        val appUser = AppUser(
             id = UUID.fromString(defaultUUID),
             username = defaultUsername,
             email = defaultEmail,
             password = BCryptPasswordEncoder().encode(defaultCredential)
         )
+        log.debug("Default AppUser created: {}", appUser)
+        return appUser
     }
 
     private fun setSession() {
+        log.debug("Setting session for default user: $defaultUsername")
         val authentication = UsernamePasswordAuthenticationToken(defaultUsername, defaultCredential, ArrayList())
         val securityContext = SecurityContextImpl()
         securityContext.authentication = authentication
         SecurityContextHolder.setContext(securityContext)
+        log.debug("Session set for default user: $defaultUsername")
     }
 
     private fun setContextBrokerDataSet(personalDataSpaceService: PersonalDataSpaceService) {
+        log.debug("Setting context broker data set")
         val response = personalDataSpaceService.getAllVerifiableCredentials()
-        log.info("response = $response")
-        if(response.isEmpty()) {
+        if (response.isEmpty()) {
+            log.debug("No verifiable credentials found. Saving default VC: $defaultVc")
             personalDataSpaceService.saveVC(defaultVc)
         } else {
+            log.debug("Verifiable credentials found. Deleting existing VC with ID: $defaultVcId and saving default VC: $defaultVc")
             personalDataSpaceService.deleteVerifiableCredential(defaultVcId)
             personalDataSpaceService.saveVC(defaultVc)
         }
+        log.debug("Context broker data set updated")
     }
 
 }

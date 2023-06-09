@@ -5,10 +5,10 @@ import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jwt.SignedJWT
+import es.in2.wallet.configuration.WalletDidKeyGenerator
 import es.in2.wallet.exception.AccessTokenException
 import es.in2.wallet.util.BEARER_PREFIX
 import es.in2.wallet.util.USER_ROLE
-import es.in2.wallet.util.WalletUtils
 import es.in2.wallet.waltid.CustomKeyService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
@@ -28,12 +28,13 @@ import java.io.IOException
 
 class JWTAuthorizationFilter(
     authenticationManager: AuthenticationManager,
-    private val customKeyService: CustomKeyService
+    walletDidKeyGenerator: WalletDidKeyGenerator,
+    private val customKeyService: CustomKeyService,
 ) : BasicAuthenticationFilter(authenticationManager) {
 
     private val log: Logger = LogManager.getLogger(JWTAuthorizationFilter::class.java)
 
-    private val walletDID = WalletUtils.walletIssuerDID
+    private val walletDID = walletDidKeyGenerator.getDidKey()
 
     @Throws(IOException::class, ServletException::class)
     override fun doFilterInternal(

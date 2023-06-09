@@ -1,11 +1,6 @@
 package es.in2.wallet.util
 
-import org.springframework.stereotype.Component
-
-@Component
-object WalletUtils {
-    var walletIssuerDID: String = ""
-}
+class WalletUtils
 
 const val SERVICE_MATRIX = "service-matrix.properties"
 const val SIOP_AUDIENCE = "https://self-issued.me/v2"

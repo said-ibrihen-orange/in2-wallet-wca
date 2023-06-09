@@ -20,7 +20,10 @@ class CustomDidServiceImpl(
     override fun generateDidKey(): String {
         log.info("DID Service - Generate DID Key")
         ServiceMatrix(filePath = SERVICE_MATRIX)
-        return DidService.create(DidMethod.key, customKeyService.generateKey().id)
+        val keyId = customKeyService.generateKey().id
+        val did = DidService.create(DidMethod.key, keyId)
+        log.info("DID Key = {}", did)
+        return did
     }
 
     override fun generateDidKeyWithKid(kid: String): String {

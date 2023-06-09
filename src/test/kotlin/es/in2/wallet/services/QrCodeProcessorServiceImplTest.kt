@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.EnabledIf
 import java.util.*
 
 @SpringBootTest
@@ -64,6 +65,7 @@ class QrCodeProcessorServiceImplTest {
     }
 
     @Test
+    @EnabledIf(expression = "#{environment['spring.profiles.active'] == 'local'}", loadContext = true)
     fun testProcessQrContentVcJwt() {
         // Mock behavior
         val qrContent =

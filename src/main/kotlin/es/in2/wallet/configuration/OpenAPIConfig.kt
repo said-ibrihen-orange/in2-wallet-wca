@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class OpenAPIConfig(
     @Value("\${in2.openapi.local-url}") private val localUrl: String,
-    @Value("\${in2.openapi.dev-url}") private val devUrl: String
+    @Value("\${in2.openapi.dev-url}") private val devUrl: String,
+    @Value("\${app.url.api}") private val apiUrl: String,
 ) {
 
     @Bean
@@ -37,8 +38,7 @@ class OpenAPIConfig(
             .version("1.5")
             .contact(contact)
             .description("This API exposes endpoints to manage the IN2 Wallet application.")
-            // TODO define Terms Of Service
-            .termsOfService("https://www.in2.es")
+            .termsOfService("$apiUrl/terms-of-service")
             .license(mitLicense)
         return OpenAPI().info(info).servers(listOf(localServer, devServer))
     }

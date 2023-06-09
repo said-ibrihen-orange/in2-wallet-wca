@@ -18,8 +18,6 @@ class PersonalDataSpaceController(
 
     private val log: Logger = LogManager.getLogger(VerifiablePresentationController::class.java)
 
-    // TODO Add global responses thrown during business login in PersonalDataSpaceExceptionHandler
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun saveVerifiableCredential(@RequestBody verifiableCredential: String) {
