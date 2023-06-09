@@ -29,6 +29,4 @@ in2:
 app:
   url:
     api: http://localhost:8083
-
-fiware:
-  url: http://wallet-orion:1026
+    orion_context_broker: http://wallet-orion:1026/v2/entities
