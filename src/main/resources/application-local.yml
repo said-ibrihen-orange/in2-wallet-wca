@@ -1,11 +1,13 @@
 spring:
+  application:
+    name: WalletAPI
   datasource:
-    url: jdbc:mysql://localhost:3309/dome?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: in2admin #root
-    password: in2pass #1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:h2:mem:dbtest
+    driver-class-name: org.h2.Driver
+    username: in2admin
+    password: in2pass
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
+    database-platform: org.hibernate.dialect.H2Dialect
     open-in-view: false
     properties:
       jakarta.persistence.sharedCache.mode: UNSPECIFIED
