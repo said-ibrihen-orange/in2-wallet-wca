@@ -5,21 +5,33 @@ import es.in2.wallet.exception.UsernameAlreadyExistsException
 import es.in2.wallet.model.AppUser
 import es.in2.wallet.model.dto.AppUserRequestDTO
 import es.in2.wallet.repository.AppUserRepository
-import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.impl.AppUserServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mock
 import org.mockito.Mockito.*
+import org.mockito.MockitoAnnotations
 import org.springframework.boot.test.context.SpringBootTest
 import java.util.*
 
 @SpringBootTest
 class AppUserServiceImplTest {
 
-    private val appUserRepository: AppUserRepository = mock(AppUserRepository::class.java)
-    private val appUserService: AppUserService = AppUserServiceImpl(appUserRepository)
+    @Mock
+    private lateinit var appUserRepository: AppUserRepository
+
+    private lateinit var appUserServiceImpl: AppUserServiceImpl
+
+    @BeforeEach
+    fun setUp() {
+        MockitoAnnotations.openMocks(this)
+        appUserServiceImpl = AppUserServiceImpl(appUserRepository)
+    }
 
     @Test
     fun testRegisterUser() {
@@ -28,7 +40,7 @@ class AppUserServiceImplTest {
         `when`(appUserRepository.findAppUserByUsername(appUserRequestDTO.username)).thenReturn(Optional.empty())
         `when`(appUserRepository.findAppUserByEmail(appUserRequestDTO.email)).thenReturn(Optional.empty())
         `when`(appUserRepository.save(any(AppUser::class.java))).thenReturn(appUser)
-        appUserService.registerUser(appUserRequestDTO)
+        appUserServiceImpl.registerUser(appUserRequestDTO)
         verify(appUserRepository).findAppUserByUsername(appUserRequestDTO.username)
         verify(appUserRepository).findAppUserByEmail(appUserRequestDTO.email)
         verify(appUserRepository).save(any(AppUser::class.java))
@@ -40,7 +52,7 @@ class AppUserServiceImplTest {
         val existingUser = AppUser(UUID.randomUUID(), "jdoe", "jdoe@example.com", "hashedPassword")
         `when`(appUserRepository.findAppUserByUsername(appUserRequestDTO.username)).thenReturn(Optional.of(existingUser))
         try {
-            appUserService.registerUser(appUserRequestDTO)
+            appUserServiceImpl.registerUser(appUserRequestDTO)
         } catch (e: UsernameAlreadyExistsException) {
             assertThat(e.message).isEqualTo("Username already exists: ${appUserRequestDTO.username}")
         }
@@ -55,7 +67,7 @@ class AppUserServiceImplTest {
         `when`(appUserRepository.findAppUserByUsername(appUserRequestDTO.username)).thenReturn(Optional.empty())
         `when`(appUserRepository.findAppUserByEmail(appUserRequestDTO.email)).thenReturn(Optional.of(existingUser))
         try {
-            appUserService.registerUser(appUserRequestDTO)
+            appUserServiceImpl.registerUser(appUserRequestDTO)
         } catch (e: EmailAlreadyExistsException) {
             assertThat(e.message).isEqualTo("Email already exists: ${appUserRequestDTO.email}")
         }
@@ -72,9 +84,9 @@ class AppUserServiceImplTest {
         val userList = listOf(user1, user2)
         `when`(appUserRepository.findAll()).thenReturn(userList)
         // Call the getUsers method
-        val result = appUserService.getUsers()
+        val result = appUserServiceImpl.getUsers()
         // Verify the result
-        Assertions.assertEquals(userList, result)
+        assertEquals(userList, result)
     }
 
     @Test
@@ -84,10 +96,30 @@ class AppUserServiceImplTest {
         val user = AppUser(userId, "user", "user@example.com", "password")
         `when`(appUserRepository.findById(userId)).thenReturn(Optional.of(user))
         // Call the getUserById method
-        val result = appUserService.getUserById(userId)
+        val result = appUserServiceImpl.getUserById(userId)
         // Verify the result
         Assertions.assertTrue(result.isPresent)
-        Assertions.assertEquals(user, result.get())
+        assertEquals(user, result.get())
+    }
+
+
+    @Test
+    fun testCheckIfUserExists_UserFound() {
+        val username = "testuser"
+        val userFound = AppUser(UUID.randomUUID(), username, "testEmail", "testPassword")
+        `when`(appUserRepository.findAppUserByUsername(username)).thenReturn(Optional.of(userFound))
+        val result: AppUser = appUserServiceImpl.checkIfUserExists(username)
+        assertEquals(userFound, result)
+    }
+
+    @Test
+    fun testCheckIfUserExists_UserNotFound() {
+        val username = "nonexistentuser"
+        `when`(appUserRepository.findAppUserByUsername(username)).thenReturn(Optional.empty())
+        val exception: NoSuchElementException = assertThrows(NoSuchElementException::class.java) {
+            appUserServiceImpl.checkIfUserExists(username)
+        }
+        assertEquals("The username $username does not exist.", exception.message)
     }
 
 }

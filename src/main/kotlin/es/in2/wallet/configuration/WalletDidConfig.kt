@@ -45,7 +45,7 @@ class WalletDidConfig {
      *
      * @return The generated key ID.
      */
-    fun generateKey(): String {
+    private fun generateKey(): String {
         log.info("Generating key...")
         ServiceMatrix(filePath = SERVICE_MATRIX)
         val keyId = KeyService.getService().generate(KeyAlgorithm.ECDSA_Secp256r1)
@@ -59,13 +59,12 @@ class WalletDidConfig {
      * @param keyId The ID of the key used for DID generation.
      * @return The generated DID key.
      */
-    fun generateDidKey(keyId: String): String {
+    private fun generateDidKey(keyId: String): String {
         log.info("Generating DID key...")
         ServiceMatrix(filePath = SERVICE_MATRIX)
         val didKey = DidService.create(DidMethod.key, keyId)
         log.info("Generated DID key. DID = {}", didKey)
         return didKey
     }
-
 
 }

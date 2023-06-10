@@ -1,14 +1,10 @@
 package es.in2.wallet.domain
 
 import es.in2.wallet.model.AppUser
-import jakarta.persistence.EntityManager
-import jakarta.validation.ConstraintViolationException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
 import org.springframework.boot.test.context.SpringBootTest
 import java.util.*
-
 
 @SpringBootTest
 class AppUserTest {
