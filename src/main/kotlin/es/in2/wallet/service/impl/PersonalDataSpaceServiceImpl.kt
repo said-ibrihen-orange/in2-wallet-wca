@@ -57,7 +57,7 @@ class PersonalDataSpaceServiceImpl(
     override fun getAllVerifiableCredentialsByFormat(vcFormat: String): MutableList<String> {
         // Get user session
         val userUUID = getUserUUIDFromContextAuthentication()
-        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&q=user_ID==$userUUID")
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID")
         return parseStringResponseInMutableList(response)
     }
 
@@ -107,9 +107,9 @@ class PersonalDataSpaceServiceImpl(
         }
     }
 
-    private fun getUserUUIDFromContextAuthentication(): UUID {
+    private fun getUserUUIDFromContextAuthentication(): String {
         val userSession = appUserService.getUserWithContextAuthentication()
-        return userSession.id!!
+        return userSession.id!!.toString()
     }
 
     private fun getVcInJsonFormatFromVcInJwtFormat(vcJwt: String): JsonNode {
@@ -132,7 +132,7 @@ class PersonalDataSpaceServiceImpl(
     }
 
     private fun buildContextBrokerObjectWithVcInJwtFormat(
-        userUUID: UUID, verifiableCredentialId: String,
+        userUUID: String, verifiableCredentialId: String,
         vcJwtFormat: String
     ): MutableMap<String, Any> {
         log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJwtFormat()")
@@ -142,7 +142,7 @@ class PersonalDataSpaceServiceImpl(
             Pair(
                 "user_ID", mutableMapOf(
                     Pair("type", "String"),
-                    Pair("value", userUUID.toString())
+                    Pair("value", userUUID)
                 )
             ),
             Pair(
@@ -155,7 +155,7 @@ class PersonalDataSpaceServiceImpl(
     }
 
     private fun buildContextBrokerObjectWithVcInJsonFormat(
-        userUUID: UUID, verifiableCredentialId: String,
+        userUUID: String, verifiableCredentialId: String,
         vcInJsonFormat: JsonNode
     ): MutableMap<String, Any> {
         log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJsonFormat()")
