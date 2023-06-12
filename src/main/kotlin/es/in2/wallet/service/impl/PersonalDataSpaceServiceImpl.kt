@@ -91,7 +91,7 @@ class PersonalDataSpaceServiceImpl(
         val parsedResponse = ObjectMapper().readTree(response)
         val result: MutableList<String> = mutableListOf()
         parsedResponse.forEach {
-            result.add(it.asText())
+            result.add(it.toString())
         }
         return result
     }
@@ -107,9 +107,9 @@ class PersonalDataSpaceServiceImpl(
         }
     }
 
-    private fun getUserUUIDFromContextAuthentication(): UUID {
+    private fun getUserUUIDFromContextAuthentication(): String {
         val userSession = appUserService.getUserWithContextAuthentication()
-        return userSession.id!!
+        return userSession.id!!.toString()
     }
 
     private fun getVcInJsonFormatFromVcInJwtFormat(vcJwt: String): JsonNode {
@@ -132,7 +132,7 @@ class PersonalDataSpaceServiceImpl(
     }
 
     private fun buildContextBrokerObjectWithVcInJwtFormat(
-        userUUID: UUID, verifiableCredentialId: String,
+        userUUID: String, verifiableCredentialId: String,
         vcJwtFormat: String
     ): MutableMap<String, Any> {
         log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJwtFormat()")
@@ -142,7 +142,7 @@ class PersonalDataSpaceServiceImpl(
             Pair(
                 "user_ID", mutableMapOf(
                     Pair("type", "String"),
-                    Pair("value", userUUID.toString())
+                    Pair("value", userUUID)
                 )
             ),
             Pair(
@@ -155,7 +155,7 @@ class PersonalDataSpaceServiceImpl(
     }
 
     private fun buildContextBrokerObjectWithVcInJsonFormat(
-        userUUID: UUID, verifiableCredentialId: String,
+        userUUID: String, verifiableCredentialId: String,
         vcInJsonFormat: JsonNode
     ): MutableMap<String, Any> {
         log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJsonFormat()")
