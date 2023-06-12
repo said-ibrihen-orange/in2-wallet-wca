@@ -57,7 +57,7 @@ class PersonalDataSpaceServiceImpl(
     override fun getAllVerifiableCredentialsByFormat(vcFormat: String): MutableList<String> {
         // Get user session
         val userUUID = getUserUUIDFromContextAuthentication()
-        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID")
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&q=user_ID==$userUUID")
         return parseStringResponseInMutableList(response)
     }
 
@@ -91,7 +91,7 @@ class PersonalDataSpaceServiceImpl(
         val parsedResponse = ObjectMapper().readTree(response)
         val result: MutableList<String> = mutableListOf()
         parsedResponse.forEach {
-            result.add(it.asText())
+            result.add(it.toString())
         }
         return result
     }
