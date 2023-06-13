@@ -2,8 +2,10 @@ package es.in2.wallet.service.impl
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
+import es.in2.wallet.model.dto.contextBroker.ContextBrokerAttributeDTO
 import es.in2.wallet.model.dto.contextBroker.VerifiableCredentialEntityContextBrokerDTO
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
@@ -55,7 +57,6 @@ class PersonalDataSpaceServiceImpl(
         // Get user session
         val userUUID = getUserUUIDFromContextAuthentication()
         val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID")
-
         return parserToMutableListVerifiableCredential(response)
     }
 
@@ -64,12 +65,17 @@ class PersonalDataSpaceServiceImpl(
         val objectMapper = ObjectMapper()
         val parsedBody = objectMapper.readTree(response)
         parsedBody.forEach {
-            val vcEntity = objectMapper.readValue(it.toString(), VerifiableCredentialEntityContextBrokerDTO::class.java)
-
-            result.add(vcEntity.vc.value.toString())
+            val vcEntity = objectMapper.readValue(it.toPrettyString(), VerifiableCredentialEntityContextBrokerDTO::class.java)
+            if(vcEntity.type == VC_JWT) {
+                result.add(vcEntity.vc.value.toString())
+            } else if (vcEntity.type == VC_JSON) {
+                result.add(objectMapper.writeValueAsString(vcEntity.vc.value))
+            }
         }
         return result
     }
+
+
 
     override fun getVcIdListByVcTypeList(vcTypeList: List<String>): List<String> {
         log.info("PersonalDataSpaceServiceImpl.getVcListByVcTypeList()")
@@ -94,7 +100,13 @@ class PersonalDataSpaceServiceImpl(
         val userUUID = getUserUUIDFromContextAuthentication()
         val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID")
         val objectMapper = ObjectMapper()
-        return objectMapper.readValue(response, VerifiableCredentialEntityContextBrokerDTO::class.java).vc.value.toString()
+        return if (format == VC_JWT) {
+            objectMapper.readValue(response, VerifiableCredentialEntityContextBrokerDTO::class.java).vc.value.toString()
+        }else{
+            objectMapper.writeValueAsString(objectMapper.readValue(response, VerifiableCredentialEntityContextBrokerDTO::class.java).vc.value)
+
+        }
+
     }
 
 
@@ -135,47 +147,44 @@ class PersonalDataSpaceServiceImpl(
     }
 
     private fun buildContextBrokerObjectWithVcInJwtFormat(
-        userUUID: String, verifiableCredentialId: String,
-        vcJwtFormat: String
-    ): MutableMap<String, Any> {
+        userUUID: String,
+        vcId: String,
+        vc: String
+    ): VerifiableCredentialEntityContextBrokerDTO {
         log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJwtFormat()")
-        return mutableMapOf(
-            Pair("id", verifiableCredentialId),
-            Pair("type", "vc_jwt"),
-            Pair(
-                "user_ID", mutableMapOf(
-                    Pair("type", "String"),
-                    Pair("value", userUUID)
-                )
-            ),
-            Pair(
-                "vc", mutableMapOf(
-                    Pair("type", "String"),
-                    Pair("value", vcJwtFormat)
+        return VerifiableCredentialEntityContextBrokerDTO(
+                id = vcId,
+                type = VC_JWT,
+                userID = ContextBrokerAttributeDTO(
+                    type = "String",
+                    value = userUUID,
+                    metadata = JsonNodeFactory.instance.objectNode()
+                ),
+                vc = ContextBrokerAttributeDTO(
+                    type = "String",
+                    value = vc,
+                    metadata = JsonNodeFactory.instance.objectNode()
                 )
             )
-        )
     }
 
     private fun buildContextBrokerObjectWithVcInJsonFormat(
-        userUUID: String, verifiableCredentialId: String,
-        vcInJsonFormat: JsonNode
-    ): MutableMap<String, Any> {
+        userUUID: String, vcId: String,
+        vc: JsonNode
+    ): VerifiableCredentialEntityContextBrokerDTO {
         log.info("PersonalDataSpaceServiceImpl.buildContextBrokerObjectWithVcInJsonFormat()")
-        return mutableMapOf(
-            Pair("id", verifiableCredentialId),
-            Pair("type", "vc_json"),
-            Pair(
-                "user_ID", mutableMapOf(
-                    Pair("type", "String"),
-                    Pair("value", userUUID)
-                )
+        return VerifiableCredentialEntityContextBrokerDTO(
+            id = vcId,
+            type = VC_JSON,
+            userID = ContextBrokerAttributeDTO(
+                type = "String",
+                value = userUUID,
+                metadata = JsonNodeFactory.instance.objectNode()
             ),
-            Pair(
-                "vc", mutableMapOf(
-                    Pair("type", "String"),
-                    Pair("value", vcInJsonFormat)
-                )
+            vc = ContextBrokerAttributeDTO(
+                type = "String",
+                value = vc,
+                metadata = JsonNodeFactory.instance.objectNode()
             )
         )
     }
@@ -187,7 +196,7 @@ class PersonalDataSpaceServiceImpl(
         }
     }
 
-    private fun persistVcInContextBroker(contextBrokerObject: MutableMap<String, Any>) {
+    private fun persistVcInContextBroker(contextBrokerObject: VerifiableCredentialEntityContextBrokerDTO) {
         log.info("PersonalDataSpaceServiceImpl.persistVcInContextBroker()")
         val url = contextBrokerEntitiesURL
         val requestBody = ObjectMapper()
