@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
+import es.in2.wallet.model.dto.contextBroker.VerifiableCredentialEntityContextBrokerDTO
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.ApplicationUtils
 import es.in2.wallet.util.VC_JSON
 import es.in2.wallet.util.VC_JWT
-import org.json.JSONArray
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -43,34 +43,42 @@ class PersonalDataSpaceServiceImpl(
         persistVcInContextBroker(vcAsJsonContextBrokerObject)
     }
 
-    override fun getAllVerifiableCredentials(): MutableList<String> {
+    override fun getAllVerifiableCredentials(): MutableList<VerifiableCredentialEntityContextBrokerDTO> {
         log.info("PersonalDataSpaceServiceImpl.getAllVerifiableCredentialsByAppUser()")
         val userUUID = getUserUUIDFromContextAuthentication()
-        val body = applicationUtils.getRequest("$contextBrokerEntitiesURL?user_ID=$userUUID")
-        val result = mutableListOf<String>()
-        JSONArray(body).forEach {
-            result.add(it.toString())
-        }
-        return result
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?user_ID=$userUUID")
+
+        return parserToMutableListVerifiableCredentialEntityContextBrokerDTO(response)
     }
 
-    override fun getAllVerifiableCredentialsByFormat(vcFormat: String): MutableList<String> {
+    override fun getAllVerifiableCredentialsByFormat(vcFormat: String): MutableList<VerifiableCredentialEntityContextBrokerDTO> {
         // Get user session
         val userUUID = getUserUUIDFromContextAuthentication()
         val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$vcFormat&user_ID=$userUUID")
-        return parseStringResponseInMutableList(response)
+
+        return parserToMutableListVerifiableCredentialEntityContextBrokerDTO(response)
+    }
+
+    private fun parserToMutableListVerifiableCredentialEntityContextBrokerDTO(response: String): MutableList<VerifiableCredentialEntityContextBrokerDTO> {
+        val result = mutableListOf<VerifiableCredentialEntityContextBrokerDTO>()
+        val objectMapper = ObjectMapper()
+        val parsedBody = objectMapper.readTree(response)
+        parsedBody.forEach {
+            val vc = objectMapper.readValue(it.toString(), VerifiableCredentialEntityContextBrokerDTO::class.java)
+            result.add(vc)
+        }
+        return result
     }
 
     override fun getVcIdListByVcTypeList(vcTypeList: List<String>): List<String> {
         log.info("PersonalDataSpaceServiceImpl.getVcListByVcTypeList()")
         val result = mutableListOf<String>()
         val vcListByFormat = getAllVerifiableCredentialsByFormat(VC_JSON)
-        val objectMapper = ObjectMapper()
         vcListByFormat.forEach {
-            val vc = objectMapper.readTree(it)
+            val vc = ObjectMapper().readTree(it.vc.toString())
             // Capture vc_types from VC (it)
             val tempList = mutableListOf<String>()
-            vc["vc"]["value"]["type"].forEach { at -> tempList.add(at.asText()) }
+            vc["type"].forEach { at -> tempList.add(at.asText()) }
             // If vc_types matches with vc_types requested, save vc_id
             if (tempList.containsAll(vcTypeList)) {
                 result.add(vc["id"].asText())
@@ -80,21 +88,15 @@ class PersonalDataSpaceServiceImpl(
         return result
     }
 
-    override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String {
+    override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): VerifiableCredentialEntityContextBrokerDTO {
         // Get user session
         val userUUID = getUserUUIDFromContextAuthentication()
-        return applicationUtils.getRequest("$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID")
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID")
+        val objectMapper = ObjectMapper()
+        return objectMapper.readValue(response, VerifiableCredentialEntityContextBrokerDTO::class.java)
     }
 
 
-    private fun parseStringResponseInMutableList(response: String): MutableList<String> {
-        val parsedResponse = ObjectMapper().readTree(response)
-        val result: MutableList<String> = mutableListOf()
-        parsedResponse.forEach {
-            result.add(it.toString())
-        }
-        return result
-    }
 
     override fun deleteVerifiableCredential(id: String) {
         applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=$VC_JWT")

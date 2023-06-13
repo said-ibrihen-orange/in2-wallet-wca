@@ -1,5 +1,6 @@
 package es.in2.wallet.controller
 
+import es.in2.wallet.model.dto.contextBroker.VerifiableCredentialEntityContextBrokerDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.websocket.server.PathParam
@@ -27,14 +28,14 @@ class PersonalDataSpaceController(
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun getVerifiableCredentialList(): MutableList<String> {
+    fun getVerifiableCredentialList(): MutableList<VerifiableCredentialEntityContextBrokerDTO> {
         log.debug("VerifiableCredentialController.getVerifiableCredential()")
         return personalDataSpaceService.getAllVerifiableCredentials()
     }
 
     @GetMapping("/vc/format")
     @ResponseStatus(HttpStatus.OK)
-    fun getVerifiableCredentialByFormat(@PathParam("format") format: String): MutableList<String> {
+    fun getVerifiableCredentialByFormat(@PathParam("format") format: String): MutableList<VerifiableCredentialEntityContextBrokerDTO> {
         log.debug("VerifiableCredentialController.getVerifiableCredentialByFormat()")
         return personalDataSpaceService.getAllVerifiableCredentialsByFormat(format)
     }
@@ -42,7 +43,7 @@ class PersonalDataSpaceController(
     @GetMapping("/vc/id")
     @ResponseStatus(HttpStatus.OK)
     fun getVerifiableCredentialByIdAndFormat(@PathParam("id") id: String,
-                                             @PathParam("format") format: String): String {
+                                             @PathParam("format") format: String): VerifiableCredentialEntityContextBrokerDTO {
         log.debug("VerifiableCredentialController.getVerifiableCredentialById()")
         return personalDataSpaceService.getVerifiableCredentialByIdAndFormat(id, format)
     }
