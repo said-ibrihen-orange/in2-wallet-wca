@@ -82,7 +82,6 @@ class SiopServiceImpl(
         val formData = "state=$state" +
                 "&vp_token=$vp" +
                 "&presentation_submission={\"definition_id\": \"CustomerPresentationDefinition\", \"descriptor_map\": [{\"format\": \"ldp_vp\", \"id\": \"id_credential\", \"path\": \"\$\", \"path_nested\": {\"format\": \"ldp_vc\", \"path\": \"\$.verifiableCredential[0]\"}}], \"id\": \"CustomerPresentationSubmission\"}"
-
         log.info(formData)
 
         // execute the Post request
@@ -93,7 +92,6 @@ class SiopServiceImpl(
             .POST(HttpRequest.BodyPublishers.ofString(formData))
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-
         log.info("response = ${response.get().statusCode()}")
 
         if (response.get().statusCode() != 200) {
