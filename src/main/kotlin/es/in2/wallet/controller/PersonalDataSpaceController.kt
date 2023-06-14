@@ -1,8 +1,8 @@
 package es.in2.wallet.controller
 
+import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.websocket.server.PathParam
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.http.HttpStatus
@@ -18,40 +18,11 @@ class PersonalDataSpaceController(
 
     private val log: Logger = LogManager.getLogger(VerifiablePresentationController::class.java)
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    fun saveVerifiableCredential(@RequestBody verifiableCredential: String) {
-        log.debug("VerifiableCredentialController.createVerifiableCredential()")
-        personalDataSpaceService.saveVC(verifiableCredential)
-    }
-
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun getVerifiableCredentialList(): MutableList<String> {
+    fun getVerifiableCredentialList(): MutableList<VcBasicDataDTO> {
         log.debug("VerifiableCredentialController.getVerifiableCredential()")
-        return personalDataSpaceService.getAllVerifiableCredentials()
-    }
-
-    @GetMapping("/vc/format")
-    @ResponseStatus(HttpStatus.OK)
-    fun getVerifiableCredentialByFormat(@PathParam("format") format: String): MutableList<String> {
-        log.debug("VerifiableCredentialController.getVerifiableCredentialByFormat()")
-        return personalDataSpaceService.getAllVerifiableCredentialsByFormat(format)
-    }
-
-    @GetMapping("/vc/id")
-    @ResponseStatus(HttpStatus.OK)
-    fun getVerifiableCredentialByIdAndFormat(@PathParam("id") id: String,
-                                             @PathParam("format") format: String): String {
-        log.debug("VerifiableCredentialController.getVerifiableCredentialById()")
-        return personalDataSpaceService.getVerifiableCredentialByIdAndFormat(id, format)
-    }
-
-    @DeleteMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteVerifiableCredential(@PathParam("id") id: String) {
-        log.debug("VerifiableCredentialController.deleteVerifiableCredential()")
-        personalDataSpaceService.deleteVerifiableCredential(id)
+        return personalDataSpaceService.getUserVCsInJson()
     }
 
 }
