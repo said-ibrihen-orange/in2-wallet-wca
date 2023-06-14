@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
-import es.in2.wallet.model.dto.contextBroker.VerifiableCredentialEntityContextBrokerDTO
+import es.in2.wallet.model.dto.ContextBrokerVcEntityDTO
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.ApplicationUtils
@@ -64,7 +64,7 @@ class PersonalDataSpaceServiceImpl(
         val objectMapper = ObjectMapper()
         val parsedBody = objectMapper.readTree(response)
         parsedBody.forEach {
-            val vcEntity = objectMapper.readValue(it.toString(), VerifiableCredentialEntityContextBrokerDTO::class.java)
+            val vcEntity = objectMapper.readValue(it.toString(), ContextBrokerVcEntityDTO::class.java)
 
             result.add(vcEntity.vc.value.toString())
         }
@@ -94,7 +94,7 @@ class PersonalDataSpaceServiceImpl(
         val userUUID = getUserUUIDFromContextAuthentication()
         val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID")
         val objectMapper = ObjectMapper()
-        return objectMapper.readValue(response, VerifiableCredentialEntityContextBrokerDTO::class.java).vc.value.toString()
+        return objectMapper.readValue(response, ContextBrokerVcEntityDTO::class.java).vc.value.toString()
     }
 
 
@@ -174,7 +174,7 @@ class PersonalDataSpaceServiceImpl(
             Pair(
                 "vc", mutableMapOf(
                     Pair("type", "String"),
-                    Pair("value", vcInJsonFormat)
+                    Pair("value", ObjectMapper().writeValueAsString(vcInJsonFormat))
                 )
             )
         )
