@@ -46,6 +46,7 @@ object ApplicationUtils {
             .build()
         // Get Response
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        log.info("response = {}", response.get().body())
         // Verify Response HttpStatus
         checkPostResponseStatus(response.get().statusCode())
     }

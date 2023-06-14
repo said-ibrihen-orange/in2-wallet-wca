@@ -73,7 +73,7 @@ class UserAdminConfig(
 
     private fun setContextBrokerDataSet(personalDataSpaceService: PersonalDataSpaceService) {
         log.debug("Setting context broker data set")
-        val response = personalDataSpaceService.getAllVerifiableCredentials()
+        val response = personalDataSpaceService.getUserVCsInJson()
         if (response.isEmpty()) {
             log.debug("No verifiable credentials found. Saving default VC: $defaultVc")
             personalDataSpaceService.saveVC(defaultVc)
