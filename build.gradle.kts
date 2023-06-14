@@ -90,16 +90,65 @@ tasks.withType<KotlinCompile> {
 	}
 }
 
+val testCoverage by tasks.registering {
+	group = "verification"
+	description = "Runs the unit tests with coverage."
+	dependsOn(":test", ":jacocoTestReport", ":jacocoTestCoverageVerification")
+	val jacocoTestReport = tasks.findByName("jacocoTestReport")
+	jacocoTestReport?.mustRunAfter(tasks.findByName("test"))
+	tasks.findByName("jacocoTestCoverageVerification")?.mustRunAfter(jacocoTestReport)
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
-	finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.jacocoTestReport {
-	dependsOn(tasks.test)
 	reports {
 		xml.required.set(true)
 		csv.required.set(false)
 		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
 	}
+	classDirectories.setFrom(
+		sourceSets.main.get().output.asFileTree.matching {
+			exclude(
+				"es/in2/wallet/*.*",
+				"es/in2/wallet/configuration/**",
+//				"es/in2/wallet/controller/**",
+				"es/in2/wallet/exception/**",
+				"es/in2/wallet/model/**",
+				"es/in2/wallet/security/**",
+//				"es/in2/wallet/service/**",
+				"es/in2/wallet/util/**",
+				"es/in2/wallet/waltid/impl/**",
+
+			)
+		}
+	)
 }
+
+tasks.jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			isEnabled = true
+			element = "PACKAGE"
+			limit {
+				counter = "LINE"
+				value = "COVEREDRATIO"
+				minimum = "0.1".toBigDecimal()
+				maximum = "1.0".toBigDecimal()
+			}
+		}
+		classDirectories.setFrom(
+			sourceSets.main.get().output.asFileTree.matching {
+				exclude(
+					"es/in2/wallet/WalletBackendApplication.kt",
+					"es/in2/wallet/model/*",
+					"es/in2/wallet/util",
+					"es/in2/wallet/waltid"
+				)
+			}
+		)
+	}
+}
+
