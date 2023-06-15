@@ -10,13 +10,7 @@ import es.in2.wallet.util.ApplicationUtils
 import es.in2.wallet.util.URL_ENCODED_FORM
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 
 @Service
 class SiopServiceImpl(
