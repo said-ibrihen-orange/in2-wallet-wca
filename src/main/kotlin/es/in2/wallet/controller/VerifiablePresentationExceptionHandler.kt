@@ -27,7 +27,7 @@ class VerifiablePresentationExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleVerificationException(e: Exception): ResponseEntity<Unit> {
         log.error(e.message)
-        return ResponseEntity(HttpStatus.NOT_FOUND)
+        return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
 
     @ExceptionHandler(InvalidTokenException::class)

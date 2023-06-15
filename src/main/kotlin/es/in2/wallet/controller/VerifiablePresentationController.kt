@@ -42,4 +42,5 @@ class VerifiablePresentationController(
         log.info("Sending Authentication Response using RedirectUri...")
         return siopService.sendAuthenticationResponse(vcSelectorResponseDTO, verifiablePresentation)
     }
+
 }

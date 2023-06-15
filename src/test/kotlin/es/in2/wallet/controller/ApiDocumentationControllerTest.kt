@@ -3,30 +3,31 @@ package es.in2.wallet.controller
 import es.in2.wallet.model.TermsOfService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.MockitoAnnotations
-import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 
-@WebMvcTest(ApiDocumentation::class)
-@ExtendWith(MockitoExtension::class)
-class ApiDocumentationTest {
+@SpringJUnitConfig
+@SpringBootTest
+@AutoConfigureMockMvc
+class ApiDocumentationControllerTest {
 
     @InjectMocks
-    private lateinit var apiDocumentation: ApiDocumentation
+    private lateinit var apiDocumentationController: ApiDocumentationController
 
     private lateinit var mockMvc: MockMvc
 
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        mockMvc = MockMvcBuilders.standaloneSetup(apiDocumentation).build()
+        mockMvc = MockMvcBuilders.standaloneSetup(apiDocumentationController).build()
     }
 
     @Test

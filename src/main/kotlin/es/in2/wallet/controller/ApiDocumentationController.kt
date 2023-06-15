@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping
-class ApiDocumentation {
+class ApiDocumentationController {
 
     @GetMapping("/terms-of-service")
     fun getTermsOfService(): TermsOfService {

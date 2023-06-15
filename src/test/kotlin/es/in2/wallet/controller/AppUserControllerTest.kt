@@ -31,15 +31,6 @@ class AppUserControllerTest {
     @InjectMocks
     private lateinit var appUserController: AppUserController
 
-    private val uuid = UUID.randomUUID()
-
-    private val appUser = AppUser(
-        id = uuid,
-        username = "jdoe",
-        email = "jdoe@example.com",
-        password = BCryptPasswordEncoder().encode("1234")
-    )
-
     private lateinit var mockMvc: MockMvc
 
     @BeforeEach
@@ -47,6 +38,25 @@ class AppUserControllerTest {
         MockitoAnnotations.openMocks(AppUserControllerTest::class.java)
         mockMvc = MockMvcBuilders.standaloneSetup(appUserController).build()
     }
+
+    // Data Test
+
+    private val uuid = UUID.randomUUID()
+    private val uuid2 = UUID.randomUUID()
+    private val appUser = AppUser(
+        id = uuid,
+        username = "jdoe",
+        email = "jdoe@example.com",
+        password = BCryptPasswordEncoder().encode("1234")
+    )
+    private val appUser2 = AppUser(
+        id = uuid2,
+        username = "janeDoe",
+        email = "janedoe@example.com",
+        password = BCryptPasswordEncoder().encode("1234")
+    )
+
+    // @Post /api/users
 
     @Test
     fun testRegisterUser() {
@@ -57,6 +67,25 @@ class AppUserControllerTest {
         ).andExpect(status().isCreated)
     }
 
+    // @Get /api/users
+
+    @Test
+    fun `getAllUsers should return a list of AppUser`() {
+        val users = listOf(appUser, appUser2)
+
+        given(appUserService.getUsers()).willReturn(users)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].username").value("jdoe"))
+            .andExpect(jsonPath("$[1].username").value("janeDoe"))
+    }
+
+    // @Get /api/users/{uuid}
+
     @Test
     fun testGetUserByUUID() {
         given(appUserService.getUserById(uuid)).willReturn(Optional.of(appUser))
@@ -66,6 +95,8 @@ class AppUserControllerTest {
             .andExpect(jsonPath("$.username").value("jdoe"))
             .andExpect(jsonPath("$.email").value("jdoe@example.com"))
     }
+
+    // @Get /api/users/{uuid}
 
     @Test
     fun testGetUserByUsername() {
