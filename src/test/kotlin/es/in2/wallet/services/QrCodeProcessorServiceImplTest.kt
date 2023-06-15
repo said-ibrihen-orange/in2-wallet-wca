@@ -1,31 +1,103 @@
 package es.in2.wallet.services
 
+import es.in2.wallet.controller.QrCodeProcessorController
 import es.in2.wallet.exception.NoSuchQrContentException
-import es.in2.wallet.service.PersonalDataSpaceService
-import es.in2.wallet.service.QrCodeProcessorService
-import es.in2.wallet.service.SiopService
-import es.in2.wallet.service.VerifiableCredentialService
+import es.in2.wallet.service.impl.PersonalDataSpaceServiceImpl
 import es.in2.wallet.service.impl.QrCodeProcessorServiceImpl
+import es.in2.wallet.service.impl.SiopServiceImpl
+import es.in2.wallet.service.impl.VerifiableCredentialServiceImpl
 import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.verify
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.junit.jupiter.EnabledIf
-import java.util.*
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 @SpringBootTest
+@AutoConfigureMockMvc
 class QrCodeProcessorServiceImplTest {
 
-    private val siopService: SiopService = mock(SiopService::class.java)
-    private val verifiableCredentialService: VerifiableCredentialService = mock(VerifiableCredentialService::class.java)
-    private val personalDataSpaceService: PersonalDataSpaceService = mock(PersonalDataSpaceService::class.java)
-    private val qrCodeProcessorService: QrCodeProcessorService = QrCodeProcessorServiceImpl(
-        siopService, verifiableCredentialService, personalDataSpaceService
-    )
+    @MockBean
+    private lateinit var siopService: SiopServiceImpl
+
+    @MockBean
+    private lateinit var verifiableCredentialService: VerifiableCredentialServiceImpl
+
+    @MockBean
+    private lateinit var personalDataSpaceService: PersonalDataSpaceServiceImpl
+
+    @MockBean
+    private lateinit var qrCodeProcessorService: QrCodeProcessorServiceImpl
+
+    private lateinit var mockMvc: MockMvc
+
+    @BeforeEach
+    fun setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(QrCodeProcessorController(qrCodeProcessorService)).build()
+        qrCodeProcessorService = QrCodeProcessorServiceImpl(
+            siopService,
+            verifiableCredentialService,
+            personalDataSpaceService
+        )
+//        clearMocks(siopService, verifiableCredentialService, personalDataSpaceService)
+    }
 
 //    @Test
+//    @EnabledIf(expression = "#{environment['spring.profiles.active'] == 'local'}", loadContext = true)
+//    fun `processQrContent should return SiopAuthenticationRequest when QR content is SIOP_AUTH_REQUEST_URI`() {
+//        val qrContent = "https://example.com/authentication-request"
+//
+//        every { siopService.getSiopAuthenticationRequest(qrContent) } returns VcSelectorRequestDTO(
+//            redirectUri = "https://example.com/siop-sessions",
+//            state = "1234",
+//            selectableVcList = listOf(VcBasicDataDTO(
+//                id = "1",
+//                vcType = mutableListOf("VerifiableId"),
+//                credentialSubject = "custom data"
+//            ))
+//        )
+//
+//        mockMvc.perform(get("/process-qr-content?qrContent=$qrContent"))
+//            .andExpect(status().isOk)
+//    }
+//
+//    @Test
+//    fun `processQrContent should return VerifiableCredential when QR content is CREDENTIAL_OFFER_URI`() {
+//        val qrContent = "https://example.com/credential-offer"
+//
+//        every { verifiableCredentialService.getVerifiableCredential(qrContent) } returns Unit
+//
+//        mockMvc.perform(get("/process-qr-content?qrContent=$qrContent"))
+//            .andExpect(status().isOk)
+//    }
+//
+//    @Test
+//    fun `processQrContent should save VerifiableCredential when QR content is VC_JWT`() {
+//        val qrContent = "eyJ..."
+//
+//        every { personalDataSpaceService.saveVC(qrContent) } just Runs
+//
+//        mockMvc.perform(get("/process-qr-content?qrContent=$qrContent"))
+//            .andExpect(status().isOk)
+//    }
+
+//    private val siopService: SiopService = mock(SiopService::class.java)
+//    private val verifiableCredentialService: VerifiableCredentialService = mock(VerifiableCredentialService::class.java)
+//    private val personalDataSpaceService: PersonalDataSpaceService = mock(PersonalDataSpaceService::class.java)
+//    private val qrCodeProcessorService: QrCodeProcessorService = QrCodeProcessorServiceImpl(
+//        siopService, verifiableCredentialService, personalDataSpaceService
+//    )
+//
+//    @Test
 //    fun testProcessQrContentSiopAuthRequestUri() {
+//        VcSelectorRequestDTO()
 //        // Mock behavior
 //        val qrContent = "https://example.com/authentication-requests/12345"
 //        `when`(siopService.getSiopAuthenticationRequest(qrContent)).thenReturn(mutableListOf("VerifiableId"))
@@ -35,7 +107,7 @@ class QrCodeProcessorServiceImplTest {
 //        verify(siopService).getSiopAuthenticationRequest(qrContent)
 //        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
 //    }
-
+//
 //    @Test
 //    fun testProcessQrContentSiopAuthRequest() {
 //        // Mock behavior
@@ -53,7 +125,7 @@ class QrCodeProcessorServiceImplTest {
 //        verify(siopService).processSiopAuthenticationRequest(qrContent)
 //        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
 //    }
-
+//
     @Test
     fun testProcessQrContentCredentialOfferUri() {
         // Mock behavior
@@ -85,6 +157,13 @@ class QrCodeProcessorServiceImplTest {
         }
         // Verify behavior and assertions
         Assertions.assertEquals("The received QR content cannot be processed", exception.message)
+    }
+
+    @Test
+    fun `processQrContent should throw NoSuchQrContentException when QR content is unknown`() {
+        val qrContent = "unknown-content"
+        mockMvc.perform(get("/process-qr-content?qrContent=$qrContent"))
+            .andExpect(status().isNotFound)
     }
 
 }
