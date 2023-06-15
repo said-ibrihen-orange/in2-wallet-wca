@@ -9,7 +9,7 @@ interface PersonalDataSpaceService {
     fun getUserVCsInJson(): MutableList<VcBasicDataDTO>
     fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String
     fun deleteVerifiableCredential(id: String)
-    fun getVcIdListByVcTypeList(vcTypeList: List<String>): List<String>
+    fun getSelectableVCsByVcTypeList(vcTypeList: List<String>): List<VcBasicDataDTO>
 
 }
 

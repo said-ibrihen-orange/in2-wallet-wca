@@ -91,7 +91,7 @@ class PersonalDataSpaceServiceImpl(
     private fun storeVcInContextBroker(contextBrokerEntity: VcContextBrokerEntity) {
         val url = contextBrokerEntitiesURL
         val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(contextBrokerEntity)
-        applicationUtils.postRequest(url, requestBody)
+        applicationUtils.postRequest(url, requestBody, APPLICATION_JSON)
         // Log the storage of Verifiable Credential in Context Broker
         log.info("Verifiable Credential stored in Context Broker")
     }
@@ -114,24 +114,36 @@ class PersonalDataSpaceServiceImpl(
         return result
     }
 
-    override fun getVcIdListByVcTypeList(vcTypeList: List<String>): List<String> {
-        val result = mutableListOf<String>()
-        val contextBrokerVcList = getVerifiableCredentialsByUserIdAndFormat(VC_JSON)
+    override fun getSelectableVCsByVcTypeList(vcTypeList: List<String>): List<VcBasicDataDTO> {
 
-        contextBrokerVcList.forEach {
+        val result = mutableListOf<VcBasicDataDTO>()
+        val vcListInJsonByUser = getVerifiableCredentialsByUserIdAndFormat(VC_JSON)
+
+        vcListInJsonByUser.forEach {
+            // Parse the VC stored into a JsonNode object
             val vcDataValue = it.vcData.value as LinkedHashMap<*, *>
             val jsonNode = ObjectMapper().convertValue(vcDataValue, JsonNode::class.java)
+
+            // Create a list of the VC IDs
             val vcDataTypeList = getVcTypeListFromVcJson(jsonNode)
-            // If vc_types matches with vc_types requested, save vc_id
+            // If vc_types matches with vc_types requested, build VcBasicDataDTO and store it in a List
             if (vcDataTypeList.containsAll(vcTypeList)) {
-                result.add(jsonNode["id"].asText())
+                result.add(
+                    VcBasicDataDTO(
+                        id = jsonNode["id"].asText(),
+                        vcType = vcDataTypeList,
+                        credentialSubject = jsonNode["credentialSubject"]
+                    )
+                )
             }
         }
+
         checkIfResultIsEmpty(result)
+
         return result
     }
 
-    private fun checkIfResultIsEmpty(result: MutableList<String>) {
+    private fun checkIfResultIsEmpty(result: MutableList<VcBasicDataDTO>) {
         if (result.isEmpty()) {
             throw NoSuchVerifiableCredentialException("There is no Verifiable Credential stored in Context Broker")
         }

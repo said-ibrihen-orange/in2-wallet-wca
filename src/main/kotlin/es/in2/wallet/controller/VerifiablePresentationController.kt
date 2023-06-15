@@ -1,9 +1,8 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.model.dto.VpRequestDTO
+import es.in2.wallet.model.dto.VcSelectorResponseDTO
 import es.in2.wallet.service.SiopService
 import es.in2.wallet.service.VerifiablePresentationService
-import es.in2.wallet.util.JWT
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -35,20 +34,12 @@ class VerifiablePresentationController(
     )
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
-    fun executeURLVP(@RequestBody vpRequestDto: VpRequestDTO): String {
+    fun createVerifiablePresentation(@RequestBody vcSelectorResponseDTO: VcSelectorResponseDTO): String {
         // create a verifiable presentation
-        val vp = verifiablePresentationService.createVerifiablePresentation(vpRequestDto.verifiableCredentials, JWT)
+        log.info("Creating Verifiable Presentation...")
+        val verifiablePresentation = verifiablePresentationService.createVerifiablePresentation(vcSelectorResponseDTO)
         // send the verifiable presentation to the dome backend
-        return siopService.sendAuthenticationResponse(vpRequestDto.siopAuthenticationRequest, vp)
+        log.info("Sending Authentication Response using RedirectUri...")
+        return siopService.sendAuthenticationResponse(vcSelectorResponseDTO, verifiablePresentation)
     }
-
-
-    @PostMapping("/vp/v2")
-    @ResponseStatus(HttpStatus.OK)
-    fun executeVPv2(@RequestBody vpRequestDto: VpRequestDTO): String {
-
-        return verifiablePresentationService.executeVP(vpRequestDto.verifiableCredentials,
-            vpRequestDto.siopAuthenticationRequest)
-    }
-
 }

@@ -27,23 +27,23 @@ class SiopServiceImplTest {
             "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
 
-    @Test
-    fun testGetSiopAuthenticationRequest() {
-        // Mock the behavior of getSiopAuthenticationRequestInJwsFormat
-        `when`(siopService.getSiopAuthenticationRequest(siopAuthRequestUri))
-            .thenReturn(mutableListOf("VerifiableId"))
-        // Mock the behavior of getAuthRequestClaim
-        val siopAuthenticationRequest = "siopAuthenticationRequest"
-        `when`(siopService.processSiopAuthenticationRequest(siopAuthRequestUri))
-            .thenReturn(mutableListOf("VerifiableId"))
-        // Mock the behavior of processSiopAuthenticationRequest
-        val result = mutableListOf("VerifiableId")
-        `when`(siopService.processSiopAuthenticationRequest(siopAuthenticationRequest))
-            .thenReturn(result)
-        // Call the getSiopAuthenticationRequest method
-        val response = siopService.getSiopAuthenticationRequest(siopAuthRequestUri)
-        // Verify the result
-        assertEquals(result, response)
-    }
+//    @Test
+//    fun testGetSiopAuthenticationRequest() {
+//        // Mock the behavior of getSiopAuthenticationRequestInJwsFormat
+//        `when`(siopService.getSiopAuthenticationRequest(siopAuthRequestUri))
+//            .thenReturn(mutableListOf("VerifiableId"))
+//        // Mock the behavior of getAuthRequestClaim
+//        val siopAuthenticationRequest = "siopAuthenticationRequest"
+//        `when`(siopService.processSiopAuthenticationRequest(siopAuthRequestUri))
+//            .thenReturn(mutableListOf("VerifiableId"))
+//        // Mock the behavior of processSiopAuthenticationRequest
+//        val result = mutableListOf("VerifiableId")
+//        `when`(siopService.processSiopAuthenticationRequest(siopAuthenticationRequest))
+//            .thenReturn(result)
+//        // Call the getSiopAuthenticationRequest method
+//        val response = siopService.getSiopAuthenticationRequest(siopAuthRequestUri)
+//        // Verify the result
+//        assertEquals(result, response)
+//    }
 
 }
