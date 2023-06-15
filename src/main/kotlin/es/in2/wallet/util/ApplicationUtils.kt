@@ -2,11 +2,13 @@ package es.in2.wallet.util
 
 import es.in2.wallet.configuration.UserAdminConfig
 import es.in2.wallet.exception.FailedCommunicationException
+import es.in2.wallet.model.OpenIdConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -34,14 +36,14 @@ object ApplicationUtils {
         return response.get().body()
     }
 
-    fun postRequest(url: String, requestBody: String) {
+    fun postRequest(url: String, requestBody: String, contentType: String): String {
         log.info("ApplicationUtils.postRequest()")
         // Set the HttpClient
         val client = HttpClient.newBuilder().build()
         // Execute Request
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))
-            .headers(CONTENT_TYPE, APPLICATION_JSON)
+            .headers(CONTENT_TYPE, contentType)
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build()
         // Get Response
@@ -49,6 +51,7 @@ object ApplicationUtils {
         log.info("response = {}", response.get().body())
         // Verify Response HttpStatus
         checkPostResponseStatus(response.get().statusCode())
+        return response.get().body()
     }
 
     fun deleteRequest(url: String) {
@@ -85,6 +88,9 @@ object ApplicationUtils {
             201 -> {
                 log.info("Post request done successfully")
             }
+            200 -> {
+                log.info("Post request done successfully")
+            }
             422 -> {
                 throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Entity already exists")
             }
@@ -100,6 +106,29 @@ object ApplicationUtils {
                 throw NoSuchElementException("Element not found: $statusCode")
             }
         }
+    }
+
+    fun parseOpenIdConfig(url: String): OpenIdConfig {
+        val builder = UriComponentsBuilder.fromUriString(url)
+        val queryParams = builder.build().queryParams
+
+        val scope = queryParams.getFirst("scope")!!
+        val responseType = queryParams.getFirst("response_type")!!
+        val responseMode = queryParams.getFirst("response_mode")!!
+        val clientId = queryParams.getFirst("client_id")!!
+        val redirectUri = queryParams.getFirst("redirect_uri")!!
+        val state = queryParams.getFirst("state")!!
+        val nonce = queryParams.getFirst("nonce")!!
+
+        return OpenIdConfig(
+            scope = scope,
+            responseType = responseType,
+            responseMode = responseMode,
+            clientId = clientId,
+            redirectUri = redirectUri,
+            state = state,
+            nonce = nonce
+        )
     }
 
 }

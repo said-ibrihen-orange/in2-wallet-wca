@@ -1,7 +1,8 @@
 package es.in2.wallet.service
 
-interface VerifiablePresentationService {
-    fun createVerifiablePresentation(verifiableCredentials: List<String>, format: String): String
-    fun executeVP(vcIdList: List<String>, siopAuthenticationRequest: String): String
+import es.in2.wallet.model.dto.VcSelectorResponseDTO
+
+fun interface VerifiablePresentationService {
+    fun createVerifiablePresentation(vcSelectorResponseDTO: VcSelectorResponseDTO): String
 }
 

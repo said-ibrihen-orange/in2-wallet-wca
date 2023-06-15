@@ -1,9 +1,11 @@
 package es.in2.wallet.service
 
+import es.in2.wallet.model.dto.VcSelectorRequestDTO
+import es.in2.wallet.model.dto.VcSelectorResponseDTO
 import java.util.*
 
 interface SiopService {
-    fun getSiopAuthenticationRequest(siopAuthenticationRequestUri: String): MutableList<String>
-    fun processSiopAuthenticationRequest(siopAuthenticationRequest: String): MutableList<String>
-    fun sendAuthenticationResponse(siopAuthenticationRequest: String, vp: String): String
+    fun getSiopAuthenticationRequest(siopAuthenticationRequestUri: String): VcSelectorRequestDTO
+    fun processSiopAuthenticationRequest(siopAuthenticationRequest: String): VcSelectorRequestDTO
+    fun sendAuthenticationResponse(vcSelectorResponseDTO: VcSelectorResponseDTO, vp: String): String
 }

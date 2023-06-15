@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory
 class VcContextBrokerEntity(
     @JsonProperty("id") val id: String,
     @JsonProperty("type") val type: String,
-    @JsonProperty("user_id") @JsonAlias("userId") val userId: ContextBrokerAttribute,
-    @JsonProperty("vc_data") @JsonAlias("vcData") val vcData: ContextBrokerAttribute,
+    @JsonProperty("userId") @JsonAlias("user_id") val userId: ContextBrokerAttribute,
+    @JsonProperty("vcData") @JsonAlias("vc_data") val vcData: ContextBrokerAttribute,
 )
 
 class ContextBrokerAttribute(
