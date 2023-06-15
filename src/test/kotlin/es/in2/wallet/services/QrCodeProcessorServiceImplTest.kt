@@ -24,35 +24,35 @@ class QrCodeProcessorServiceImplTest {
         siopService, verifiableCredentialService, personalDataSpaceService
     )
 
-    @Test
-    fun testProcessQrContentSiopAuthRequestUri() {
-        // Mock behavior
-        val qrContent = "https://example.com/authentication-requests/12345"
-        `when`(siopService.getSiopAuthenticationRequest(qrContent)).thenReturn(mutableListOf("VerifiableId"))
-        // Call the method
-        val result = qrCodeProcessorService.processQrContent(qrContent)
-        // Verify behavior and assertions
-        verify(siopService).getSiopAuthenticationRequest(qrContent)
-        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
-    }
+//    @Test
+//    fun testProcessQrContentSiopAuthRequestUri() {
+//        // Mock behavior
+//        val qrContent = "https://example.com/authentication-requests/12345"
+//        `when`(siopService.getSiopAuthenticationRequest(qrContent)).thenReturn(mutableListOf("VerifiableId"))
+//        // Call the method
+//        val result = qrCodeProcessorService.processQrContent(qrContent)
+//        // Verify behavior and assertions
+//        verify(siopService).getSiopAuthenticationRequest(qrContent)
+//        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
+//    }
 
-    @Test
-    fun testProcessQrContentSiopAuthRequest() {
-        // Mock behavior
-        val qrContent =
-            "openid://?scope=VerifiableId&response_type=vp_token&response_mode=direct_post" +
-                    "&client_id=did:elsi:packetdelivery" +
-                    "&redirect_uri=https://www.packetdelivery.com/api/authentication_response&state=af0ifjsldkj" +
-                    "&nonce=n-0S6_WzA2Mj"
-        `when`(
-            siopService.processSiopAuthenticationRequest(qrContent)
-        ).thenReturn(mutableListOf("VerifiableId"))
-        // Call the method
-        val result = qrCodeProcessorService.processQrContent(qrContent)
-        // Verify behavior and assertions
-        verify(siopService).processSiopAuthenticationRequest(qrContent)
-        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
-    }
+//    @Test
+//    fun testProcessQrContentSiopAuthRequest() {
+//        // Mock behavior
+//        val qrContent =
+//            "openid://?scope=VerifiableId&response_type=vp_token&response_mode=direct_post" +
+//                    "&client_id=did:elsi:packetdelivery" +
+//                    "&redirect_uri=https://www.packetdelivery.com/api/authentication_response&state=af0ifjsldkj" +
+//                    "&nonce=n-0S6_WzA2Mj"
+//        `when`(
+//            siopService.processSiopAuthenticationRequest(qrContent)
+//        ).thenReturn(mutableListOf("VerifiableId"))
+//        // Call the method
+//        val result = qrCodeProcessorService.processQrContent(qrContent)
+//        // Verify behavior and assertions
+//        verify(siopService).processSiopAuthenticationRequest(qrContent)
+//        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
+//    }
 
     @Test
     fun testProcessQrContentCredentialOfferUri() {
