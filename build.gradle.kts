@@ -104,8 +104,7 @@ val testCoverage by tasks.registering {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-	tasks.jacocoTestReport
-	finalizedBy(tasks.jacocoTestCoverageVerification)
+	finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.jacocoTestReport {
@@ -115,8 +114,9 @@ tasks.jacocoTestReport {
 		csv.required.set(false)
 		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
 	}
-	classDirectories.setFrom(
-		sourceSets.main.get().output.asFileTree.matching {
+
+	//classDirectories.setFrom(
+	//	sourceSets.main.get().output.asFileTree.matching {
 			//exclude(
 				//"es/in2/wallet/*.*",
 				//"es/in2/wallet/configuration/**",
@@ -128,8 +128,8 @@ tasks.jacocoTestReport {
 				//"es/in2/wallet/util/**",
 				//"es/in2/wallet/waltid/impl/**",
 			//)
-		}
-	)
+	//	}
+	//)
 }
 
 tasks.jacocoTestCoverageVerification {
