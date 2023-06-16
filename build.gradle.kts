@@ -99,6 +99,7 @@ val testCoverage by tasks.registering {
 	jacocoTestReport?.mustRunAfter(tasks.findByName("test"))
 	tasks.findByName("jacocoTestCoverageVerification")?.mustRunAfter(jacocoTestReport)
 }
+
 */
 
 tasks.withType<Test> {
