@@ -90,6 +90,7 @@ tasks.withType<KotlinCompile> {
 	}
 }
 
+/*
 val testCoverage by tasks.registering {
 	group = "verification"
 	description = "Runs the unit tests with coverage."
@@ -98,12 +99,16 @@ val testCoverage by tasks.registering {
 	jacocoTestReport?.mustRunAfter(tasks.findByName("test"))
 	tasks.findByName("jacocoTestCoverageVerification")?.mustRunAfter(jacocoTestReport)
 }
+*/
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	tasks.jacocoTestReport
+	finalizedBy(tasks.jacocoTestCoverageVerification)
 }
 
 tasks.jacocoTestReport {
+	dependsOn(tasks.test)
 	reports {
 		xml.required.set(true)
 		csv.required.set(false)
@@ -111,23 +116,23 @@ tasks.jacocoTestReport {
 	}
 	classDirectories.setFrom(
 		sourceSets.main.get().output.asFileTree.matching {
-			exclude(
-				"es/in2/wallet/*.*",
-				"es/in2/wallet/configuration/**",
-//				"es/in2/wallet/controller/**",
-				"es/in2/wallet/exception/**",
-				"es/in2/wallet/model/**",
-				"es/in2/wallet/security/**",
-//				"es/in2/wallet/service/**",
-				"es/in2/wallet/util/**",
-				"es/in2/wallet/waltid/impl/**",
-
-			)
+			//exclude(
+				//"es/in2/wallet/*.*",
+				//"es/in2/wallet/configuration/**",
+				//"es/in2/wallet/controller/**",
+				//"es/in2/wallet/exception/**",
+				//"es/in2/wallet/model/**",
+				//"es/in2/wallet/security/**",
+				//"es/in2/wallet/service/**",
+				//"es/in2/wallet/util/**",
+				//"es/in2/wallet/waltid/impl/**",
+			//)
 		}
 	)
 }
 
 tasks.jacocoTestCoverageVerification {
+	dependsOn(tasks.test)
 	violationRules {
 		rule {
 			isEnabled = true
