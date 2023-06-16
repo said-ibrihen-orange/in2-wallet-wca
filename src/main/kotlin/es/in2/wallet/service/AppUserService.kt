@@ -11,5 +11,6 @@ interface AppUserService {
     fun getUserById(uuid: UUID): Optional<AppUser>
     fun getUserByUsername(username: String): Optional<AppUser>
     fun getUserByEmail(email: String): Optional<AppUser>
+    fun checkIfUserExists(username: String): AppUser
 }
 

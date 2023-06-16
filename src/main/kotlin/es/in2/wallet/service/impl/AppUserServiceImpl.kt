@@ -21,6 +21,15 @@ class AppUserServiceImpl(
 
     private val log: Logger = LoggerFactory.getLogger(AppUserServiceImpl::class.java)
 
+    override fun checkIfUserExists(username: String): AppUser {
+        val userFound = getUserByUsername(username)
+        if (userFound.isPresent) {
+            return userFound.get()
+        } else {
+            throw NoSuchElementException("The username $username does not exist.")
+        }
+    }
+
     override fun getUserWithContextAuthentication(): AppUser {
         log.info("AppUserServiceImpl.getUserWithContextAuthentication()")
         val authentication: Authentication = SecurityContextHolder.getContext().authentication
