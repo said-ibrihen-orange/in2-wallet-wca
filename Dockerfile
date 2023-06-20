@@ -21,4 +21,4 @@ WORKDIR /app
 COPY --from=TEMP_BUILD /home/gradle/src/service-matrix.properties /app/
 COPY --from=TEMP_BUILD /home/gradle/src/configs /app/configs
 COPY --from=TEMP_BUILD /home/gradle/src/build/libs/*.jar /app/
-ENTRYPOINT ["id", "java", "-jar", "/app/in2-dome-wallet_api-1.5.0.jar"]
+ENTRYPOINT ["java", "-jar", "/app/in2-dome-wallet_api-1.5.0.jar"]
