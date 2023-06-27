@@ -52,6 +52,17 @@ dependencies {
 	implementation("com.google.guava:guava:31.1-jre")
 	implementation("com.beust:klaxon:5.6")
 
+	//keycloak
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.5.0")
+	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.3")
+	implementation("io.ktor:ktor-client-apache:1.6.4")
+	implementation("io.ktor:ktor-client-core:1.6.4")
+	implementation("io.ktor:ktor-client-json:1.6.4")
+	implementation("org.apache.httpcomponents:httpclient:4.5.13")
+	implementation("org.keycloak:keycloak-admin-client:15.0.2")
+	implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
+
+	implementation("org.json:json:20171018")
 	// walt.id
 	implementation("id.walt:waltid-ssikit:1.2304101159.0")
 	implementation("id.walt.servicematrix:WaltID-ServiceMatrix:1.1.3")
