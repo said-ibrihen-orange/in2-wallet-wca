@@ -8,6 +8,8 @@ import es.in2.wallet.service.SiopService
 import es.in2.wallet.service.TokenVerificationService
 import es.in2.wallet.util.ApplicationUtils
 import es.in2.wallet.util.URL_ENCODED_FORM
+import id.walt.model.dif.DescriptorMapping
+import id.walt.model.dif.PresentationSubmission
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
@@ -70,6 +72,12 @@ class SiopServiceImpl(
 
     override fun sendAuthenticationResponse(vcSelectorResponseDTO: VcSelectorResponseDTO, vp: String): String {
 
+        val descriptorMap = generateDescriptorMap(vp)
+        val presentationSubmission = PresentationSubmission(
+            descriptor_map = listOf(descriptorMap),
+            definition_id = "CustomerPresentationDefinition",
+            id = "CustomerPresentationSubmission"
+        )
         // Parse de String SIOP Authentication Response to a readable JSON Object
         val formData = "state=${vcSelectorResponseDTO.state}" +
                 "&vp_token=$vp" +
@@ -84,6 +92,18 @@ class SiopServiceImpl(
         log.info("response body = {}", response)
         // access_token returned
         return response
+    }
+
+    private fun generateDescriptorMap(vp: String): DescriptorMapping {
+        log.info(vp)
+        return DescriptorMapping(
+            format = "vp_jwt",
+            id = "id_credential",
+            path = "$",
+            path_nested = DescriptorMapping(
+                format = "vc_jwt",
+                path = "$.verifiableCredential[0]"
+            ))
     }
 
     private fun getAuthRequestClaim(jwtSiopAuthRequest: String): String {
