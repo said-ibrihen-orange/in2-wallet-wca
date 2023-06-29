@@ -47,7 +47,7 @@ stages:
           - task: Gradle@3
             inputs:
                gradleWrapperFile: 'gradlew'
-               tasks: 'build'
+               tasks: 'build test --stacktrace'
                publishJUnitResults: true
                testResultsFiles: '**/TEST-*.xml'
                javaHomeOption: 'JDKVersion'
@@ -57,10 +57,6 @@ stages:
                gradleOptions: '-Xmx3072m'
                sqGradlePluginVersionChoice: 'specify'
                sonarQubeGradlePluginVersion: '3.3'
-
           - task: SonarCloudPublish@1
             inputs:
                     pollingTimeoutSec: '300'
-
-
-              
