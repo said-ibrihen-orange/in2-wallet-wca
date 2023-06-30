@@ -1,5 +1,6 @@
 package es.in2.wallet.service.impl
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jose.JWSObject
 import es.in2.wallet.model.dto.VcSelectorRequestDTO
 import es.in2.wallet.model.dto.VcSelectorResponseDTO
@@ -7,7 +8,10 @@ import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.SiopService
 import es.in2.wallet.service.TokenVerificationService
 import es.in2.wallet.util.ApplicationUtils
+import es.in2.wallet.util.JWT_VC
+import es.in2.wallet.util.JWT_VP
 import es.in2.wallet.util.URL_ENCODED_FORM
+import id.walt.credentials.w3c.VerifiablePresentation
 import id.walt.model.dif.DescriptorMapping
 import id.walt.model.dif.PresentationSubmission
 import org.apache.logging.log4j.LogManager
@@ -78,13 +82,11 @@ class SiopServiceImpl(
             definition_id = "CustomerPresentationDefinition",
             id = "CustomerPresentationSubmission"
         )
+        val presentationSubmissionString = parserPresentationSubmissionToString(presentationSubmission)
         // Parse de String SIOP Authentication Response to a readable JSON Object
         val formData = "state=${vcSelectorResponseDTO.state}" +
                 "&vp_token=$vp" +
-                "&presentation_submission={\"definition_id\": \"CustomerPresentationDefinition\", " +
-                "\"descriptor_map\": [{\"format\": \"vp_jwt\", \"id\": \"id_credential\", \"path\": \"\$\", " +
-                "\"path_nested\": {\"format\": \"vc_jwt\", \"path\": \"\$.verifiableCredential[0]\"}}], " +
-                "\"id\": \"CustomerPresentationSubmission\"}"
+                "&presentation_submission=$presentationSubmissionString"
         log.info(vcSelectorResponseDTO.redirectUri)
         log.info(formData)
 
@@ -93,18 +95,48 @@ class SiopServiceImpl(
         // access_token returned
         return response
     }
+    private fun parserPresentationSubmissionToString(presentationSubmission: PresentationSubmission):String{
+        val objectMapper = ObjectMapper()
+        return objectMapper.writeValueAsString(presentationSubmission)
+
+    }
 
     private fun generateDescriptorMap(vp: String): DescriptorMapping {
         log.info(vp)
+
+        val verifiablePresentation = VerifiablePresentation.fromString(vp)
+        val verifiableCredential = verifiablePresentation.verifiableCredential!!
+        var credentialDescriptorMap : DescriptorMapping? = null
+        verifiableCredential.forEachIndexed() { index, it ->
+            val tmpCredentialDescriptorMap = DescriptorMapping(
+                format = JWT_VC,
+                id = it.id,
+                path = "$.verifiableCredential[$index]"
+            )
+            credentialDescriptorMap = if (credentialDescriptorMap == null) {
+                tmpCredentialDescriptorMap
+            } else {
+                addCredentialDescriptorMap(credentialDescriptorMap, tmpCredentialDescriptorMap)
+            }
+
+        }
+
         return DescriptorMapping(
-            format = "vp_jwt",
-            id = "id_credential",
+            format = JWT_VP,
+            id = verifiablePresentation.id,
             path = "$",
-            path_nested = DescriptorMapping(
-                format = "vc_jwt",
-                path = "$.verifiableCredential[0]"
-            ))
+            path_nested = credentialDescriptorMap
+        )
     }
+
+    private fun addCredentialDescriptorMap(credentialDescriptorMap: DescriptorMapping?, tmpCredentialDescriptorMap: DescriptorMapping): DescriptorMapping {
+        return if(credentialDescriptorMap!!.path_nested == null) {
+            credentialDescriptorMap.copy(path_nested =  tmpCredentialDescriptorMap)
+        } else {
+            addCredentialDescriptorMap(credentialDescriptorMap.path_nested, tmpCredentialDescriptorMap)
+        }
+    }
+
 
     private fun getAuthRequestClaim(jwtSiopAuthRequest: String): String {
         val jwsObject = JWSObject.parse(jwtSiopAuthRequest)
