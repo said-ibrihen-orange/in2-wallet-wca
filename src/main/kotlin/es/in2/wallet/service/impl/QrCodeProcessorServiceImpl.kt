@@ -39,6 +39,20 @@ class QrCodeProcessorServiceImpl(
                 log.info("Saving verifiable credential in VC JWT format")
                 personalDataSpaceService.saveVC(qrContent)
             }
+            // FIWARE INTEGRATION
+            QrType.FIWARE_CREDENTIAL_OFFER_URI -> {
+                log.info("Processing FIWARE verifiable credential_offer")
+                // TODO refactor
+                // 1. Execute OIDC4VCI
+//                verifiableCredentialService.getVerifiableCredential(qrContent)
+            }
+            QrType.FIWARE_VC -> {
+                log.info("Saving Fiware verifiable credential")
+                // TODO review and refactor if needed
+                // 1. parse url and extract VC type and token
+                // 2. save VC in Personal Data Storage
+//                personalDataSpaceService.saveVC(qrContent)
+            }
             QrType.UNKNOWN -> {
                 val errorMessage = "The received QR content cannot be processed"
                 log.warn(errorMessage)
@@ -50,16 +64,19 @@ class QrCodeProcessorServiceImpl(
     private fun identifyQrContentType(content: String): QrType {
         val loginRequestUrlRegex = Regex("(https|http).*?(authentication-request|authentication-requests).*")
         val siopAuthenticationRequestRegex = Regex("openid://.*")
-        val oidc4vc1InitiateIssuance = Regex("openid-initiate-issuance://.*")
         val credentialOfferUriRegex = Regex("(https|http).*?(credential-offer|credential-offers).*")
         val verifiableCredentialInVcJwtFormatRegex = Regex("ey.*")
+        // FIWARE
+        val fiwareOidc4vc1InitiateIssuance = Regex("openid-initiate-issuance://.*")
+        val fiwareVerifiableCredentialRegex = Regex("(https|http).*?(token).*")
 
         return when {
             loginRequestUrlRegex.matches(content) -> QrType.SIOP_AUTH_REQUEST_URI
             siopAuthenticationRequestRegex.matches(content) -> QrType.SIOP_AUTH_REQUEST
-            oidc4vc1InitiateIssuance.matches(content) -> QrType.CREDENTIAL_OFFER_URI_2
             credentialOfferUriRegex.matches(content) -> QrType.CREDENTIAL_OFFER_URI
             verifiableCredentialInVcJwtFormatRegex.matches(content) -> QrType.VC_JWT
+            fiwareOidc4vc1InitiateIssuance.matches(content) -> QrType.FIWARE_CREDENTIAL_OFFER_URI
+            fiwareVerifiableCredentialRegex.matches(content) -> QrType.FIWARE_VC
             else -> {
                 log.warn("Unknown QR content type: $content")
                 QrType.UNKNOWN
