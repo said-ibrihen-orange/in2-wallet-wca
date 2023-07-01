@@ -50,12 +50,14 @@ class QrCodeProcessorServiceImpl(
     private fun identifyQrContentType(content: String): QrType {
         val loginRequestUrlRegex = Regex("(https|http).*?(authentication-request|authentication-requests).*")
         val siopAuthenticationRequestRegex = Regex("openid://.*")
+        val oidc4vc1InitiateIssuance = Regex("openid-initiate-issuance://.*")
         val credentialOfferUriRegex = Regex("(https|http).*?(credential-offer|credential-offers).*")
         val verifiableCredentialInVcJwtFormatRegex = Regex("ey.*")
 
         return when {
             loginRequestUrlRegex.matches(content) -> QrType.SIOP_AUTH_REQUEST_URI
             siopAuthenticationRequestRegex.matches(content) -> QrType.SIOP_AUTH_REQUEST
+            oidc4vc1InitiateIssuance.matches(content) -> QrType.CREDENTIAL_OFFER_URI_2
             credentialOfferUriRegex.matches(content) -> QrType.CREDENTIAL_OFFER_URI
             verifiableCredentialInVcJwtFormatRegex.matches(content) -> QrType.VC_JWT
             else -> {
