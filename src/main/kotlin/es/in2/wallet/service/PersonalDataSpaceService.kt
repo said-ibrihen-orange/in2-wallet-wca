@@ -10,6 +10,7 @@ interface PersonalDataSpaceService {
     fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String
     fun deleteVerifiableCredential(id: String)
     fun getSelectableVCsByVcTypeList(vcTypeList: List<String>): List<VcBasicDataDTO>
+    fun deleteVCs()
 
 }
 

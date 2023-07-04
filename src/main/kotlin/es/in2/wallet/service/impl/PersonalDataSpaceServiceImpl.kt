@@ -192,4 +192,21 @@ class PersonalDataSpaceServiceImpl(
         }
     }
 
+    override fun deleteVCs() {
+        // todo: delete all VCs from user
+        val userUUID = getUserIdFromContextAuthentication()
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?user_ID=$userUUID")
+        val vcs = parseResponseBodyIntoContextBrokerVcMutableList(response)
+        val vcIdList = getDistinctIds(vcs)
+        // get all VCs from user
+        vcIdList.forEach {
+            // delete VCs by Id
+            deleteVerifiableCredential(it)
+        }
+    }
+
+    fun getDistinctIds(vcs: MutableList<VcContextBrokerEntity>): List<String> {
+        return vcs.map { it.id }.distinct()
+    }
+
 }
