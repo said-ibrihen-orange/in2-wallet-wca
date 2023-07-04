@@ -23,3 +23,7 @@ const val VP_JWT = "vp_jwt"
 const val VP_LDP = "vp_ldp"
 const val STRING_FORMAT = "String"
 const val JSON_FORMAT = "JSON"
+
+// Presentation Submission Format
+const val JWT_VC = "jwt_vc"
+const val JWT_VP = "jwt_vp"
