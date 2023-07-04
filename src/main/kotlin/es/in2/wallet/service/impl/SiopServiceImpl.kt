@@ -104,8 +104,7 @@ class SiopServiceImpl(
      * @return String
      */
     private fun parserPresentationSubmissionToString(presentationSubmission: PresentationSubmission): String {
-        val objectMapper = ObjectMapper()
-        return objectMapper.writeValueAsString(presentationSubmission)
+        return ObjectMapper().writeValueAsString(presentationSubmission)
     }
 
     /**
