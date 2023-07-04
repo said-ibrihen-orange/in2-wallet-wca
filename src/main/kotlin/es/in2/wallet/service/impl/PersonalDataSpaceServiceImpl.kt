@@ -193,7 +193,6 @@ class PersonalDataSpaceServiceImpl(
     }
 
     override fun deleteVCs() {
-        // todo: delete all VCs from user
         val userUUID = getUserIdFromContextAuthentication()
         val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?user_ID=$userUUID")
         val vcs = parseResponseBodyIntoContextBrokerVcMutableList(response)
