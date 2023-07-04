@@ -75,8 +75,9 @@ class SiopServiceImpl(
     }
 
     override fun sendAuthenticationResponse(vcSelectorResponseDTO: VcSelectorResponseDTO, vp: String): String {
-
+        log.info("SiopServiceImpl.sendAuthenticationResponse()")
         val descriptorMap = generateDescriptorMap(vp)
+        log.info("Generating Presentation Submission")
         val presentationSubmission = PresentationSubmission(
             descriptor_map = listOf(descriptorMap),
             definition_id = "CustomerPresentationDefinition",
@@ -85,28 +86,40 @@ class SiopServiceImpl(
         val presentationSubmissionString = parserPresentationSubmissionToString(presentationSubmission)
         // Parse de String SIOP Authentication Response to a readable JSON Object
         val formData = "state=${vcSelectorResponseDTO.state}" +
-                "&vp_token=$vp" +
-                "&presentation_submission=$presentationSubmissionString"
-        log.info(vcSelectorResponseDTO.redirectUri)
-        log.info(formData)
+                       "&vp_token=$vp" +
+                       "&presentation_submission=$presentationSubmissionString"
+
+        log.info("RedirectUri: "+vcSelectorResponseDTO.redirectUri)
+        log.info("FormData: $formData")
 
         val response = ApplicationUtils.postRequest(vcSelectorResponseDTO.redirectUri, formData, URL_ENCODED_FORM)
         log.info("response body = {}", response)
         // access_token returned
         return response
     }
-    private fun parserPresentationSubmissionToString(presentationSubmission: PresentationSubmission):String{
+
+    /**
+     * This method parser the presentation submission map to a String
+     * @param presentationSubmission
+     * @return String
+     */
+    private fun parserPresentationSubmissionToString(presentationSubmission: PresentationSubmission): String {
         val objectMapper = ObjectMapper()
         return objectMapper.writeValueAsString(presentationSubmission)
-
     }
 
+    /**
+     * This method generate a Descriptor Mapping from a Verifiable Presentation
+     * @param vp
+     * @return DescriptorMapping
+     * This function only works with JWT_VP and JWT_VC formats, because the path assignation is different with other formats
+     * In the verifier component, can read this format and extract the information of the Verifiable Presentation
+     */
     private fun generateDescriptorMap(vp: String): DescriptorMapping {
-        log.info(vp)
 
         val verifiablePresentation = VerifiablePresentation.fromString(vp)
         val verifiableCredential = verifiablePresentation.verifiableCredential!!
-        var credentialDescriptorMap : DescriptorMapping? = null
+        var credentialDescriptorMap: DescriptorMapping? = null
         verifiableCredential.forEachIndexed() { index, it ->
             val tmpCredentialDescriptorMap = DescriptorMapping(
                 format = JWT_VC,
@@ -128,10 +141,16 @@ class SiopServiceImpl(
             path_nested = credentialDescriptorMap
         )
     }
+    /**
+     * This an auxiliary method to add a Descriptor Mapping to a Descriptor Mapping in the first available path_nested
+     */
 
-    private fun addCredentialDescriptorMap(credentialDescriptorMap: DescriptorMapping?, tmpCredentialDescriptorMap: DescriptorMapping): DescriptorMapping {
-        return if(credentialDescriptorMap!!.path_nested == null) {
-            credentialDescriptorMap.copy(path_nested =  tmpCredentialDescriptorMap)
+    private fun addCredentialDescriptorMap(
+        credentialDescriptorMap: DescriptorMapping?,
+        tmpCredentialDescriptorMap: DescriptorMapping
+    ): DescriptorMapping {
+        return if (credentialDescriptorMap!!.path_nested == null) {
+            credentialDescriptorMap.copy(path_nested = tmpCredentialDescriptorMap)
         } else {
             addCredentialDescriptorMap(credentialDescriptorMap.path_nested, tmpCredentialDescriptorMap)
         }
