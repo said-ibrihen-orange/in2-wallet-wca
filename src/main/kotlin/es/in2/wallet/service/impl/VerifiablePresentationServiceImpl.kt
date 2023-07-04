@@ -6,7 +6,7 @@ import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.SiopService
 import es.in2.wallet.service.VerifiablePresentationService
 import es.in2.wallet.util.VC_JWT
-import es.in2.wallet.waltid.CustomDidService
+import es.in2.wallet.service.WalletDidService
 import id.walt.custodian.Custodian
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -15,7 +15,7 @@ import java.time.Instant
 
 @Service
 class VerifiablePresentationServiceImpl(
-    private val customDidService: CustomDidService,
+    private val walletDidService: WalletDidService,
     private val personalDataSpaceService: PersonalDataSpaceService,
     private val siopService: SiopService
 ) : VerifiablePresentationService {
@@ -39,7 +39,7 @@ class VerifiablePresentationServiceImpl(
             subject_id of, at least, one of the VCs attached.
             That VP MUST be signed using the PrivateKey related with the holderDID.
          */
-        val holderDid = customDidService.generateDidKey()
+        val holderDid = walletDidService.generateDidKey()
 
         /*
             The holder SHOULD be able to modify the attribute 'expiration_date' by any of its

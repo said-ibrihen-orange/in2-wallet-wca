@@ -15,7 +15,7 @@ import es.in2.wallet.service.AppUserService
 import es.in2.wallet.util.BEARER_PREFIX
 import es.in2.wallet.util.SIOP_AUDIENCE
 import es.in2.wallet.util.USER_ROLE
-import es.in2.wallet.waltid.CustomKeyService
+import es.in2.wallet.service.WalletKeyService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -38,7 +38,7 @@ import java.util.*
 class JWTAuthenticationFilter(
     private val authenticationManager: AuthenticationManager,
     walletDidKeyGenerator: WalletDidKeyGenerator,
-    private val customKeyService: CustomKeyService,
+    private val walletKeyService: WalletKeyService,
     private val appUserService: AppUserService,
 ) : UsernamePasswordAuthenticationFilter() {
 
@@ -83,7 +83,7 @@ class JWTAuthenticationFilter(
     private fun createAccessToken(authentication: Authentication): String {
         try {
             // Get ECKey
-            val ecJWK: ECKey = customKeyService.getECKeyFromKid(walletDID)
+            val ecJWK: ECKey = walletKeyService.getECKeyFromKid(walletDID)
             log.debug("Retrieved ECKey for walletDID: {}", walletDID)
 
             // Building the Signer of the JWT

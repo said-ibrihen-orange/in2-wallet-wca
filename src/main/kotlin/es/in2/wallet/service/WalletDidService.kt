@@ -1,6 +1,6 @@
-package es.in2.wallet.waltid
+package es.in2.wallet.service
 
-interface CustomDidService {
+interface WalletDidService {
     fun generateDidKey(): String
     fun generateDidKeyWithKid(kid: String): String
 }

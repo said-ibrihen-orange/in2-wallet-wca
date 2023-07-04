@@ -9,7 +9,7 @@ import es.in2.wallet.configuration.WalletDidKeyGenerator
 import es.in2.wallet.exception.AccessTokenException
 import es.in2.wallet.util.BEARER_PREFIX
 import es.in2.wallet.util.USER_ROLE
-import es.in2.wallet.waltid.CustomKeyService
+import es.in2.wallet.service.WalletKeyService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
@@ -29,7 +29,7 @@ import java.io.IOException
 class JWTAuthorizationFilter(
     authenticationManager: AuthenticationManager,
     walletDidKeyGenerator: WalletDidKeyGenerator,
-    private val customKeyService: CustomKeyService,
+    private val walletKeyService: WalletKeyService,
 ) : BasicAuthenticationFilter(authenticationManager) {
 
     private val log: Logger = LogManager.getLogger(JWTAuthorizationFilter::class.java)
@@ -68,7 +68,7 @@ class JWTAuthorizationFilter(
     }
 
     private fun accessTokenVerification(signedJwtAccessToken: SignedJWT): Boolean {
-        val ecKey: ECKey = customKeyService.getECKeyFromKid(walletDID)
+        val ecKey: ECKey = walletKeyService.getECKeyFromKid(walletDID)
         val ecPublicJWK: ECKey = ecKey.toPublicJWK()
         val verifier: JWSVerifier = ECDSAVerifier(ecPublicJWK)
         return if (signedJwtAccessToken.verify(verifier)) {
