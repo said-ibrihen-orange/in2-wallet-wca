@@ -28,18 +28,22 @@ class QrCodeProcessorServiceImpl(
                 log.info("Processing SIOP authentication request URI")
                 siopService.getSiopAuthenticationRequest(qrContent)
             }
+
             QrType.SIOP_AUTH_REQUEST -> {
                 log.info("Processing SIOP authentication request")
                 siopService.processSiopAuthenticationRequest(qrContent)
             }
+
             QrType.CREDENTIAL_OFFER_URI -> {
                 log.info("Processing verifiable credential offer URI")
                 verifiableCredentialService.getVerifiableCredential(qrContent)
             }
+
             QrType.VC_JWT -> {
                 log.info("Saving verifiable credential in VC JWT format")
                 personalDataSpaceService.saveVC(qrContent)
             }
+
             QrType.UNKNOWN -> {
                 val errorMessage = "The received QR content cannot be processed"
                 log.warn(errorMessage)
@@ -48,9 +52,10 @@ class QrCodeProcessorServiceImpl(
         }
     }
 
-    // openid-credential-offer://?credential_offer_uri=$credentialOfferUri}
-
     private fun identifyQrContentType(content: String): QrType {
+
+        // define multiple regex patterns to identify the QR content type
+
         val loginRequestUrlRegex = Regex("(https|http).*?(authentication-request|authentication-requests).*")
         val siopAuthenticationRequestRegex = Regex("openid://.*")
         val credentialOfferUriRegex = Regex("openid-credential-offer://.*")
