@@ -129,7 +129,7 @@ class QrCodeProcessorServiceImplTest {
     @Test
     fun testProcessQrContentCredentialOfferUri() {
         // Mock behavior
-        val qrContent = "https://example.com/credential-offers/12345"
+        val qrContent = "openid-credential-offer://?credential_offer_uri=https://example.com/credential-offers/12345"
         // Call the method
         qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
