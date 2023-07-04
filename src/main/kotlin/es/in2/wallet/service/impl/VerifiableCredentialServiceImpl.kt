@@ -17,7 +17,6 @@ import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.util.*
 
 @Service
 class VerifiableCredentialServiceImpl(
@@ -28,8 +27,13 @@ class VerifiableCredentialServiceImpl(
 
     override fun getVerifiableCredential(credentialOfferUri: String) {
 
+        // openid-credential-offer://?credential_offer_uri=https://issuerapidev.in2.es/credential-offers/bO13ZmmeSy-G8FQnZOYjjg}
+        val parsedCredentialOfferUri = credentialOfferUri
+            .removePrefix("openid-credential-offer://?credential_offer_uri=")
+            .removeSuffix("}")
+
         // get credential_offer executing the credential_offer_uri
-        val credentialOffer = ObjectMapper().readTree(getCredentialOffer(credentialOfferUri))
+        val credentialOffer = ObjectMapper().readTree(getCredentialOffer(parsedCredentialOfferUri))
 
         // generate dynamic URL to get the credential_issuer_metadata
         val credentialIssuerMetadataUri =
@@ -64,8 +68,8 @@ class VerifiableCredentialServiceImpl(
         val preAuthorizedCode = preAuthorizedCodeObject["preAuthorizedCode"].asText()
         val data = mapOf("grant_type" to PRE_AUTH_CODE_GRANT_TYPE, "pre-authorized_code" to preAuthorizedCode)
         // request POST
-        val jsonBody = executePostRequest(tokenEndpoint, data);
-        log.info("**** Endpoint response: $jsonBody");
+        val jsonBody = executePostRequest(tokenEndpoint, data)
+        log.info("**** Endpoint response: $jsonBody")
         // read response
         val jsonObject = ObjectMapper().readTree(jsonBody)
         log.info("**** Endpoint response [Object]: $jsonBody")
