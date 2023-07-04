@@ -1,7 +1,7 @@
 package es.in2.wallet.configuration
 
 import es.in2.wallet.util.SERVICE_MATRIX
-import es.in2.wallet.waltid.CustomDidService
+import es.in2.wallet.service.WalletDidService
 import id.walt.crypto.KeyAlgorithm
 import id.walt.model.DidMethod
 import id.walt.servicematrix.ServiceMatrix
@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Profile
 @Configuration
 class WalletDidConfig {
 
-    private val log: Logger = LogManager.getLogger(CustomDidService::class.java)
+    private val log: Logger = LogManager.getLogger(WalletDidService::class.java)
     
     @Bean
     @Profile("default")

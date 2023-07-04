@@ -1,9 +1,9 @@
-package es.in2.wallet.waltid.impl
+package es.in2.wallet.service.impl
 
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import es.in2.wallet.util.SERVICE_MATRIX
-import es.in2.wallet.waltid.CustomKeyService
+import es.in2.wallet.service.WalletKeyService
 import id.walt.crypto.KeyAlgorithm
 import id.walt.crypto.KeyId
 import id.walt.servicematrix.ServiceMatrix
@@ -15,14 +15,14 @@ import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
 
 @Service
-class CustomKeyServiceImpl : CustomKeyService {
+class WalletKeyServiceImpl : WalletKeyService {
 
-    private val log: Logger = LogManager.getLogger(CustomKeyService::class.java)
+    private val log: Logger = LogManager.getLogger(WalletKeyService::class.java)
 
     override fun generateKey(): KeyId {
         log.info("Key Service - Generate Key")
         ServiceMatrix(SERVICE_MATRIX)
-        val keyId = KeyService.getService().generate(KeyAlgorithm.ECDSA_Secp256r1)
+        val keyId = KeyService.getService().generate(KeyAlgorithm.EdDSA_Ed25519) //KeyAlgorithm.ECDSA_Secp256r1
         log.info("KeyId = {}", keyId)
         return keyId
     }
