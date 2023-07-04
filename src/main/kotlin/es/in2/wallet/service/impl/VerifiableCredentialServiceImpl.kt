@@ -31,24 +31,30 @@ class VerifiableCredentialServiceImpl(
         val parsedCredentialOfferUri = credentialOfferUri
             .removePrefix("openid-credential-offer://?credential_offer_uri=")
             .removeSuffix("}")
+        log.debug("Parsed credential offer URI: {}", parsedCredentialOfferUri)
+
 
         // get credential_offer executing the credential_offer_uri
         val credentialOffer = ObjectMapper().readTree(getCredentialOffer(parsedCredentialOfferUri))
+        log.debug("Credential offer: {}", credentialOffer)
 
         // generate dynamic URL to get the credential_issuer_metadata
         val credentialIssuerMetadataUri =
             credentialOffer["credentialIssuer"].asText() + "/.well-known/openid-credential-issuer"
         val credentialIssuerMetadataObject =
             ObjectMapper().readTree(getCredentialIssuerMetadata(credentialIssuerMetadataUri))
+        log.debug("Credential issuer metadata: {}", credentialIssuerMetadataObject)
 
         // request access_token using credential_offer and credential_issuer_metadata claims
         val tokenEndpoint = credentialIssuerMetadataObject["credentialToken"].asText()
         val accessToken = getAccessToken(credentialOffer, tokenEndpoint)
+        log.debug("Access token: $accessToken")
 
         // request credential using the access_token received
         val credentialType = credentialOffer["credentials"][0].asText()
         val credentialEndpoint = credentialIssuerMetadataObject["credentialEndpoint"].asText() + credentialType
         val verifiableCredential = executePostRequestWithAccessToken(credentialEndpoint, mapOf(), accessToken)
+        log.debug("Verifiable credential: {}", verifiableCredential)
 
         // stores the received credential in the user Personal Data Space
         personalDataSpaceService.saveVC(verifiableCredential)
