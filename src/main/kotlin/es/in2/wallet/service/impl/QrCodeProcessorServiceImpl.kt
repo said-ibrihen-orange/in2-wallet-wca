@@ -20,6 +20,7 @@ class QrCodeProcessorServiceImpl(
     private val log: Logger = LogManager.getLogger(QrCodeProcessorServiceImpl::class.java)
 
     override fun processQrContent(qrContent: String): Any {
+
         log.debug("Processing QR content: $qrContent")
 
         return when (identifyQrContentType(qrContent)) {
@@ -47,10 +48,12 @@ class QrCodeProcessorServiceImpl(
         }
     }
 
+    // openid-credential-offer://?credential_offer_uri=$credentialOfferUri}
+
     private fun identifyQrContentType(content: String): QrType {
         val loginRequestUrlRegex = Regex("(https|http).*?(authentication-request|authentication-requests).*")
         val siopAuthenticationRequestRegex = Regex("openid://.*")
-        val credentialOfferUriRegex = Regex("(https|http).*?(credential-offer|credential-offers).*")
+        val credentialOfferUriRegex = Regex("openid-credential-offer://.*")
         val verifiableCredentialInVcJwtFormatRegex = Regex("ey.*")
 
         return when {

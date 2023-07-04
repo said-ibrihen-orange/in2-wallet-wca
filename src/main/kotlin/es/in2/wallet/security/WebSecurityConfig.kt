@@ -3,7 +3,7 @@ package es.in2.wallet.security
 import es.in2.wallet.configuration.WalletDidKeyGenerator
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.util.ALL
-import es.in2.wallet.waltid.CustomKeyService
+import es.in2.wallet.service.WalletKeyService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -27,7 +27,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class WebSecurityConfig(
     private val walletDidKeyGenerator: WalletDidKeyGenerator,
     private val authConfiguration: AuthenticationConfiguration,
-    private val customKeyService: CustomKeyService,
+    private val walletKeyService: WalletKeyService,
     private val appUserService: AppUserService,
 ) {
 
@@ -56,10 +56,10 @@ class WebSecurityConfig(
                 authorize(HttpMethod.POST, "/api/**", authenticated)
             }
             addFilterAt<JWTAuthenticationFilter>(
-                JWTAuthenticationFilter(authenticationManager(), walletDidKeyGenerator, customKeyService, appUserService)
+                JWTAuthenticationFilter(authenticationManager(), walletDidKeyGenerator, walletKeyService, appUserService)
             )
             addFilterAt<JWTAuthorizationFilter>(
-                JWTAuthorizationFilter(authenticationManager(), walletDidKeyGenerator, customKeyService)
+                JWTAuthorizationFilter(authenticationManager(), walletDidKeyGenerator, walletKeyService)
             )
             sessionManagement {
                 sessionCreationPolicy = SessionCreationPolicy.STATELESS

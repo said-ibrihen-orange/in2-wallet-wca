@@ -12,7 +12,8 @@ spring:
     properties:
       jakarta.persistence.sharedCache.mode: UNSPECIFIED
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
+    show-sql: true
     generate-ddl: true
   security:
     user:
@@ -29,6 +30,6 @@ in2:
 
 app:
   url:
-    api: https://localhost:8083
+    api: http://localhost:8083
     orion_context_broker: http://localhost:1026/v2/entities
 
