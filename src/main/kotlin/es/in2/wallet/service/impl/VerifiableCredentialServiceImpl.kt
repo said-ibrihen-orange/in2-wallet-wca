@@ -26,16 +26,16 @@ class VerifiableCredentialServiceImpl(
     private val log: Logger = LogManager.getLogger(VerifiableCredentialServiceImpl::class.java)
 
     override fun getVerifiableCredential(credentialOfferUri: String) {
-
-        // openid-credential-offer://?credential_offer_uri=https://issuerapidev.in2.es/credential-offers/bO13ZmmeSy-G8FQnZOYjjg}
-        val parsedCredentialOfferUri = credentialOfferUri
-            .removePrefix("openid-credential-offer://?credential_offer_uri=")
-            .removeSuffix("}")
-        log.debug("Parsed credential offer URI: {}", parsedCredentialOfferUri)
-
+        /*
+            Example of Credential Offer URI for Pre-Authorized Code Flow using DOME standard:
+            https://www.goodair.com/credential-offer?credential_offer_uri=https://www.goodair.com/credential-offer/5j349k3e3n23j
+        */
+        val splitCredentialOfferUri = credentialOfferUri.split("=")
+        val credentialOfferUriValue = splitCredentialOfferUri[1]
+        log.debug("Parsed credential offer URI: {}", credentialOfferUriValue)
 
         // get credential_offer executing the credential_offer_uri
-        val credentialOffer = ObjectMapper().readTree(getCredentialOffer(parsedCredentialOfferUri))
+        val credentialOffer = ObjectMapper().readTree(getCredentialOffer(credentialOfferUriValue))
         log.debug("Credential offer: {}", credentialOffer)
 
         // generate dynamic URL to get the credential_issuer_metadata

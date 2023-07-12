@@ -58,7 +58,7 @@ class QrCodeProcessorServiceImpl(
 
         val loginRequestUrlRegex = Regex("(https|http).*?(authentication-request|authentication-requests).*")
         val siopAuthenticationRequestRegex = Regex("openid://.*")
-        val credentialOfferUriRegex = Regex("openid-credential-offer://.*")
+        val credentialOfferUriRegex = Regex("(https|http).*?(credential-offer).*")
         val verifiableCredentialInVcJwtFormatRegex = Regex("ey.*")
 
         return when {
