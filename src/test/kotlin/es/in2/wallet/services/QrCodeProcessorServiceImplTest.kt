@@ -46,90 +46,12 @@ class QrCodeProcessorServiceImplTest {
             verifiableCredentialService,
             personalDataSpaceService
         )
-//        clearMocks(siopService, verifiableCredentialService, personalDataSpaceService)
     }
 
-//    @Test
-//    @EnabledIf(expression = "#{environment['spring.profiles.active'] == 'local'}", loadContext = true)
-//    fun `processQrContent should return SiopAuthenticationRequest when QR content is SIOP_AUTH_REQUEST_URI`() {
-//        val qrContent = "https://example.com/authentication-request"
-//
-//        every { siopService.getSiopAuthenticationRequest(qrContent) } returns VcSelectorRequestDTO(
-//            redirectUri = "https://example.com/siop-sessions",
-//            state = "1234",
-//            selectableVcList = listOf(VcBasicDataDTO(
-//                id = "1",
-//                vcType = mutableListOf("VerifiableId"),
-//                credentialSubject = "custom data"
-//            ))
-//        )
-//
-//        mockMvc.perform(get("/process-qr-content?qrContent=$qrContent"))
-//            .andExpect(status().isOk)
-//    }
-//
-//    @Test
-//    fun `processQrContent should return VerifiableCredential when QR content is CREDENTIAL_OFFER_URI`() {
-//        val qrContent = "https://example.com/credential-offer"
-//
-//        every { verifiableCredentialService.getVerifiableCredential(qrContent) } returns Unit
-//
-//        mockMvc.perform(get("/process-qr-content?qrContent=$qrContent"))
-//            .andExpect(status().isOk)
-//    }
-//
-//    @Test
-//    fun `processQrContent should save VerifiableCredential when QR content is VC_JWT`() {
-//        val qrContent = "eyJ..."
-//
-//        every { personalDataSpaceService.saveVC(qrContent) } just Runs
-//
-//        mockMvc.perform(get("/process-qr-content?qrContent=$qrContent"))
-//            .andExpect(status().isOk)
-//    }
-
-//    private val siopService: SiopService = mock(SiopService::class.java)
-//    private val verifiableCredentialService: VerifiableCredentialService = mock(VerifiableCredentialService::class.java)
-//    private val personalDataSpaceService: PersonalDataSpaceService = mock(PersonalDataSpaceService::class.java)
-//    private val qrCodeProcessorService: QrCodeProcessorService = QrCodeProcessorServiceImpl(
-//        siopService, verifiableCredentialService, personalDataSpaceService
-//    )
-//
-//    @Test
-//    fun testProcessQrContentSiopAuthRequestUri() {
-//        VcSelectorRequestDTO()
-//        // Mock behavior
-//        val qrContent = "https://example.com/authentication-requests/12345"
-//        `when`(siopService.getSiopAuthenticationRequest(qrContent)).thenReturn(mutableListOf("VerifiableId"))
-//        // Call the method
-//        val result = qrCodeProcessorService.processQrContent(qrContent)
-//        // Verify behavior and assertions
-//        verify(siopService).getSiopAuthenticationRequest(qrContent)
-//        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
-//    }
-//
-//    @Test
-//    fun testProcessQrContentSiopAuthRequest() {
-//        // Mock behavior
-//        val qrContent =
-//            "openid://?scope=VerifiableId&response_type=vp_token&response_mode=direct_post" +
-//                    "&client_id=did:elsi:packetdelivery" +
-//                    "&redirect_uri=https://www.packetdelivery.com/api/authentication_response&state=af0ifjsldkj" +
-//                    "&nonce=n-0S6_WzA2Mj"
-//        `when`(
-//            siopService.processSiopAuthenticationRequest(qrContent)
-//        ).thenReturn(mutableListOf("VerifiableId"))
-//        // Call the method
-//        val result = qrCodeProcessorService.processQrContent(qrContent)
-//        // Verify behavior and assertions
-//        verify(siopService).processSiopAuthenticationRequest(qrContent)
-//        Assertions.assertEquals(mutableListOf("VerifiableId"), result)
-//    }
-//
     @Test
     fun testProcessQrContentCredentialOfferUri() {
         // Mock behavior
-        val qrContent = "openid-credential-offer://?credential_offer_uri=https://example.com/credential-offers/12345"
+        val qrContent = "https://www.goodair.com/credential-offer?credential_offer_uri=https://www.goodair.com/credential-offer/5j349k3e3n23j"
         // Call the method
         qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
