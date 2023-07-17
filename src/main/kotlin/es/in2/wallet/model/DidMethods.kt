@@ -1,19 +1,8 @@
 package es.in2.wallet.model
 
-enum class DidMethods {
-    DID_KEY {
-        override fun toString(): String {
-            return "DID_KEY"
-        }
-    },
-    DID_EBSI {
-        override fun toString(): String {
-            return "DID_EBSI"
-        }
-    },
-    DID_ELSI {
-        override fun toString(): String {
-            return "DID_ELSI"
-        }
-    }
+enum class DidMethods(val stringValue: String) {
+    DID_KEY("DID_KEY"),
+    DID_ELSI("DID_ELSI"),
+    DID_EBSI("DID_EBSI")
+
 }
