@@ -1,9 +1,7 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.PersonalDataSpaceService
-import es.in2.wallet.service.WalletDidService
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -15,8 +13,7 @@ import java.util.*
 @RestController
 @RequestMapping("/api/personal-data-space")
 class PersonalDataSpaceController(
-    private val personalDataSpaceService: PersonalDataSpaceService,
-    private val walletDidService: WalletDidService
+    private val personalDataSpaceService: PersonalDataSpaceService
 ) {
 
     private val log: Logger = LogManager.getLogger(VerifiablePresentationController::class.java)
@@ -33,20 +30,6 @@ class PersonalDataSpaceController(
     fun deleteVerifiableCredential() {
         log.debug("VerifiableCredentialController.deleteVerifiableCredential()")
         personalDataSpaceService.deleteVCs()
-    }
-
-    @PostMapping("/dids/createkey")
-    @ResponseStatus(HttpStatus.OK)
-    fun createDidKey(): String {
-        log.debug("PersonalDataSpaceController.createDid()")
-        return walletDidService.createDidKey()
-    }
-
-    @PostMapping("/dids/createelsi/{elsi}")
-    fun createDidElsi(@PathVariable elsi: String): String {
-        log.debug("PersonalDataSpaceController.createDid()")
-        personalDataSpaceService.saveDid(elsi, didMethod = DidMethods.DID_ELSI)
-        return elsi
     }
 
 }

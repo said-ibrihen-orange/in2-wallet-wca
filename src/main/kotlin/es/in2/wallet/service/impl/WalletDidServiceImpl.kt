@@ -21,10 +21,18 @@ class WalletDidServiceImpl(
     private val log: Logger = LogManager.getLogger(WalletDidService::class.java)
 
     override fun createDidKey(): String {
+        log.info("DID Service - Create DID Key")
         val did = generateDidKey()
         log.info("DID Key = {}", did)
         personalDataSpaceService.saveDid(did, DidMethods.DID_KEY)
         return did
+    }
+
+    override fun createDidElsi(elsi: String): String {
+        log.info("DID Service - Create DID ELSI")
+        log.info("DID ELSI = {}", elsi)
+        personalDataSpaceService.saveDid(elsi, DidMethods.DID_ELSI)
+        return elsi
     }
 
     override fun generateDidKey(): String {

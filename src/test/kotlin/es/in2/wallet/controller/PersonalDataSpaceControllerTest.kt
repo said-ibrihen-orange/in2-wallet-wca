@@ -1,8 +1,8 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.exception.InvalidDIDFormatException
+import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.PersonalDataSpaceService
-import es.in2.wallet.service.WalletDidService
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.InjectMocks
@@ -25,60 +25,18 @@ class PersonalDataSpaceControllerTest {
     @Mock
     private lateinit var personalDataSpaceService: PersonalDataSpaceService
 
-    @Mock
-    private lateinit var walletDidService: WalletDidService
-
     @InjectMocks
     private lateinit var personalDataSpaceController: PersonalDataSpaceController
 
     private lateinit var mockMvc: MockMvc
 
+
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.openMocks(this)
+        MockitoAnnotations.openMocks(PersonalDataSpaceControllerTest::class.java)
         mockMvc = MockMvcBuilders.standaloneSetup(personalDataSpaceController).build()
     }
 
-    @Test
-    fun `createDidKey should return 200 OK`() {
-        val didKey = "did:key:123456789abcdef"
-        `when`(personalDataSpaceController.createDidKey()).thenReturn(didKey)
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/personal-data-space/dids/createkey"))
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().string(didKey))
-
-    }
-    @Test
-    fun `createDidElsi should return 500 INTERNAL SERVER ERROR`() {
-        val didElsi = "didweb:123456789abcdef"
-        val errorMessage = "Invalid DID format"
-
-        `when`(personalDataSpaceController.createDidElsi(didElsi)).thenThrow(InvalidDIDFormatException(errorMessage))
-
-        try {
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/personal-data-space/dids/createelsi/$didElsi"))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError)
-                .andExpect(MockMvcResultMatchers.content().string(errorMessage))
-        } catch (ex: Exception) {
-            println("Error message: ${ex.message}")
-            println("Root cause: ${ex.cause?.message}")
-        }
-    }
-
-
-
-    @Test
-    fun `createDidElsi should return 200 OK`() {
-        val didElsi = "did:elsi:123456789abcdef"
-
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/personal-data-space/dids/createelsi/$didElsi"))
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().string(didElsi))
-
-    }
-/*
     @Test
     fun `getVerifiableCredentialList should return 200 OK`() {
         // Create a list of VcBasicDataDTO objects for the expected response
@@ -106,6 +64,6 @@ class PersonalDataSpaceControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].credentialSubject").value("subject data"))
 
         // Add additional assertions as needed
-    }*/
+    }
 
 }
