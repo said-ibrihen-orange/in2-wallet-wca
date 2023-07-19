@@ -1,5 +1,7 @@
 package es.in2.wallet.service.impl
 
+import es.in2.wallet.model.DidMethods
+import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.SERVICE_MATRIX
 import es.in2.wallet.service.WalletDidService
 import es.in2.wallet.service.WalletKeyService
@@ -12,10 +14,18 @@ import org.springframework.stereotype.Service
 
 @Service
 class WalletDidServiceImpl(
-    private val walletKeyService: WalletKeyService
+    private val walletKeyService: WalletKeyService,
+    private val personalDataSpaceService: PersonalDataSpaceService
 ) : WalletDidService {
 
     private val log: Logger = LogManager.getLogger(WalletDidService::class.java)
+
+    override fun createDidKey(): String {
+        val did = generateDidKey()
+        log.info("DID Key = {}", did)
+        personalDataSpaceService.saveDid(did, DidMethods.DID_KEY)
+        return did
+    }
 
     override fun generateDidKey(): String {
         log.info("DID Service - Generate DID Key")

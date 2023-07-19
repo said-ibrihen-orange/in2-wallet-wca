@@ -1,5 +1,6 @@
 package es.in2.wallet.service
 
+import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.dto.VcBasicDataDTO
 
 
@@ -11,6 +12,9 @@ interface PersonalDataSpaceService {
     fun deleteVerifiableCredential(id: String)
     fun getSelectableVCsByVcTypeList(vcTypeList: List<String>): List<VcBasicDataDTO>
     fun deleteVCs()
+    fun saveDid(did: String, didMethod: DidMethods)
+
+
 
 }
 
