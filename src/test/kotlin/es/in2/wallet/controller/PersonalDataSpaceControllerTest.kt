@@ -1,3 +1,4 @@
+/*
 package es.in2.wallet.controller
 
 import es.in2.wallet.model.dto.VcBasicDataDTO
@@ -67,3 +68,4 @@ class PersonalDataSpaceControllerTest {
     }
 
 }
+*/

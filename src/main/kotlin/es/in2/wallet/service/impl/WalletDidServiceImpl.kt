@@ -45,6 +45,8 @@ class WalletDidServiceImpl(
         }
     }
 
+
+
     private fun createDidElsi(elsi: String): String {
         log.debug("DID Service - Create DID ELSI")
         personalDataSpaceService.saveDid(elsi, DidMethods.DID_ELSI)
