@@ -212,7 +212,7 @@ class PersonalDataSpaceServiceImpl(
         val userId = getUserIdFromContextAuthentication()
         val userIdAttribute = ContextBrokerAttribute(type = STRING_FORMAT, value = userId)
         // Log the start of saveDID func
-        log.info("Saving the new DID $did for user: $userId")
+        log.debug("Saving the new DID $did for user: $userId")
 
         val didElsiPattern = "^did:elsi:[a-zA-Z0-9]+$".toRegex()
         if (didMethod == DidMethods.DID_ELSI && !did.matches(didElsiPattern)) {

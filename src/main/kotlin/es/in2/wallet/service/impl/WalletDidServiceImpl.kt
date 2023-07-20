@@ -1,6 +1,8 @@
 package es.in2.wallet.service.impl
 
+import es.in2.wallet.exception.InvalidDIDFormatException
 import es.in2.wallet.model.DidMethods
+import es.in2.wallet.model.dto.DidRequestDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.SERVICE_MATRIX
 import es.in2.wallet.service.WalletDidService
@@ -20,20 +22,44 @@ class WalletDidServiceImpl(
 
     private val log: Logger = LogManager.getLogger(WalletDidService::class.java)
 
-    override fun createDidKey(): String {
-        log.info("DID Service - Create DID Key")
+    override fun createDid(didRequestDTO: DidRequestDTO): String {
+        log.debug("DID Service - Create DID")
+        val didType = didRequestDTO.getType()
+        val didValue = didRequestDTO.getDid()
+
+        if (didType == "key" && didValue != null) {
+            throw InvalidDIDFormatException("Value must be null for 'key' type DID.")
+        }
+
+
+        return when (didType) {
+            "key" -> {
+                createDidKey()
+            }
+
+            "elsi" -> {
+                createDidElsi(didValue.toString())
+            }
+
+            else -> throw InvalidDIDFormatException("Invalid DID format")
+        }
+    }
+
+    private fun createDidElsi(elsi: String): String {
+        log.debug("DID Service - Create DID ELSI")
+        personalDataSpaceService.saveDid(elsi, DidMethods.DID_ELSI)
+        log.debug("DID ELSI = {}", elsi)
+        return elsi
+    }
+
+    private fun createDidKey(): String {
+        log.debug("DID Service - Create DID Key")
         val did = generateDidKey()
-        log.info("DID Key = {}", did)
+        log.debug("DID Key = {}", did)
         personalDataSpaceService.saveDid(did, DidMethods.DID_KEY)
         return did
     }
 
-    override fun createDidElsi(elsi: String): String {
-        log.info("DID Service - Create DID ELSI")
-        log.info("DID ELSI = {}", elsi)
-        personalDataSpaceService.saveDid(elsi, DidMethods.DID_ELSI)
-        return elsi
-    }
 
     override fun generateDidKey(): String {
         log.info("DID Service - Generate DID Key")

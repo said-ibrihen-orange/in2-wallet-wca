@@ -1,8 +1,9 @@
 package es.in2.wallet.service
 
+import es.in2.wallet.model.dto.DidRequestDTO
+
 interface WalletDidService {
-    fun createDidKey(): String
-    fun createDidElsi(elsi: String): String
+    fun createDid(didRequestDTO: DidRequestDTO): String
     fun generateDidKey(): String
     fun generateDidKeyWithKid(kid: String): String
 }

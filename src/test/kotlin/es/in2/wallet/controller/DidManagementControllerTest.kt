@@ -1,5 +1,6 @@
 import es.in2.wallet.controller.DidManagementController
 import es.in2.wallet.exception.InvalidDIDFormatException
+import es.in2.wallet.model.dto.DidRequestDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.WalletDidService
 import org.junit.jupiter.api.BeforeEach
@@ -10,6 +11,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -38,24 +40,62 @@ class DidManagementControllerTest {
 
     @Test
     fun `createDidKey should return 200 OK`() {
-        val didKey = "did:key:123456789abcdef"
-        Mockito.`when`(didManagementController.createDidKey()).thenReturn(didKey)
+        val did = DidRequestDTO("key", null)
+        Mockito.`when`(didManagementController.createDid(did)).thenReturn("DID created")
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/did-management/dids/createkey"))
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().string(didKey))
+        val jsonRequestDTO =  """
+            {
+              "type": "key",
+              "value": "123456789abcdef"
+            }
+        """.trimIndent()
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+            .andExpect(MockMvcResultMatchers.status().isCreated)
 
     }
     @Test
-    fun `createDidElsi should return 500 INTERNAL SERVER ERROR`() {
-        val didElsi = "didweb:123456789abcdef"
-        val errorMessage = "Invalid DID format"
-
-        Mockito.`when`(didManagementController.createDidElsi(didElsi))
+    fun `createDid should return 500 INTERNAL SERVER ERROR`() {
+        val did = DidRequestDTO("key", "did:web:200")
+        val errorMessage = "Value must be null for 'key' type DID"
+        Mockito.`when`(didManagementController.createDid(did))
             .thenThrow(InvalidDIDFormatException(errorMessage))
 
+        val jsonRequestDTO =  """
+            {
+              "type": "key",
+              "value": "did:web:200"
+            }
+        """.trimIndent()
+
         try {
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/did-management/dids/createelsi/$didElsi"))
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+                .andExpect(MockMvcResultMatchers.content().string(errorMessage))
+        } catch (ex: Exception) {
+            println("Error message: ${ex.message}")
+            println("Root cause: ${ex.cause?.message}")
+        }
+
+    }
+
+    @Test
+    fun `createDidElsi should return 500 INTERNAL SERVER ERROR`() {
+        val did = DidRequestDTO("elsi", "didweb:123456789abcdef")
+        val errorMessage = "DID does not match the pattern"
+
+        Mockito.`when`(didManagementController.createDid(did))
+            .thenThrow(InvalidDIDFormatException(errorMessage))
+
+        val jsonRequestDTO =  """
+            {
+              "type": "elsi",
+              "value": "didweb:123456789abcdef"
+            }
+        """.trimIndent()
+
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError)
                 .andExpect(MockMvcResultMatchers.content().string(errorMessage))
         } catch (ex: Exception) {
@@ -68,12 +108,18 @@ class DidManagementControllerTest {
 
     @Test
     fun `createDidElsi should return 200 OK`() {
-        val didElsi = "did:elsi:123456789abcdef"
-        Mockito.`when`(didManagementController.createDidElsi(didElsi)).thenReturn(didElsi)
+        val did = DidRequestDTO("elsi", "did:elsi:56789")
+        Mockito.`when`(didManagementController.createDid(did)).thenReturn("DID created")
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/did-management/dids/createelsi/$didElsi"))
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().string(didElsi))
+        val jsonRequestDTO =  """
+            {
+              "type": "elsi",
+              "value": "did:elsi:56789"
+            }
+        """.trimIndent()
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+            .andExpect(MockMvcResultMatchers.status().isCreated)
 
 
     }
