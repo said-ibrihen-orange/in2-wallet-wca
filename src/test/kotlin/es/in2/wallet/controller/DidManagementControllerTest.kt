@@ -46,7 +46,7 @@ class DidManagementControllerTest {
         val jsonRequestDTO =  """
             {
               "type": "key",
-              "value": "123456789abcdef"
+              "value": null
             }
         """.trimIndent()
 
