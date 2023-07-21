@@ -14,7 +14,7 @@ class DidManagementController(
     private val walletDidService: WalletDidService
 ) {
 
-    @PostMapping("/create")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createDid(@RequestBody didRequestDTO: DidRequestDTO): String {
         walletDidService.createDid(didRequestDTO)

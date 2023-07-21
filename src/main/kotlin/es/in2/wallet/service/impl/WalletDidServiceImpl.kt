@@ -24,8 +24,8 @@ class WalletDidServiceImpl(
 
     override fun createDid(didRequestDTO: DidRequestDTO): String {
         log.debug("DID Service - Create DID")
-        val didType = didRequestDTO.getType()
-        val didValue = didRequestDTO.getDid()
+        val didType = didRequestDTO.type
+        val didValue = didRequestDTO.value
 
         if (didType == "key" && didValue != null) {
             throw InvalidDIDFormatException("Value must be null for 'key' type DID.")
