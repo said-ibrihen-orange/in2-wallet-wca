@@ -3,8 +3,11 @@ package es.in2.wallet.service.impl
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
+import es.in2.wallet.exception.InvalidDIDFormatException
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
 import es.in2.wallet.model.ContextBrokerAttribute
+import es.in2.wallet.model.DidContextBrokerEntity
+import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.VcContextBrokerEntity
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.AppUserService
@@ -203,6 +206,39 @@ class PersonalDataSpaceServiceImpl(
             deleteVerifiableCredential(it)
         }
     }
+
+    @Throws(InvalidDIDFormatException::class)
+    override fun saveDid(did: String, didMethod: DidMethods) {
+        val userId = getUserIdFromContextAuthentication()
+        val userIdAttribute = ContextBrokerAttribute(type = STRING_FORMAT, value = userId)
+        // Log the start of saveDID func
+        log.debug("Saving the new DID $did for user: $userId")
+
+        val didElsiPattern = "^did:elsi:[a-zA-Z0-9]+$".toRegex()
+        if (didMethod == DidMethods.DID_ELSI && !did.matches(didElsiPattern)) {
+
+            throw InvalidDIDFormatException("DID does not match the pattern")
+
+        }
+
+        storeDIDInContextBroker(
+            DidContextBrokerEntity(id = did, type = didMethod.stringValue, userId = userIdAttribute)
+        )
+
+        log.info("DID Stored Successfully")
+    }
+
+
+
+
+    private fun storeDIDInContextBroker(didContextBrokerEntity: DidContextBrokerEntity) {
+        val url = contextBrokerEntitiesURL
+        val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(didContextBrokerEntity)
+        applicationUtils.postRequest(url, requestBody, APPLICATION_JSON)
+        log.info("DID Stored in Context Broker")
+    }
+
+
 
     fun getDistinctIds(vcs: MutableList<VcContextBrokerEntity>): List<String> {
         return vcs.map { it.id }.distinct()
