@@ -22,7 +22,7 @@ class WalletKeyServiceImpl : WalletKeyService {
     override fun generateKey(): KeyId {
         log.info("Key Service - Generate Key")
         ServiceMatrix(SERVICE_MATRIX)
-        val keyId = KeyService.getService().generate(KeyAlgorithm.EdDSA_Ed25519) //KeyAlgorithm.ECDSA_Secp256r1
+        val keyId = KeyService.getService().generate(KeyAlgorithm.ECDSA_Secp256r1) //KeyAlgorithm.ECDSA_Secp256r1
         log.info("KeyId = {}", keyId)
         return keyId
     }
