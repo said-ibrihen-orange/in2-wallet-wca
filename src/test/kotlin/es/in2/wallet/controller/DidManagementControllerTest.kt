@@ -1,5 +1,4 @@
 import es.in2.wallet.controller.DidManagementController
-import es.in2.wallet.exception.InvalidDIDFormatException
 import es.in2.wallet.model.dto.DidRequestDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.WalletDidService
@@ -50,58 +49,9 @@ class DidManagementControllerTest {
             }
         """.trimIndent()
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
             .andExpect(MockMvcResultMatchers.status().isCreated)
 
-    }
-    @Test
-    fun `createDid should return 500 INTERNAL SERVER ERROR`() {
-        val did = DidRequestDTO("key", "did:web:200")
-        val errorMessage = "Value must be null for 'key' type DID"
-        Mockito.`when`(didManagementController.createDid(did))
-            .thenThrow(InvalidDIDFormatException(errorMessage))
-
-        val jsonRequestDTO =  """
-            {
-              "type": "key",
-              "value": "did:web:200"
-            }
-        """.trimIndent()
-
-        try {
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError)
-                .andExpect(MockMvcResultMatchers.content().string(errorMessage))
-        } catch (ex: Exception) {
-            println("Error message: ${ex.message}")
-            println("Root cause: ${ex.cause?.message}")
-        }
-
-    }
-
-    @Test
-    fun `createDidElsi should return 500 INTERNAL SERVER ERROR`() {
-        val did = DidRequestDTO("elsi", "didweb:123456789abcdef")
-        val errorMessage = "DID does not match the pattern"
-
-        Mockito.`when`(didManagementController.createDid(did))
-            .thenThrow(InvalidDIDFormatException(errorMessage))
-
-        val jsonRequestDTO =  """
-            {
-              "type": "elsi",
-              "value": "didweb:123456789abcdef"
-            }
-        """.trimIndent()
-
-        try {
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError)
-                .andExpect(MockMvcResultMatchers.content().string(errorMessage))
-        } catch (ex: Exception) {
-            println("Error message: ${ex.message}")
-            println("Root cause: ${ex.cause?.message}")
-        }
     }
 
 
@@ -118,9 +68,57 @@ class DidManagementControllerTest {
             }
         """.trimIndent()
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids/create").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
             .andExpect(MockMvcResultMatchers.status().isCreated)
 
 
+    }
+
+    @Test
+    fun `createDid should return 500 INTERNAL SERVER ERROR`() {
+        val did = DidRequestDTO("key", "did:web:200")
+        val errorMessage = "Value must be null for 'key' type DID"
+        Mockito.`when`(didManagementController.createDid(did))
+
+        val jsonRequestDTO =  """
+            {
+              "type": "key",
+              "value": "did:web:200"
+            }
+        """.trimIndent()
+
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+                .andExpect(MockMvcResultMatchers.content().string(errorMessage))
+        } catch (ex: Exception) {
+            println("Error message: ${ex.message}")
+            println("Root cause: ${ex.cause?.message}")
+        }
+
+    }
+
+    @Test
+    fun `createDidElsi should return 500 INTERNAL SERVER ERROR`() {
+        val did = DidRequestDTO("elsi", "didweb:123456789abcdef")
+        val errorMessage = "DID does not match the pattern"
+
+        Mockito.`when`(didManagementController.createDid(did))
+
+        val jsonRequestDTO =  """
+            {
+              "type": "elsi",
+              "value": "didweb:123456789abcdef"
+            }
+        """.trimIndent()
+
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+                .andExpect(MockMvcResultMatchers.content().string(errorMessage))
+        } catch (ex: Exception) {
+            println("Error message: ${ex.message}")
+            println("Root cause: ${ex.cause?.message}")
+        }
     }
 }
