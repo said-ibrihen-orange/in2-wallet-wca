@@ -9,17 +9,20 @@ import es.in2.wallet.model.ContextBrokerAttribute
 import es.in2.wallet.model.DidContextBrokerEntity
 import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.VcContextBrokerEntity
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.*
 import org.json.JSONArray
+import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.net.URLEncoder
 import java.util.*
 
 @Service
@@ -236,6 +239,26 @@ class PersonalDataSpaceServiceImpl(
         val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(didContextBrokerEntity)
         applicationUtils.postRequest(url, requestBody, APPLICATION_JSON)
         log.info("DID Stored in Context Broker")
+    }
+
+    override fun getDidsByUserId(): MutableList<DidResponseDTO> {
+        val userUUID = getUserIdFromContextAuthentication()
+        // We need to encode ^ character to avoid interpretation issues in the HTTP request
+        val typePattern = URLEncoder.encode("^did", "UTF-8")
+        // get all DIDs from user
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/?typePattern=$typePattern&userId.value=$userUUID")
+        return parseResponseBodyIntoContextBrokerDidMutableList(response)
+
+    }
+    private fun parseResponseBodyIntoContextBrokerDidMutableList(response: String): MutableList<DidResponseDTO> {
+        val result: MutableList<DidResponseDTO> = mutableListOf()
+        JSONArray(response).forEach {
+            val jsonObject = JSONObject(it.toString())
+            val id = jsonObject.getString("id")
+            val didResponseDTO = DidResponseDTO(id)
+            result.add(didResponseDTO)
+        }
+        return result
     }
 
 

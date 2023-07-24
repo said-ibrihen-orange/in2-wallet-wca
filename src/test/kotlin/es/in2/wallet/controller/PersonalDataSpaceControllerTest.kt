@@ -1,8 +1,10 @@
 
 package es.in2.wallet.controller
 
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.PersonalDataSpaceService
+import es.in2.wallet.util.ApplicationUtils
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,11 +14,13 @@ import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import java.net.URLEncoder
 
 @SpringJUnitConfig
 @SpringBootTest
@@ -30,6 +34,7 @@ class PersonalDataSpaceControllerTest {
     private lateinit var personalDataSpaceController: PersonalDataSpaceController
 
     private lateinit var mockMvc: MockMvc
+
 
 
     @BeforeEach
@@ -50,6 +55,7 @@ class PersonalDataSpaceControllerTest {
         // Add objects to the list as needed
         val expectedList = mutableListOf(vcBasicDataDTO)
 
+
         // Mock the personalDataSpaceService to return the expected list
         `when`(personalDataSpaceService.getUserVCsInJson()).thenReturn(expectedList)
 
@@ -66,5 +72,36 @@ class PersonalDataSpaceControllerTest {
 
         // Add additional assertions as needed
     }
+    @Test
+    fun `getDidList should return 200 OK`() {
 
+        val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
+
+        val responseJsonArray = """
+        [
+            {
+                "id": "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"
+            },
+            {
+                "id": "did:elsi:sasas"
+            }
+        ]
+    """.trimIndent()
+
+        val expectedDidResponseDTOs = mutableListOf(
+                DidResponseDTO("did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"),
+                DidResponseDTO("did:elsi:sasas")
+        )
+
+        `when`(personalDataSpaceService.getDidsByUserId()).thenReturn(expectedDidResponseDTOs)
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/personal-data-space/did")
+                .param("userId.value", userUUID)
+        )
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.content().json(responseJsonArray))
+    }
 }
+
+
