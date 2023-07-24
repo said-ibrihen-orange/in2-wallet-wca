@@ -20,5 +20,4 @@ class DidManagementController(
         walletDidService.createDid(didRequestDTO)
         return "DID created"
     }
-
 }
