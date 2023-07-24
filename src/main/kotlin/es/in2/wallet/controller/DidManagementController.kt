@@ -26,10 +26,4 @@ class DidManagementController(
     fun getDidList() : List<DidResponseDTO>{
         return walletDidService.getDidsByUserId()
     }
-    @DeleteMapping
-    @ResponseStatus(HttpStatus.OK)
-    fun deleteDid(@RequestBody didResponseDTO: DidResponseDTO): String{
-        walletDidService
-        return "Did deleted"
-    }
 }
