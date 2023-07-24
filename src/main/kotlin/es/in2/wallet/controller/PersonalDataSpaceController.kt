@@ -1,6 +1,5 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -25,10 +24,7 @@ class PersonalDataSpaceController(
         log.debug("VerifiableCredentialController.getVerifiableCredential()")
         return personalDataSpaceService.getUserVCsInJson()
     }
-    @GetMapping("/did")
-    fun getDidList() : List<DidResponseDTO>{
-        return personalDataSpaceService.getDidsByUserId()
-    }
+
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.OK)

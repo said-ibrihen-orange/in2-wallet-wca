@@ -1,6 +1,7 @@
 package es.in2.wallet.controller
 
 import es.in2.wallet.model.dto.DidRequestDTO
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.service.WalletDidService
 import io.swagger.v3.oas.annotations.tags.Tag
 
@@ -19,5 +20,16 @@ class DidManagementController(
     fun createDid(@RequestBody didRequestDTO: DidRequestDTO): String {
         walletDidService.createDid(didRequestDTO)
         return "DID created"
+    }
+
+    @GetMapping
+    fun getDidList() : List<DidResponseDTO>{
+        return walletDidService.getDidsByUserId()
+    }
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.OK)
+    fun deleteDid(@RequestBody didResponseDTO: DidResponseDTO): String{
+        walletDidService
+        return "Did deleted"
     }
 }

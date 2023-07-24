@@ -1,5 +1,6 @@
 import es.in2.wallet.controller.DidManagementController
 import es.in2.wallet.model.dto.DidRequestDTO
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.WalletDidService
 import org.junit.jupiter.api.BeforeEach
@@ -120,5 +121,35 @@ class DidManagementControllerTest {
             println("Error message: ${ex.message}")
             println("Root cause: ${ex.cause?.message}")
         }
+    }
+    @Test
+    fun `getDidList should return 200 OK`() {
+
+        val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
+
+        val responseJsonArray = """
+        [
+            {
+                "id": "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"
+            },
+            {
+                "id": "did:elsi:sasas"
+            }
+        ]
+    """.trimIndent()
+
+        val expectedDidResponseDTOs = mutableListOf(
+                DidResponseDTO("did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"),
+                DidResponseDTO("did:elsi:sasas")
+        )
+
+        Mockito.`when`(didManagementController.getDidList()).thenReturn(expectedDidResponseDTOs)
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/dids")
+                .param("userId.value", userUUID)
+        )
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.content().json(responseJsonArray))
     }
 }

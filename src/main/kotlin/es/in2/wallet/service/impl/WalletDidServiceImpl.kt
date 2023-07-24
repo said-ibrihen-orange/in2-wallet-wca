@@ -3,6 +3,7 @@ package es.in2.wallet.service.impl
 import es.in2.wallet.exception.InvalidDIDFormatException
 import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.dto.DidRequestDTO
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.SERVICE_MATRIX
 import es.in2.wallet.service.WalletDidService
@@ -60,6 +61,10 @@ class WalletDidServiceImpl(
         log.debug("DID Key = {}", did)
         personalDataSpaceService.saveDid(did, DidMethods.DID_KEY)
         return did
+    }
+
+    override fun getDidsByUserId(): List<DidResponseDTO> {
+        return personalDataSpaceService.getDidsByUserId()
     }
 
 
