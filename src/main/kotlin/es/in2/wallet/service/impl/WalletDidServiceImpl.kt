@@ -67,6 +67,15 @@ class WalletDidServiceImpl(
         return personalDataSpaceService.getDidsByUserId()
     }
 
+    override fun deleteDid(didResponseDTO: DidResponseDTO): String{
+        val did = didResponseDTO.did
+        if(!did.startsWith("did:key:") && !did.startsWith("did:elsi:")){
+            throw InvalidDIDFormatException("Value DID has an invalid format.")
+        }
+        personalDataSpaceService.deleteSelectedDid(didResponseDTO)
+        return "Deleted " + didResponseDTO.did
+    }
+
 
     override fun generateDidKey(): String {
         log.info("DID Service - Generate DID Key")
