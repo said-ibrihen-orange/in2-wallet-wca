@@ -26,4 +26,5 @@ class DidManagementController(
     fun getDidList() : List<DidResponseDTO>{
         return walletDidService.getDidsByUserId()
     }
+
 }
