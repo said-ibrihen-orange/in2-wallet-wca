@@ -35,7 +35,8 @@ class VerifiableCredentialServiceImpl(
         log.debug("Parsed credential offer URI: {}", credentialOfferUriValue)
 
         // get credential_offer executing the credential_offer_uri
-        val credentialOffer = ObjectMapper().readTree(getCredentialOffer(credentialOfferUriValue))
+        val credentialOfferResponse = getCredentialOffer(credentialOfferUriValue)
+        val credentialOffer = ObjectMapper().readTree(credentialOfferResponse)
         log.debug("Credential offer: {}", credentialOffer)
 
         // generate dynamic URL to get the credential_issuer_metadata
@@ -53,6 +54,7 @@ class VerifiableCredentialServiceImpl(
         // request credential using the access_token received
         val credentialType = credentialOffer["credentials"][0].asText()
         val credentialEndpoint = credentialIssuerMetadataObject["credentialEndpoint"].asText() + credentialType
+
         val verifiableCredential = executePostRequestWithAccessToken(credentialEndpoint, mapOf(), accessToken)
         log.debug("Verifiable credential: {}", verifiableCredential)
 

@@ -56,6 +56,12 @@ class QrCodeProcessorServiceImpl(
 
         // define multiple regex patterns to identify the QR content type
 
+        /*
+            Non-normative example of the Credential Offer displayed by the Credential Issuer as a QR code when the
+            Credential Offer is passed by reference:
+            openid-credential-offer://?credential_offer_uri=https://server.example.com/credential-offer.jwt
+         */
+
         val loginRequestUrlRegex = Regex("(https|http).*?(authentication-request|authentication-requests).*")
         val siopAuthenticationRequestRegex = Regex("openid://.*")
         val credentialOfferUriRegex = Regex("(https|http).*?(credential-offer).*")

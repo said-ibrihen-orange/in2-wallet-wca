@@ -48,7 +48,11 @@ object ApplicationUtils {
             .build()
         // Get Response
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        log.info("response = {}", response.get().body())
+        if(response.get().body().isNotBlank()) {
+            log.info("post response = {}", response.get().body())
+        } else {
+            log.info("post response = {}", response.get().statusCode())
+        }
         // Verify Response HttpStatus
         checkPostResponseStatus(response.get().statusCode())
         return response.get().body()

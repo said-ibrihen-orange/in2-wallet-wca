@@ -2,7 +2,7 @@ spring:
   application:
     name: WalletAPI
   datasource:
-    url: jdbc:mysql://local-mysql:3306/wallet?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3309/wallet?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     username: in2admin
     password: in2pass
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -20,6 +20,12 @@ spring:
       name: in2test
       password: in2pass
 
+logging:
+  level:
+    es:
+      in2:
+        wallet: DEBUG
+
 server:
   port: 8083
 
@@ -32,4 +38,5 @@ app:
   url:
     api: http://localhost:8083
     orion_context_broker: http://localhost:1026/v2/entities
+
 
