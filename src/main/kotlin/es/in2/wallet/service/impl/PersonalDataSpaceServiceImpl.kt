@@ -254,8 +254,8 @@ class PersonalDataSpaceServiceImpl(
         val result: MutableList<DidResponseDTO> = mutableListOf()
         JSONArray(response).forEach {
             val jsonObject = JSONObject(it.toString())
-            val id = jsonObject.getString("id")
-            val didResponseDTO = DidResponseDTO(id)
+            val did = jsonObject.getString("id")
+            val didResponseDTO = DidResponseDTO(did)
             result.add(didResponseDTO)
         }
         return result

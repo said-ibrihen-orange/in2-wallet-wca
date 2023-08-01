@@ -138,10 +138,10 @@ class DidManagementControllerTest {
         val responseJsonArray = """
         [
             {
-                "id": "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"
+                "did": "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"
             },
             {
-                "id": "did:elsi:sasas"
+                "did": "did:elsi:sasas"
             }
         ]
     """.trimIndent()
@@ -170,7 +170,7 @@ class DidManagementControllerTest {
 
         val jsonRequestDTO = """
             {
-                "id": "did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
+                "did": "did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
             }
         """.trimIndent()
 
@@ -194,7 +194,7 @@ class DidManagementControllerTest {
 
         val jsonRequestDTO = """
             {
-                "id": "did:key:sdsdsdsdsdsdsdsdsdsdsdsd"
+                "did": "did:key:sdsdsdsdsdsdsdsdsdsdsdsd"
             }
         """.trimIndent()
 
