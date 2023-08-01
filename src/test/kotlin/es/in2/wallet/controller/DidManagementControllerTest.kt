@@ -1,5 +1,6 @@
 import es.in2.wallet.controller.DidManagementController
 import es.in2.wallet.model.dto.DidRequestDTO
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.WalletDidService
 import org.junit.jupiter.api.BeforeEach
@@ -42,18 +43,19 @@ class DidManagementControllerTest {
         val did = DidRequestDTO("key", null)
         Mockito.`when`(didManagementController.createDid(did)).thenReturn("DID created")
 
-        val jsonRequestDTO =  """
+        val jsonRequestDTO = """
             {
               "type": "key",
               "value": null
             }
         """.trimIndent()
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO)
+        )
             .andExpect(MockMvcResultMatchers.status().isCreated)
 
     }
-
 
 
     @Test
@@ -61,14 +63,16 @@ class DidManagementControllerTest {
         val did = DidRequestDTO("elsi", "did:elsi:56789")
         Mockito.`when`(didManagementController.createDid(did)).thenReturn("DID created")
 
-        val jsonRequestDTO =  """
+        val jsonRequestDTO = """
             {
               "type": "elsi",
               "value": "did:elsi:56789"
             }
         """.trimIndent()
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO)
+        )
             .andExpect(MockMvcResultMatchers.status().isCreated)
 
 
@@ -80,7 +84,7 @@ class DidManagementControllerTest {
         val errorMessage = "Value must be null for 'key' type DID"
         Mockito.`when`(didManagementController.createDid(did))
 
-        val jsonRequestDTO =  """
+        val jsonRequestDTO = """
             {
               "type": "key",
               "value": "did:web:200"
@@ -88,7 +92,9 @@ class DidManagementControllerTest {
         """.trimIndent()
 
         try {
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO)
+            )
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError)
                 .andExpect(MockMvcResultMatchers.content().string(errorMessage))
         } catch (ex: Exception) {
@@ -105,7 +111,7 @@ class DidManagementControllerTest {
 
         Mockito.`when`(didManagementController.createDid(did))
 
-        val jsonRequestDTO =  """
+        val jsonRequestDTO = """
             {
               "type": "elsi",
               "value": "didweb:123456789abcdef"
@@ -113,7 +119,9 @@ class DidManagementControllerTest {
         """.trimIndent()
 
         try {
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO))
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/dids").contentType(MediaType.APPLICATION_JSON).content(jsonRequestDTO)
+            )
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError)
                 .andExpect(MockMvcResultMatchers.content().string(errorMessage))
         } catch (ex: Exception) {
@@ -121,4 +129,90 @@ class DidManagementControllerTest {
             println("Root cause: ${ex.cause?.message}")
         }
     }
+
+    @Test
+    fun `getDidList should return 200 OK`() {
+
+        val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
+
+        val responseJsonArray = """
+        [
+            {
+                "did": "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"
+            },
+            {
+                "did": "did:elsi:sasas"
+            }
+        ]
+    """.trimIndent()
+
+        val expectedDidResponseDTOs = mutableListOf(
+            DidResponseDTO("did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"),
+            DidResponseDTO("did:elsi:sasas")
+        )
+
+        Mockito.`when`(didManagementController.getDidList()).thenReturn(expectedDidResponseDTOs)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/dids")
+                .param("userId.value", userUUID)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.content().json(responseJsonArray))
+    }
+
+    @Test
+    fun `Delete Did should return 200 OK`() {
+        val did = DidResponseDTO("did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
+        val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
+        Mockito.`when`(didManagementController.deleteDid(did)).thenReturn("DID deleted")
+
+        val jsonRequestDTO = """
+            {
+                "did": "did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
+            }
+        """.trimIndent()
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.delete("/api/dids")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequestDTO)
+                .param("userId.value", userUUID)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+
+
+    }
+
+    @Test
+    fun `Delete Did should return 500 INTERNAL SERVER ERROR`() {
+        val didResponseDTO = DidResponseDTO("did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
+        val errorMessage = "DID not found: did:key:sdsdsdsdsdsdsdsdsdsdsdsd"
+        val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
+        Mockito.`when`(didManagementController.deleteDid(didResponseDTO))
+
+        val jsonRequestDTO = """
+            {
+                "did": "did:key:sdsdsdsdsdsdsdsdsdsdsdsd"
+            }
+        """.trimIndent()
+
+        try {
+            mockMvc.perform(
+                MockMvcRequestBuilders.delete("/api/dids")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonRequestDTO)
+                    .param("userId.value", userUUID)
+            )
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+                .andExpect(MockMvcResultMatchers.content().string(errorMessage))
+        } catch (ex: Exception) {
+            println("Error message: ${ex.message}")
+            println("Root cause: ${ex.cause?.message}")
+        }
+
+
+    }
 }
+

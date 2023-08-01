@@ -32,6 +32,7 @@ class PersonalDataSpaceControllerTest {
     private lateinit var mockMvc: MockMvc
 
 
+
     @BeforeEach
     fun setup() {
         MockitoAnnotations.openMocks(PersonalDataSpaceControllerTest::class.java)
@@ -49,6 +50,7 @@ class PersonalDataSpaceControllerTest {
 
         // Add objects to the list as needed
         val expectedList = mutableListOf(vcBasicDataDTO)
+
 
         // Mock the personalDataSpaceService to return the expected list
         `when`(personalDataSpaceService.getUserVCsInJson()).thenReturn(expectedList)
@@ -68,3 +70,5 @@ class PersonalDataSpaceControllerTest {
     }
 
 }
+
+

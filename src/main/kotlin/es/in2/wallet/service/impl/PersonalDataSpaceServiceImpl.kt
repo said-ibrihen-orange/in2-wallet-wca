@@ -4,22 +4,26 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.InvalidDIDFormatException
+import es.in2.wallet.exception.DIDNotFoundException
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
 import es.in2.wallet.model.ContextBrokerAttribute
 import es.in2.wallet.model.DidContextBrokerEntity
 import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.VcContextBrokerEntity
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.*
 import org.json.JSONArray
+import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.net.URLEncoder
 import java.util.*
 
 @Service
@@ -214,8 +218,7 @@ class PersonalDataSpaceServiceImpl(
         // Log the start of saveDID func
         log.debug("Saving the new DID $did for user: $userId")
 
-        val didElsiPattern = "^did:elsi:[a-zA-Z0-9]+$".toRegex()
-        if (didMethod == DidMethods.DID_ELSI && !did.matches(didElsiPattern)) {
+        if (didMethod == DidMethods.DID_ELSI && !did.startsWith("did:elsi:")) {
 
             throw InvalidDIDFormatException("DID does not match the pattern")
 
@@ -238,6 +241,42 @@ class PersonalDataSpaceServiceImpl(
         log.info("DID Stored in Context Broker")
     }
 
+    override fun getDidsByUserId(): MutableList<DidResponseDTO> {
+        val userUUID = getUserIdFromContextAuthentication()
+        // We need to encode ^ character to avoid interpretation issues in the HTTP request
+        val typePattern = URLEncoder.encode("^did", "UTF-8")
+        // get all DIDs from user
+        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/?typePattern=$typePattern&userId.value=$userUUID")
+        return parseResponseBodyIntoContextBrokerDidMutableList(response)
+
+    }
+    private fun parseResponseBodyIntoContextBrokerDidMutableList(response: String): MutableList<DidResponseDTO> {
+        val result: MutableList<DidResponseDTO> = mutableListOf()
+        JSONArray(response).forEach {
+            val jsonObject = JSONObject(it.toString())
+            val did = jsonObject.getString("id")
+            val didResponseDTO = DidResponseDTO(did)
+            result.add(didResponseDTO)
+        }
+        return result
+    }
+
+    override fun deleteSelectedDid(didResponseDTO: DidResponseDTO){
+        val userUUID = getUserIdFromContextAuthentication()
+        didExists(didResponseDTO,userUUID)
+        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID")
+
+    }
+
+    private fun didExists(didResponseDTO: DidResponseDTO,userUUID: String): Boolean {
+        try {
+            val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID")
+            return response.isNotEmpty()
+
+        } catch (e: NoSuchElementException) {
+            throw DIDNotFoundException("DID not found: ${didResponseDTO.did}")
+        }
+    }
 
 
     fun getDistinctIds(vcs: MutableList<VcContextBrokerEntity>): List<String> {

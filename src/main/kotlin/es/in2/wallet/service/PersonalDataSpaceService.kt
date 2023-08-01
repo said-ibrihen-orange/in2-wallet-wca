@@ -1,6 +1,7 @@
 package es.in2.wallet.service
 
 import es.in2.wallet.model.DidMethods
+import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.model.dto.VcBasicDataDTO
 
 
@@ -13,6 +14,8 @@ interface PersonalDataSpaceService {
     fun getSelectableVCsByVcTypeList(vcTypeList: List<String>): List<VcBasicDataDTO>
     fun deleteVCs()
     fun saveDid(did: String, didMethod: DidMethods)
+    fun getDidsByUserId(): MutableList<DidResponseDTO>
+    fun deleteSelectedDid(didResponseDTO: DidResponseDTO)
 
 
 
