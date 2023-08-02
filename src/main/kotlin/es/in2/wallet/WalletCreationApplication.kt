@@ -4,11 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class WalletBackendApplication
+class WalletCreationApplication
 
 fun main(args: Array<String>) {
-    runApplication<WalletBackendApplication>(*args)
+    runApplication<WalletCreationApplication>(*args)
 }
-
-
-
