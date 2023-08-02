@@ -1,6 +1,5 @@
 package es.in2.wallet.util
 
-import es.in2.wallet.configuration.UserAdminConfig
 import es.in2.wallet.exception.FailedCommunicationException
 import es.in2.wallet.model.OpenIdConfig
 import org.slf4j.Logger
@@ -17,7 +16,7 @@ import java.net.http.HttpResponse
 @Component
 object ApplicationUtils {
 
-    private val log: Logger = LoggerFactory.getLogger(UserAdminConfig::class.java)
+    private val log: Logger = LoggerFactory.getLogger(ApplicationUtils::class.java)
 
     fun getRequest(url: String): String {
         log.info("ApplicationUtils.getRequest()")

@@ -7,6 +7,8 @@ import es.in2.wallet.service.SiopService
 import es.in2.wallet.service.VerifiablePresentationService
 import es.in2.wallet.util.VC_JWT
 import es.in2.wallet.service.WalletDidService
+import id.walt.credentials.w3c.PresentableCredential
+import id.walt.credentials.w3c.VerifiableCredential
 import id.walt.custodian.Custodian
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -25,9 +27,14 @@ class VerifiablePresentationServiceImpl(
     override fun createVerifiablePresentation(vcSelectorResponseDTO: VcSelectorResponseDTO): String {
 
         // Get vc_jwt list from the selected list of VCs received
-        val verifiableCredentialsList = mutableListOf<String>()
+        val verifiableCredentialsList = mutableListOf<PresentableCredential>()
         vcSelectorResponseDTO.selectedVcList.forEach {
-            verifiableCredentialsList.add(personalDataSpaceService.getVerifiableCredentialByIdAndFormat(it.id, VC_JWT))
+            verifiableCredentialsList.add(
+                PresentableCredential(
+                    verifiableCredential = VerifiableCredential.fromString(
+                        personalDataSpaceService.getVerifiableCredentialByIdAndFormat(it.id, VC_JWT)),
+                    discloseAll = false
+            ))
         }
 
         // Get Subject DID
@@ -54,8 +61,8 @@ class VerifiablePresentationServiceImpl(
         )
     }
 
-    private fun getSubjectDidFromTheFirstVcOfTheList(verifiableCredentialsList: MutableList<String>): String {
-        val verifiableCredential = verifiableCredentialsList[0]
+    private fun getSubjectDidFromTheFirstVcOfTheList(verifiableCredentialsList: MutableList<PresentableCredential>): String {
+        val verifiableCredential = verifiableCredentialsList[0].verifiableCredential.toString()
         val parsedVerifiableCredential = SignedJWT.parse(verifiableCredential)
         val payloadToJson = parsedVerifiableCredential.payload.toJSONObject()
         return payloadToJson["sub"].toString()
