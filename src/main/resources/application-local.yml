@@ -33,3 +33,11 @@ app:
     api: http://localhost:8083
     orion_context_broker: http://localhost:1026/v2/entities
 
+# Logging configuration
+logging:
+  level:
+    # Set the log level for the entire application
+    root: INFO
+    # Set log level for specific packages or classes
+    es.in2.wallet.service: DEBUG
+
