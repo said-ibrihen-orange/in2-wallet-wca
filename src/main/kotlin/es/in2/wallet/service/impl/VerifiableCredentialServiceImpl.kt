@@ -2,22 +2,16 @@ package es.in2.wallet.service.impl
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import es.in2.wallet.exception.FailedCommunicationException
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.VerifiableCredentialService
 import es.in2.wallet.util.*
-import es.in2.wallet.util.ApplicationUtils.buildFormUrlEncodedRequestBody
-import es.in2.wallet.util.ApplicationUtils.checkResponseStatus
-import es.in2.wallet.util.ApplicationUtils.httpRequestBuilder
+import es.in2.wallet.util.ApplicationUtils.buildUrlEncodedFormDataRequestBody
+import es.in2.wallet.util.ApplicationUtils.getRequest
+import es.in2.wallet.util.ApplicationUtils.postRequest
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springdoc.core.service.GenericResponseService
 import org.springframework.stereotype.Service
-import java.net.URI
-import java.net.URLEncoder
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 
 @Service
 class VerifiableCredentialServiceImpl(
@@ -51,7 +45,8 @@ class VerifiableCredentialServiceImpl(
     }
 
     private fun getCredentialOffer(credentialOfferUri: String): String {
-        val credentialOffer = executeGetRequest(credentialOfferUri)
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
+        val credentialOffer = getRequest(url=credentialOfferUri, headers=headers)
         log.debug("Credential offer: $credentialOffer")
         return credentialOffer
     }
@@ -64,8 +59,9 @@ class VerifiableCredentialServiceImpl(
     }
 
     private fun getCredentialIssuerMetadata(credentialIssuerMetadataUri: String): JsonNode {
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
         val credentialIssuerMetadata =
-            ObjectMapper().readTree(executeGetRequest(credentialIssuerMetadataUri))
+            ObjectMapper().readTree(getRequest(url=credentialIssuerMetadataUri, headers=headers))
         log.debug("Credential Issuer Metadata: {}", credentialIssuerMetadata)
         return credentialIssuerMetadata
     }
@@ -74,9 +70,12 @@ class VerifiableCredentialServiceImpl(
         val tokenEndpoint = credentialIssuerMetadata["credential_token"].asText()
         val preAuthorizedCodeObject = credentialOffer["grants"][PRE_AUTH_CODE_GRANT_TYPE]
         val preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"].asText()
-        val data = mapOf("grant_type" to PRE_AUTH_CODE_GRANT_TYPE, "pre-authorized_code" to preAuthorizedCode)
-        val response = ObjectMapper().readTree(executePostRequest(tokenEndpoint, data))
-        val accessToken = response["access_token"].asText()
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
+        val formData = mapOf("grant_type" to PRE_AUTH_CODE_GRANT_TYPE, "pre-authorized_code" to preAuthorizedCode)
+        val body = buildUrlEncodedFormDataRequestBody(formDataMap=formData)
+        val response = postRequest(url=tokenEndpoint, headers=headers, body=body)
+        val accessTokenJson: JsonNode = ObjectMapper().readTree(response)
+        val accessToken = accessTokenJson["access_token"].asText()
         log.debug("Access token: $accessToken")
         return accessToken
     }
@@ -85,57 +84,11 @@ class VerifiableCredentialServiceImpl(
                                         credentialIssuerMetadata: JsonNode): String {
         val credentialType = credentialOffer["credentials"][0].asText()
         val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText() + credentialType
-        val verifiableCredential = executePostRequestWithAccessToken(credentialEndpoint, mapOf(), accessToken)
-        log.debug("Verifiable credential: {}", verifiableCredential)
-        return verifiableCredential
-    }
-
-    private fun buildHttpClient(): HttpClient {
-        return HttpClient.newBuilder().build()
-    }
-
-    /**
-     * @see es.in2.wallet.util.ApplicationUtils.getRequest
-     * @deprecated We should use the utils classes
-     */
-    @Deprecated("We should use the utils classes")
-    private fun executeGetRequest(url: String): String {
-        val client = buildHttpClient()
-        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
-        val request = httpRequestBuilder(url=url, headers=headers).GET().build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
-        checkResponseStatus(response=response, 200..200)
-        return response.body()
-    }
-
-    /**
-     * @see es.in2.wallet.util.ApplicationUtils.postRequest
-     * @deprecated We should use the utils classes
-     */
-    @Deprecated("We should use the utils classes")
-    private fun executePostRequest(url: String, formDataMap: Map<String, String>): String {
-        val client = buildHttpClient()
-        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
-        val request = httpRequestBuilder(url=url, headers=headers)
-            .POST(buildFormUrlEncodedRequestBody(formDataMap=formDataMap)).build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
-        checkResponseStatus(response=response, statusCodeRange = 200..200)
-        return response.body()
-    }
-
-    /**
-     * @see es.in2.wallet.util.ApplicationUtils.postRequest
-     * @deprecated We should use the utils classes
-     */
-    private fun executePostRequestWithAccessToken(url: String, formDataMap: Map<String, String>, accessToken: String): String {
-        val client = buildHttpClient()
-        val headers= listOf(
+        val headers = listOf(
             CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM,
             HEADER_AUTHORIZATION to "Bearer $accessToken")
-        val request = httpRequestBuilder(url=url, headers=headers)
-            .POST(buildFormUrlEncodedRequestBody(formDataMap=formDataMap)).build()
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
-        checkResponseStatus(response=response, statusCodeRange = 200..299)
-        return response.body()
+        val verifiableCredential = postRequest(url=credentialEndpoint, headers=headers, body="")
+        log.debug("Verifiable credential: {}", verifiableCredential)
+        return verifiableCredential
     }
 }

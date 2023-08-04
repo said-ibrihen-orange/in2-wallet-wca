@@ -15,6 +15,7 @@ import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.*
+import es.in2.wallet.util.ApplicationUtils.postRequest
 import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.Logger
@@ -89,7 +90,6 @@ class PersonalDataSpaceServiceImpl(
 
     private fun checkIfCredentialIdIsNull(vcId: String) {
         if (vcId.isBlank()) {
-            // Log an error if the Verifiable Credential ID is null
             log.error("Verifiable Credential does not contain an ID")
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Verifiable Credential does not contain an ID")
         }
@@ -98,8 +98,8 @@ class PersonalDataSpaceServiceImpl(
     private fun storeVcInContextBroker(contextBrokerEntity: VcContextBrokerEntity) {
         val url = contextBrokerEntitiesURL
         val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(contextBrokerEntity)
-        applicationUtils.postRequest(url, requestBody, CONTENT_TYPE_APPLICATION_JSON)
-        // Log the storage of Verifiable Credential in Context Broker
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
+        postRequest(url=url, headers=headers, body=requestBody)
         log.info("Verifiable Credential stored in Context Broker")
     }
 
@@ -157,13 +157,14 @@ class PersonalDataSpaceServiceImpl(
     }
 
     override fun deleteVerifiableCredential(id: String) {
-        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=$VC_JWT")
-        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/$id?type=$VC_JSON")
+        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JWT", headers = listOf())
+        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JSON", headers = listOf())
     }
 
     fun getVerifiableCredentialsByUserIdAndFormat(format: String): MutableList<VcContextBrokerEntity> {
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?type=$format&user_ID=$userUUID")
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?type=$format&user_ID=$userUUID",
+            headers=listOf())
         return parseResponseBodyIntoContextBrokerVcMutableList(response)
     }
 
@@ -185,7 +186,8 @@ class PersonalDataSpaceServiceImpl(
     override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String {
         // Get user session
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID")
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID",
+            headers=listOf())
         val objectMapper = ObjectMapper()
         return if (format == VC_JWT) {
             objectMapper.readValue(response, VcContextBrokerEntity::class.java).vcData.value.toString()
@@ -201,7 +203,7 @@ class PersonalDataSpaceServiceImpl(
 
     override fun deleteVCs() {
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL?user_ID=$userUUID")
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?user_ID=$userUUID", headers=listOf())
         val vcs = parseResponseBodyIntoContextBrokerVcMutableList(response)
         val vcIdList = getDistinctIds(vcs)
         // get all VCs from user
@@ -237,7 +239,8 @@ class PersonalDataSpaceServiceImpl(
     private fun storeDIDInContextBroker(didContextBrokerEntity: DidContextBrokerEntity) {
         val url = contextBrokerEntitiesURL
         val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(didContextBrokerEntity)
-        applicationUtils.postRequest(url, requestBody, CONTENT_TYPE_APPLICATION_JSON)
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
+        applicationUtils.postRequest(url=url, body=requestBody, headers=headers)
         log.info("DID Stored in Context Broker")
     }
 
@@ -246,7 +249,8 @@ class PersonalDataSpaceServiceImpl(
         // We need to encode ^ character to avoid interpretation issues in the HTTP request
         val typePattern = URLEncoder.encode("^did", "UTF-8")
         // get all DIDs from user
-        val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/?typePattern=$typePattern&userId.value=$userUUID")
+        val response = applicationUtils.getRequest(
+            url="$contextBrokerEntitiesURL/?typePattern=$typePattern&userId.value=$userUUID", headers=listOf())
         return parseResponseBodyIntoContextBrokerDidMutableList(response)
 
     }
@@ -264,13 +268,15 @@ class PersonalDataSpaceServiceImpl(
     override fun deleteSelectedDid(didResponseDTO: DidResponseDTO){
         val userUUID = getUserIdFromContextAuthentication()
         didExists(didResponseDTO,userUUID)
-        applicationUtils.deleteRequest("$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID")
-
+        applicationUtils.deleteRequest(url="$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
+            headers=listOf())
     }
 
     private fun didExists(didResponseDTO: DidResponseDTO,userUUID: String): Boolean {
         try {
-            val response = applicationUtils.getRequest("$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID")
+            val response = applicationUtils.getRequest(
+                url="$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
+                headers=listOf())
             return response.isNotEmpty()
 
         } catch (e: NoSuchElementException) {
