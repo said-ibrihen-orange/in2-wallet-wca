@@ -2,6 +2,8 @@ package es.in2.wallet.service.impl
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import es.in2.wallet.model.dto.CredentialIssuerMetadata
+import es.in2.wallet.model.dto.CredentialOfferForPreAuthorizedCodeFlow
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.VerifiableCredentialService
 import es.in2.wallet.util.*
@@ -22,7 +24,7 @@ class VerifiableCredentialServiceImpl(
 
     override fun getVerifiableCredential(credentialOfferUriExtended: String) {
         val credentialOfferUri = getCredentialOfferUri(credentialOfferUriExtended)
-        val credentialOffer: JsonNode = ObjectMapper().readTree(getCredentialOffer(credentialOfferUri))
+        val credentialOffer = getCredentialOffer(credentialOfferUri)
         val credentialIssuerMetadataUri = getCredentialIssuerMetadataUri(credentialOffer)
         val credentialIssuerMetadata = getCredentialIssuerMetadata(credentialIssuerMetadataUri)
         val accessToken = getAccessToken(credentialOffer, credentialIssuerMetadata)
@@ -43,32 +45,36 @@ class VerifiableCredentialServiceImpl(
         return credentialOfferUriValue
     }
 
-    private fun getCredentialOffer(credentialOfferUri: String): String {
+    private fun getCredentialOffer(credentialOfferUri: String): CredentialOfferForPreAuthorizedCodeFlow {
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
-        val credentialOffer = getRequest(url=credentialOfferUri, headers=headers)
-        log.debug("Credential offer: $credentialOffer")
+        val response = getRequest(url=credentialOfferUri, headers=headers)
+        val valueTypeRef = ObjectMapper().typeFactory.constructType(CredentialOfferForPreAuthorizedCodeFlow::class.java)
+        val credentialOffer: CredentialOfferForPreAuthorizedCodeFlow = ObjectMapper().readValue(response, valueTypeRef)
+        log.debug("Credential offer: {}", credentialOffer)
         return credentialOffer
     }
 
     /**
      * Generate dynamic URL to get the credential_issuer_metadata
      */
-    private fun getCredentialIssuerMetadataUri(credentialOffer: JsonNode): String {
-        return credentialOffer["credential_issuer"].asText() + "/.well-known/openid-credential-issuer"
+    private fun getCredentialIssuerMetadataUri(credentialOffer: CredentialOfferForPreAuthorizedCodeFlow): String {
+        return credentialOffer.credentialIssuer + "/.well-known/openid-credential-issuer"
     }
 
-    private fun getCredentialIssuerMetadata(credentialIssuerMetadataUri: String): JsonNode {
+    private fun getCredentialIssuerMetadata(credentialIssuerMetadataUri: String): CredentialIssuerMetadata {
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
-        val credentialIssuerMetadata =
-            ObjectMapper().readTree(getRequest(url=credentialIssuerMetadataUri, headers=headers))
+        val response = getRequest(url=credentialIssuerMetadataUri, headers=headers)
+        val valueTypeRef = ObjectMapper().typeFactory.constructType(CredentialIssuerMetadata::class.java)
+        val credentialIssuerMetadata = ObjectMapper().readValue<CredentialIssuerMetadata>(response, valueTypeRef)
         log.debug("Credential Issuer Metadata: {}", credentialIssuerMetadata)
         return credentialIssuerMetadata
     }
 
-    private fun getAccessToken(credentialOffer: JsonNode, credentialIssuerMetadata: JsonNode): String {
-        val tokenEndpoint = credentialIssuerMetadata["credential_token"].asText()
-        val preAuthorizedCodeObject = credentialOffer["grants"][PRE_AUTH_CODE_GRANT_TYPE]
-        val preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"].asText()
+    private fun getAccessToken(credentialOffer: CredentialOfferForPreAuthorizedCodeFlow,
+                               credentialIssuerMetadata: CredentialIssuerMetadata): String {
+        val tokenEndpoint = credentialIssuerMetadata.credentialToken
+        val preAuthorizedCodeObject = credentialOffer.grants[PRE_AUTH_CODE_GRANT_TYPE]
+        val preAuthorizedCode = preAuthorizedCodeObject?.preAuthorizedCode
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
         val formData = mapOf("grant_type" to PRE_AUTH_CODE_GRANT_TYPE, "pre-authorized_code" to preAuthorizedCode)
         val body = buildUrlEncodedFormDataRequestBody(formDataMap=formData)
@@ -79,10 +85,10 @@ class VerifiableCredentialServiceImpl(
         return accessToken
     }
 
-    private fun getVerifiableCredential(accessToken: String, credentialOffer: JsonNode,
-                                        credentialIssuerMetadata: JsonNode): String {
-        val credentialType = credentialOffer["credentials"][0].asText()
-        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText() + credentialType
+    private fun getVerifiableCredential(accessToken: String, credentialOffer: CredentialOfferForPreAuthorizedCodeFlow,
+                                        credentialIssuerMetadata: CredentialIssuerMetadata): String {
+        val credentialType = credentialOffer.credentials[0]
+        val credentialEndpoint = credentialIssuerMetadata.credentialEndpoint + credentialType
         val headers = listOf(
             CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM,
             HEADER_AUTHORIZATION to "Bearer $accessToken")
