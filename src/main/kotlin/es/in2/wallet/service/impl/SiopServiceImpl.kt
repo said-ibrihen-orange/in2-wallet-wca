@@ -10,7 +10,7 @@ import es.in2.wallet.service.TokenVerificationService
 import es.in2.wallet.util.ApplicationUtils
 import es.in2.wallet.util.JWT_VC
 import es.in2.wallet.util.JWT_VP
-import es.in2.wallet.util.URL_ENCODED_FORM
+import es.in2.wallet.util.CONTENT_TYPE_URL_ENCODED_FORM
 import id.walt.credentials.w3c.VerifiablePresentation
 import id.walt.model.dif.DescriptorMapping
 import id.walt.model.dif.PresentationSubmission
@@ -92,7 +92,7 @@ class SiopServiceImpl(
         log.info("RedirectUri: "+vcSelectorResponseDTO.redirectUri)
         log.info("FormData: $formData")
 
-        val response = ApplicationUtils.postRequest(vcSelectorResponseDTO.redirectUri, formData, URL_ENCODED_FORM)
+        val response = ApplicationUtils.postRequest(vcSelectorResponseDTO.redirectUri, formData, CONTENT_TYPE_URL_ENCODED_FORM)
         log.info("response body = {}", response)
         // access_token returned
         return response

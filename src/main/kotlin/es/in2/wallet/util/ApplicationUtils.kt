@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.util.concurrent.CompletableFuture
 
 @Component
 object ApplicationUtils {
@@ -73,9 +75,11 @@ object ApplicationUtils {
             200 -> {
                 log.info("Get request done successfully")
             }
+
             404 -> {
                 throw NoSuchElementException("Element not found: $statusCode")
             }
+
             else -> {
                 throw FailedCommunicationException("Request cannot be completed: $statusCode")
             }
@@ -87,9 +91,11 @@ object ApplicationUtils {
             201 -> {
                 log.info("Post request done successfully")
             }
+
             200 -> {
                 log.info("Post request done successfully")
             }
+
             422 -> {
                 throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Entity already exists")
             }
@@ -101,6 +107,7 @@ object ApplicationUtils {
             204 -> {
                 log.info("Delete request done successfully")
             }
+
             404 -> {
                 throw NoSuchElementException("Element not found: $statusCode")
             }
@@ -128,6 +135,57 @@ object ApplicationUtils {
             state = state,
             nonce = nonce
         )
+    }
+
+    /**
+     * Constructs an HTTP request builder with the given URL and headers.
+     *
+     * This function takes a URL and a list of header pairs and returns an instance of HttpRequest.Builder
+     * with the URL and headers set. The headers are specified as a list of pairs, where each pair represents
+     * a header name and its corresponding value.
+     *
+     * @param url The URL for the HTTP request.
+     * @param headers A list of pairs representing the headers for the HTTP request. Each pair consists of a
+     *                header name (String) and its value (String).
+     * @return An instance of HttpRequest.Builder with the URL and headers set.
+     */
+    fun httpRequestBuilder(url: String, headers: List<Pair<String, String>>): HttpRequest.Builder {
+        val headerArray = headers.flatMap { listOf(it.first, it.second) }.toTypedArray()
+        return HttpRequest.newBuilder().uri(URI.create(url)).headers(*headerArray)
+    }
+
+    /**
+     * Builds a URL-encoded form data request body for an HTTP POST request.
+     *
+     * This function takes a map of key-value pairs representing the form data and constructs
+     * a URL-encoded string to be used as the request body with the "application/x-www-form-urlencoded"
+     * content type in an HTTP POST request.
+     *
+     * @param formDataMap The map of key-value pairs representing the form data to be URL-encoded.
+     *                    The keys and values are both of type String or nullable String (String?).
+     * @return An instance of HttpRequest.BodyPublisher representing the URL-encoded request body,
+     *         or null if the formDataMap is empty or null.
+     */
+    fun buildFormUrlEncodedRequestBody(formDataMap: Map<String, String?>): HttpRequest.BodyPublisher? {
+        val res = formDataMap.map { (k, v) -> "${(k.utf8())}=${v?.utf8()}" }
+            .joinToString("&")
+        return HttpRequest.BodyPublishers.ofString(res)
+    }
+    private fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
+
+    /**
+     * Checks the HTTP response status and throws a FailedCommunicationException if it's not in the 200-299 range.
+     *
+     * @param response HTTP response to be checked.
+     * @param statusCodeRange The range of allowed HTTP status codes (inclusive).
+     * @throws FailedCommunicationException If the HTTP status code is not within the specified custom range
+     */
+    fun checkResponseStatus(response: HttpResponse<String>, statusCodeRange: IntRange) {
+        if (response.statusCode() !in statusCodeRange) {
+            throw FailedCommunicationException(
+                "Request cannot be completed. HttpStatus response ${response.statusCode()}"
+            )
+        }
     }
 
 }

@@ -98,7 +98,7 @@ class PersonalDataSpaceServiceImpl(
     private fun storeVcInContextBroker(contextBrokerEntity: VcContextBrokerEntity) {
         val url = contextBrokerEntitiesURL
         val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(contextBrokerEntity)
-        applicationUtils.postRequest(url, requestBody, APPLICATION_JSON)
+        applicationUtils.postRequest(url, requestBody, CONTENT_TYPE_APPLICATION_JSON)
         // Log the storage of Verifiable Credential in Context Broker
         log.info("Verifiable Credential stored in Context Broker")
     }
@@ -237,7 +237,7 @@ class PersonalDataSpaceServiceImpl(
     private fun storeDIDInContextBroker(didContextBrokerEntity: DidContextBrokerEntity) {
         val url = contextBrokerEntitiesURL
         val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(didContextBrokerEntity)
-        applicationUtils.postRequest(url, requestBody, APPLICATION_JSON)
+        applicationUtils.postRequest(url, requestBody, CONTENT_TYPE_APPLICATION_JSON)
         log.info("DID Stored in Context Broker")
     }
 
