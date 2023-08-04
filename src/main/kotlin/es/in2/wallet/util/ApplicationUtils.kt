@@ -132,7 +132,7 @@ object ApplicationUtils {
      *                header name (String) and its value (String).
      * @return An instance of HttpRequest.Builder with the URL and headers set.
      */
-    fun httpRequestBuilder(url: String, headers: List<Pair<String, String>>): HttpRequest.Builder {
+    private fun httpRequestBuilder(url: String, headers: List<Pair<String, String>>): HttpRequest.Builder {
         val requestBuilder = HttpRequest.newBuilder().uri(URI.create(url))
 
         if (headers.isNotEmpty()) {

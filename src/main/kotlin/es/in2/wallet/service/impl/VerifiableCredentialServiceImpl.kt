@@ -15,8 +15,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class VerifiableCredentialServiceImpl(
-    private val personalDataSpaceService: PersonalDataSpaceService,
-    private val response: GenericResponseService
+    private val personalDataSpaceService: PersonalDataSpaceService
 ) : VerifiableCredentialService {
 
     private val log: Logger = LogManager.getLogger(VerifiableCredentialServiceImpl::class.java)
