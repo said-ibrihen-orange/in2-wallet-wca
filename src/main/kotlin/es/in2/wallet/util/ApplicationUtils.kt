@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -18,94 +19,82 @@ object ApplicationUtils {
 
     private val log: Logger = LoggerFactory.getLogger(ApplicationUtils::class.java)
 
-    fun getRequest(url: String): String {
-        log.info("ApplicationUtils.getRequest()")
-        // Set the HttpClient
+    fun getRequest(url: String, headers: List<Pair<String, String>>): String {
         val client = HttpClient.newBuilder().build()
-        // Execute Request
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
+        val request = httpRequestBuilder(url=url, headers=headers)
             .GET()
             .build()
-        // Get Response
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        // Verify Response HttpStatus
-        checkGetResponseStatus(response.get().statusCode())
-        // Return body as String
-        return response.get().body()
+        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        checkGetResponseStatus(response.statusCode())
+        return response.body()
     }
 
-    fun postRequest(url: String, requestBody: String, contentType: String): String {
-        log.info("ApplicationUtils.postRequest()")
-        // Set the HttpClient
+
+    fun postRequest(url: String, headers: List<Pair<String, String>>, body: String): String {
         val client = HttpClient.newBuilder().build()
-        // Execute Request
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .headers(CONTENT_TYPE, contentType)
-            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+        val request = httpRequestBuilder(url=url, headers=headers)
+            .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
-        // Get Response
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        log.info("response = {}", response.get().body())
-        // Verify Response HttpStatus
-        checkPostResponseStatus(response.get().statusCode())
-        return response.get().body()
+        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        checkPostResponseStatus(response.statusCode())
+        return response.body()
     }
 
-    fun deleteRequest(url: String) {
-        log.info("ApplicationUtils.deleteRequest()")
-        // Set the HttpClient
+
+    fun deleteRequest(url: String, headers: List<Pair<String, String>>) {
         val client = HttpClient.newBuilder().build()
-        // Execute Request
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
+        val request = httpRequestBuilder(url=url, headers=headers)
             .DELETE()
             .build()
-        // Get Response
-        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-        // Verify Response HttpStatus
-        checkDeleteResponseStatus(response.get().statusCode())
+        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        checkDeleteResponseStatus(response.statusCode())
     }
+
 
     private fun checkGetResponseStatus(statusCode: Int) {
         when (statusCode) {
             200 -> {
-                log.info("Get request done successfully")
+                log.info("DELETE OK")
             }
             404 -> {
                 throw NoSuchElementException("Element not found: $statusCode")
             }
             else -> {
-                throw FailedCommunicationException("Request cannot be completed: $statusCode")
+                throw FailedCommunicationException("HttpStatus response $statusCode")
             }
         }
     }
 
+
     private fun checkPostResponseStatus(statusCode: Int) {
         when (statusCode) {
-            201 -> {
-                log.info("Post request done successfully")
-            }
-            200 -> {
-                log.info("Post request done successfully")
+            in 200..201 -> {
+                log.info("POST OK")
             }
             422 -> {
                 throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Entity already exists")
             }
+            else -> {
+                throw FailedCommunicationException("HttpStatus response $statusCode")
+            }
         }
     }
+
 
     private fun checkDeleteResponseStatus(statusCode: Int) {
         when (statusCode) {
             204 -> {
-                log.info("Delete request done successfully")
+                log.info("DELETE OK")
             }
             404 -> {
                 throw NoSuchElementException("Element not found: $statusCode")
             }
+            else -> {
+                throw FailedCommunicationException("HttpStatus response $statusCode")
+            }
         }
     }
+
 
     fun parseOpenIdConfig(url: String): OpenIdConfig {
         val builder = UriComponentsBuilder.fromUriString(url)
@@ -129,5 +118,42 @@ object ApplicationUtils {
             nonce = nonce
         )
     }
+
+
+    /**
+     * Constructs an HTTP request builder with the given URL and headers.
+     *
+     * This function takes a URL and a list of header pairs and returns an instance of HttpRequest.Builder
+     * with the URL and headers set. The headers are specified as a list of pairs, where each pair represents
+     * a header name and its corresponding value.
+     *
+     * @param url The URL for the HTTP request.
+     * @param headers A list of pairs representing the headers for the HTTP request. Each pair consists of a
+     *                header name (String) and its value (String).
+     * @return An instance of HttpRequest.Builder with the URL and headers set.
+     */
+    private fun httpRequestBuilder(url: String, headers: List<Pair<String, String>>): HttpRequest.Builder {
+        val requestBuilder = HttpRequest.newBuilder().uri(URI.create(url))
+
+        if (headers.isNotEmpty()) {
+            val headerArray = headers.flatMap { listOf(it.first, it.second) }.toTypedArray()
+            requestBuilder.headers(*headerArray)
+        }
+
+        return requestBuilder
+    }
+
+
+    /**
+     * Builds a URL-encoded form data request body from a given map of parameters.
+     *
+     * @param formDataMap The map representing the form data parameters, where keys are parameter names, and values are their corresponding values.
+     * @return A URL-encoded form data string built from the input map, suitable for use as the body of an HTTP request.
+     */
+    fun buildUrlEncodedFormDataRequestBody(formDataMap: Map<String, String?>): String {
+        return formDataMap.map { (key, value) -> "${key.utf8()}=${value?.utf8()}" }.joinToString("&")
+    }
+
+    private fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
 
 }
