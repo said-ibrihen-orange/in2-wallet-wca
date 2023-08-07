@@ -30,7 +30,7 @@ class VerifiableCredentialServiceImpl(
     private val log: Logger = LogManager.getLogger(VerifiableCredentialServiceImpl::class.java)
 
 
-    override fun getDataToGetVerifiableCredential(credentialOfferUri: String) {
+    override fun getCredentialIssuerMetadata(credentialOfferUri: String) {
         /*
             Example of Credential Offer URI for Pre-Authorized Code Flow using DOME standard:
             https://www.goodair.com/credential-offer?credential_offer_uri=https://www.goodair.com/credential-offer/5j349k3e3n23j
@@ -44,9 +44,9 @@ class VerifiableCredentialServiceImpl(
         log.debug("Credential offer: {}", credentialOffer)
 
         // generate dynamic URL to get the credential_issuer_metadata
-        val credentialIssuerMetadataUri = credentialOffer["credentialIssuer"].asText() + "/.well-known/openid-credential-issuer"
+        val credentialIssuerMetadataUri = credentialOffer["credentialIssuer"].asText()
         val credentialIssuerMetadataObject =
-                ObjectMapper().readTree(getCredentialIssuerMetadata(credentialIssuerMetadataUri))
+                ObjectMapper().readTree(getCredentialIssuerMetadataObject(credentialIssuerMetadataUri))
         log.debug("Credential issuer metadata: {}", credentialIssuerMetadataObject)
         val issuerName = credentialOffer["credentialIssuer"].asText()
         //save the data from issuer
@@ -78,7 +78,7 @@ class VerifiableCredentialServiceImpl(
         return executeGetRequest(credentialOfferUri)
     }
 
-    private fun getCredentialIssuerMetadata(credentialIssuerMetadataUri: String): String {
+    private fun getCredentialIssuerMetadataObject(credentialIssuerMetadataUri: String): String {
         return executeGetRequest(credentialIssuerMetadataUri)
     }
 

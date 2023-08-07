@@ -18,23 +18,37 @@ class AppCredentialRequestDataServiceImpl(
 
     private val log: Logger = LoggerFactory.getLogger(AppCredentialRequestDataServiceImpl::class.java)
     override fun saveCredentialRequestData(issuerName: String, issuerNonce: String, issuerAccessToken: String) {
-        val userId = appUserService.getUserWithContextAuthentication().id
-        val appCredentialRequestData = AppCredentialRequestData(
+        try {
+            val requestData = getCredentialRequestDataByIssuerName(issuerName)
+            // Update the existent data
+            val appCredentialRequestDataUpdated = requestData.get().copy(
+                issuerNonce = issuerNonce,
+                issuerAccessToken = issuerAccessToken
+            )
+            appCredentialRequestDataRepository.save(appCredentialRequestDataUpdated)
+            log.debug("Updated the nonce value and the access token value.")
+
+        }catch (e: CredentialRequestDataNotFoundException){
+            val userId = appUserService.getUserWithContextAuthentication().id.toString()
+            val appCredentialRequestData = AppCredentialRequestData(
+                id = UUID.randomUUID(),
                 issuerName = issuerName,
                 userId = userId,
                 issuerNonce = issuerNonce,
                 issuerAccessToken = issuerAccessToken
-        )
-        appCredentialRequestDataRepository.save(appCredentialRequestData)
-        log.debug("AppCredentialRequestData created.")
-
+            )
+            appCredentialRequestDataRepository.save(appCredentialRequestData)
+            log.debug("AppCredentialRequestData created.")
+        }
     }
 
-    override fun getCredentialRequestDataByIssuerName(issuerName: String): Optional<AppCredentialRequestData> {
-        val userId = appUserService.getUserWithContextAuthentication().id
-        if (userId != null) {
-            return appCredentialRequestDataRepository.findAppCredentialRequestDataByIssuerNameAndUserId(issuerName,userId)
+    override fun getCredentialRequestDataByIssuerName(issuerName: String):  Optional<AppCredentialRequestData>{
+        val userId = appUserService.getUserWithContextAuthentication().id.toString()
+        val requestData = appCredentialRequestDataRepository.findAppCredentialRequestDataByIssuerNameAndUserId(issuerName, userId)
+        if (requestData.isPresent) {
+            return requestData
         }
+
         else{throw CredentialRequestDataNotFoundException("The $issuerName was not found")}
     }
 

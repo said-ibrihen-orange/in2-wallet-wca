@@ -55,7 +55,7 @@ class QrCodeProcessorServiceImplTest {
         // Call the method
         qrCodeProcessorService.processQrContent(qrContent)
         // Verify behavior and assertions
-        verify(verifiableCredentialService).getVerifiableCredential(qrContent)
+        verify(verifiableCredentialService).getCredentialIssuerMetadata(qrContent)
     }
 
     @Test

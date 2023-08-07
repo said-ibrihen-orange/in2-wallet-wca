@@ -3,16 +3,13 @@ package es.in2.wallet.services
 import es.in2.wallet.model.AppIssuerData
 import es.in2.wallet.repository.AppIssuerDataRepository
 import es.in2.wallet.service.impl.AppIssuerDataServiceImpl
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.springframework.boot.test.context.SpringBootTest
 import java.util.*
@@ -32,43 +29,49 @@ class AppIssuerDataServiceImplTest {
     }
 
     @Test
-    fun testSaveIssuerData() {
+    fun testSaveIssuerData_Success() {
         // Prepare test data
         val issuerName = "issuer123"
         val issuerMetadata = """{"key": "value"}"""
 
-        // Create an instance of the AppIssuerData entity to be saved
-        val appIssuerDataToSave = AppIssuerData(
-                issuerName = issuerName,
-                issuerMetadata = issuerMetadata
-        )
-
-        // Set up mock behavior for the appIssuerDataRepository.findAppIssuerDataByIssuerName() method
-        `when`(appIssuerDataRepository.findAppIssuerDataByIssuerName(issuerName)).thenReturn(Optional.empty())
-
-        // Set up mock behavior for the appIssuerDataRepository.save() method
-        `when`(appIssuerDataRepository.save(any(AppIssuerData::class.java))).thenReturn(appIssuerDataToSave)
+        // Mock behavior of the repository method
+        `when`(appIssuerDataRepository.findAppIssuerDataByName(issuerName)).thenReturn(Optional.empty())
 
         // Call the method to be tested
         appIssuerDataServiceImpl.saveIssuerData(issuerName, issuerMetadata)
 
-        // Verify that the appIssuerDataRepository.save() method was called with the correct data
-        verify(appIssuerDataRepository).save(argThat {
-            it.issuerName == issuerName && it.issuerMetadata == issuerMetadata
-        })
+        // Verify that the repository method was called
+        verify(appIssuerDataRepository).findAppIssuerDataByName(issuerName)
+        verify(appIssuerDataRepository).save(any(AppIssuerData::class.java))
     }
+
     @Test
-    fun testGetIssuerDataByIssuerName() {
+    fun testSaveIssuerData_IssuerNameAlreadyExists() {
         // Prepare test data
         val issuerName = "issuer123"
         val issuerMetadata = """{"key": "value"}"""
 
-        // Set up mock behavior for the appIssuerDataRepository.findAppIssuerDataByIssuerName() method
-        val appIssuerData = AppIssuerData(
-                issuerName = issuerName,
-                issuerMetadata = issuerMetadata
-        )
-        `when`(appIssuerDataRepository.findAppIssuerDataByIssuerName(issuerName)).thenReturn(Optional.of(appIssuerData))
+        // Mock behavior of the repository method
+        `when`(appIssuerDataRepository.findAppIssuerDataByName(issuerName))
+            .thenReturn(Optional.of(AppIssuerData(id = UUID.randomUUID(), name = issuerName, metadata = issuerMetadata)))
+
+        // Call the method to be tested
+        appIssuerDataServiceImpl.saveIssuerData(issuerName, issuerMetadata)
+
+        // Verify that the repository method was called
+        verify(appIssuerDataRepository).findAppIssuerDataByName(issuerName)
+        verifyNoMoreInteractions(appIssuerDataRepository)
+    }
+
+    @Test
+    fun testGetIssuerDataByIssuerName_Found() {
+        // Prepare test data
+        val issuerName = "issuer123"
+        val issuerMetadata = """{"key": "value"}"""
+        val appIssuerData = AppIssuerData(id = UUID.randomUUID(), name = issuerName, metadata = issuerMetadata)
+
+        // Mock behavior of the repository method
+        `when`(appIssuerDataRepository.findAppIssuerDataByName(issuerName)).thenReturn(Optional.of(appIssuerData))
 
         // Call the method to be tested
         val result = appIssuerDataServiceImpl.getIssuerDataByIssuerName(issuerName)
@@ -76,8 +79,20 @@ class AppIssuerDataServiceImplTest {
         // Verify the result
         assertTrue(result.isPresent)
         assertEquals(appIssuerData, result.get())
+    }
 
-        // Verify that the appIssuerDataRepository.findAppIssuerDataByIssuerName() method was called with the correct issuerName
-        verify(appIssuerDataRepository).findAppIssuerDataByIssuerName(issuerName)
+    @Test
+    fun testGetIssuerDataByIssuerName_NotFound() {
+        // Prepare test data
+        val issuerName = "issuer123"
+
+        // Mock behavior of the repository method
+        `when`(appIssuerDataRepository.findAppIssuerDataByName(issuerName)).thenReturn(Optional.empty())
+
+        // Call the method to be tested
+        val result = appIssuerDataServiceImpl.getIssuerDataByIssuerName(issuerName)
+
+        // Verify the result
+        assertFalse(result.isPresent)
     }
 }
