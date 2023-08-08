@@ -1,5 +1,6 @@
 package es.in2.wallet.service.impl
 
+
 import VcTemplateDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -9,10 +10,7 @@ import es.in2.wallet.model.W3CContextDeserializer
 import es.in2.wallet.model.W3CIssuerDeserializer
 import es.in2.wallet.model.dto.CredentialIssuerMetadata
 import es.in2.wallet.model.dto.CredentialOfferForPreAuthorizedCodeFlow
-import es.in2.wallet.service.AppCredentialRequestDataService
-import es.in2.wallet.service.AppIssuerDataService
-import es.in2.wallet.service.PersonalDataSpaceService
-import es.in2.wallet.service.VerifiableCredentialService
+import es.in2.wallet.service.*
 import es.in2.wallet.util.*
 import es.in2.wallet.util.ApplicationUtils.buildUrlEncodedFormDataRequestBody
 import es.in2.wallet.util.ApplicationUtils.getRequest
@@ -40,13 +38,13 @@ class VerifiableCredentialServiceImpl(
         val credentialIssuerMetadataUri = getCredentialIssuerMetadataUri(credentialOffer)
         try {
             val credentialIssuerMetadataObject = getCredentialIssuerMetadataObject(credentialIssuerMetadataUri)
-            issuerDataService.saveIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataUri)
+            issuerDataService.saveIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataObject.toString())
             val accessToken = getAccessTokenAndNonce(credentialOffer, credentialIssuerMetadataObject)
             credentialRequestDataService.saveCredentialRequestData(credentialOffer.credentialIssuer,accessToken[0],accessToken[1])
         }catch (e: UnrecognizedPropertyException){
             log.error(e)
             val credentialIssuerMetadataObject = getCredentialIssuerMetadataObject1(credentialIssuerMetadataUri)
-            issuerDataService.saveIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataUri)
+            issuerDataService.saveIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataObject.toString())
             val accessToken = getAccessTokenAndNonce1(credentialOffer, credentialIssuerMetadataObject)
             credentialRequestDataService.saveCredentialRequestData(credentialOffer.credentialIssuer,accessToken[0],accessToken[1])
         }
