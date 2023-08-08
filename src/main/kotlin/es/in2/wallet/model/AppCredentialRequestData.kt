@@ -17,7 +17,7 @@ data class AppCredentialRequestData(
         @Column(nullable = false)
         val userId: String,
 
-        @Column
+        @Column(length = 50)
         val issuerNonce: String,
 
         @Column(length = 2000,unique = true)

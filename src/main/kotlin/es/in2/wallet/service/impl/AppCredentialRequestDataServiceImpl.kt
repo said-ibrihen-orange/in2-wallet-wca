@@ -30,6 +30,7 @@ class AppCredentialRequestDataServiceImpl(
 
         }catch (e: CredentialRequestDataNotFoundException){
             val userId = appUserService.getUserWithContextAuthentication().id.toString()
+            // Create new data
             val appCredentialRequestData = AppCredentialRequestData(
                 id = UUID.randomUUID(),
                 issuerName = issuerName,
