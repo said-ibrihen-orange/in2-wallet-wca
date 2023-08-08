@@ -14,7 +14,7 @@ data class AppIssuerData(
         @Column(unique = true, nullable = false)
         val name: String,
 
-        @Column(nullable = false)
+        @Column(columnDefinition = "json", nullable = false)
         val metadata: String
 
 )
