@@ -2,6 +2,7 @@ package es.in2.wallet.service.impl
 
 import es.in2.wallet.exception.IssuerNameAlreadyExistsException
 import es.in2.wallet.model.AppIssuerData
+import es.in2.wallet.model.dto.AppIssuerDataResponseDTO
 import es.in2.wallet.repository.AppIssuerDataRepository
 import es.in2.wallet.service.AppIssuerDataService
 import org.springframework.stereotype.Service
@@ -34,6 +35,16 @@ class AppIssuerDataServiceImpl(
         log.info("AppIssuerDataServiceImpl.getUserByUsername()")
         return appIssuerDataRepository.findAppIssuerDataByName(issuerName)
     }
+
+    override fun getIssuers(): List<AppIssuerDataResponseDTO> {
+        log.info("AppIssuerServiceImpl.getIssuers()")
+        val issuers = appIssuerDataRepository.findAll()
+
+        return issuers.map { issuer ->
+            AppIssuerDataResponseDTO(issuer.name)
+        }
+    }
+
     private fun checkIfIssuerNameAlreadyExist(issuerName: String) {
         log.info("AppIssuerDataServiceImpl.checkIfIssuerNameAlreadyExist()")
         if (getIssuerDataByIssuerName(issuerName).isPresent) {

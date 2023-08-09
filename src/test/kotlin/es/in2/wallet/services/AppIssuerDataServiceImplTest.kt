@@ -95,4 +95,18 @@ class AppIssuerDataServiceImplTest {
         // Verify the result
         assertFalse(result.isPresent)
     }
+    @Test
+    fun testGetIssuers() {
+        val issuer1 = AppIssuerData(id = UUID.randomUUID(), name = "Issuer1", metadata = "Metadata1")
+        val issuer2 = AppIssuerData(id = UUID.randomUUID(), name = "Issuer2", metadata = "Metadata2")
+        val issuers = listOf(issuer1, issuer2)
+
+        `when`(appIssuerDataRepository.findAll()).thenReturn(issuers)
+
+        val result = appIssuerDataServiceImpl.getIssuers()
+
+        assertEquals(2, result.size)
+        assertEquals("Issuer1", result[0].issuerName)
+        assertEquals("Issuer2", result[1].issuerName)
+    }
 }
