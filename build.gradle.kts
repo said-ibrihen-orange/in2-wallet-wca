@@ -61,7 +61,7 @@ dependencies {
 	// and pick the one with the newest version number
 	// make sure to update all other implementations in issuer
 	implementation("id.walt:waltid-ssikit:1.2308021811.0")
-	implementation("id.walt:waltid-sd-jwt-jvm:1.2306071609.0")
+	implementation("id.walt:waltid-sd-jwt-jvm:1.2306191408.0")
 	implementation("id.walt.servicematrix:WaltID-ServiceMatrix:1.1.3")
 
 	// nimbus-jjwt
