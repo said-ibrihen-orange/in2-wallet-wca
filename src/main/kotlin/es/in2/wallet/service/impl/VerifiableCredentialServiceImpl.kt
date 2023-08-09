@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.databind.module.SimpleModule
 import es.in2.wallet.model.W3CContextDeserializer
+import es.in2.wallet.model.W3CCredentialSchemaDeserializer
 import es.in2.wallet.model.W3CIssuerDeserializer
 import es.in2.wallet.model.dto.CredentialIssuerMetadata
 import es.in2.wallet.model.dto.CredentialOfferForPreAuthorizedCodeFlow
@@ -16,6 +17,7 @@ import es.in2.wallet.util.ApplicationUtils.buildUrlEncodedFormDataRequestBody
 import es.in2.wallet.util.ApplicationUtils.getRequest
 import es.in2.wallet.util.ApplicationUtils.postRequest
 import id.walt.credentials.w3c.W3CContext
+import id.walt.credentials.w3c.W3CCredentialSchema
 import id.walt.credentials.w3c.W3CIssuer
 import id.walt.credentials.w3c.templates.VcTemplate
 import org.apache.logging.log4j.LogManager
@@ -90,6 +92,7 @@ class VerifiableCredentialServiceImpl(
         module.addDeserializer(VcTemplate::class.java, VcTemplateDeserializer())
         module.addDeserializer(W3CContext::class.java, W3CContextDeserializer())
         module.addDeserializer(W3CIssuer::class.java, W3CIssuerDeserializer())
+        module.addDeserializer(W3CCredentialSchema::class.java, W3CCredentialSchemaDeserializer())
         objectMapper.registerModule(module)
         val valueTypeRef = objectMapper.typeFactory.constructType(CredentialIssuerMetadata::class.java)
         val credentialIssuerMetadata: CredentialIssuerMetadata = objectMapper.readValue(response, valueTypeRef)
