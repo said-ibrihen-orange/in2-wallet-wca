@@ -36,7 +36,7 @@ class QrCodeProcessorServiceImpl(
 
             QrType.CREDENTIAL_OFFER_URI -> {
                 log.info("Processing verifiable credential offer URI")
-                verifiableCredentialService.getVerifiableCredential(qrContent)
+                verifiableCredentialService.getCredentialIssuerMetadata(qrContent)
             }
 
             QrType.VC_JWT -> {
