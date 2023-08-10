@@ -1,5 +1,6 @@
 package es.in2.wallet.services
 
+import es.in2.wallet.exception.IssuerDataNotFoundException
 import es.in2.wallet.model.AppIssuerData
 import es.in2.wallet.repository.AppIssuerDataRepository
 import es.in2.wallet.service.impl.AppIssuerDataServiceImpl
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Assertions.*
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
 import org.mockito.Mockito.*
@@ -108,5 +110,13 @@ class AppIssuerDataServiceImplTest {
         assertEquals(2, result.size)
         assertEquals("Issuer1", result[0].issuerName)
         assertEquals("Issuer2", result[1].issuerName)
+    }
+    @Test
+    fun testGetIssuersWithEmptyList() {
+        `when`(appIssuerDataRepository.findAll()).thenReturn(emptyList())
+
+        assertThrows<IssuerDataNotFoundException> {
+            appIssuerDataServiceImpl.getIssuers()
+        }
     }
 }
