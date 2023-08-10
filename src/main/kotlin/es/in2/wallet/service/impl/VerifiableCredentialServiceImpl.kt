@@ -15,6 +15,7 @@ import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.CredentialRequestDataNotFoundException
 import es.in2.wallet.model.W3CContextDeserializer
+import es.in2.wallet.model.W3CCredentialSchemaDeserializer
 import es.in2.wallet.model.W3CIssuerDeserializer
 import es.in2.wallet.service.*
 import java.util.*
@@ -23,6 +24,7 @@ import es.in2.wallet.util.ApplicationUtils.buildUrlEncodedFormDataRequestBody
 import es.in2.wallet.util.ApplicationUtils.getRequest
 import es.in2.wallet.util.ApplicationUtils.postRequest
 import id.walt.credentials.w3c.W3CContext
+import id.walt.credentials.w3c.W3CCredentialSchema
 import id.walt.credentials.w3c.W3CIssuer
 import id.walt.credentials.w3c.templates.VcTemplate
 import org.apache.logging.log4j.LogManager
@@ -113,6 +115,7 @@ class VerifiableCredentialServiceImpl(
         module.addDeserializer(VcTemplate::class.java, VcTemplateDeserializer())
         module.addDeserializer(W3CContext::class.java, W3CContextDeserializer())
         module.addDeserializer(W3CIssuer::class.java, W3CIssuerDeserializer())
+        module.addDeserializer(W3CCredentialSchema::class.java, W3CCredentialSchemaDeserializer())
         objectMapper.registerModule(module)
         val valueTypeRef = objectMapper.typeFactory.constructType(CredentialIssuerMetadata::class.java)
         val credentialIssuerMetadata: CredentialIssuerMetadata = objectMapper.readValue(response, valueTypeRef)
