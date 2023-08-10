@@ -5,6 +5,7 @@ import es.in2.wallet.model.AppCredentialRequestData
 import es.in2.wallet.repository.AppCredentialRequestDataRepository
 import es.in2.wallet.service.AppCredentialRequestDataService
 import es.in2.wallet.service.AppUserService
+import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -51,6 +52,11 @@ class AppCredentialRequestDataServiceImpl(
         }
 
         else{throw CredentialRequestDataNotFoundException("The $issuerName was not found")}
+    }
+    @Transactional
+    override fun clearIssuerNonceByIssuerName(issuerName: String) {
+        val userId = appUserService.getUserWithContextAuthentication().id.toString()
+        appCredentialRequestDataRepository.updateIssuerNonceToNullByIssuerNameAndUserId(issuerName,userId)
     }
 
 

@@ -66,11 +66,13 @@ class VerifiableCredentialServiceImpl(
     override fun getVerifiableCredential(credentialRequestDTO: CredentialRequestDTO) {
         val jwt = createJwt(credentialRequestDTO)
         log.debug("jwt object: $jwt")
+        credentialRequestDataService.clearIssuerNonceByIssuerName(credentialRequestDTO.issuerName)
         val credentialRequestBody = createCredentialRequestBody(credentialRequestDTO.proofType,jwt)
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
         val issuerMetadata = ObjectMapper().readTree(getExistentMetadata(credentialRequestDTO.issuerName))
         val verifiableCredential = getVerifiableCredential1(accessToken,issuerMetadata,credentialRequestBody)
         log.debug("verifiable credential: $verifiableCredential")
+        personalDataSpaceService.saveVC(verifiableCredential)
 
     }
 
