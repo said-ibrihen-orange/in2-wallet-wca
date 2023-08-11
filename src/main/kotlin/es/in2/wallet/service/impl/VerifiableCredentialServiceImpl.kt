@@ -13,7 +13,6 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jwt.SignedJWT
-import es.in2.wallet.exception.CredentialRequestDataNotFoundException
 import es.in2.wallet.model.W3CContextDeserializer
 import es.in2.wallet.model.W3CCredentialSchemaDeserializer
 import es.in2.wallet.model.W3CIssuerDeserializer
@@ -30,7 +29,7 @@ import id.walt.credentials.w3c.templates.VcTemplate
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import com.nimbusds.jose.jwk.ECKey
-import es.in2.wallet.exception.IssuerDataNotFoundException
+import es.in2.wallet.exception.*
 import es.in2.wallet.model.dto.*
 import org.springframework.stereotype.Service
 
@@ -64,15 +63,20 @@ class VerifiableCredentialServiceImpl(
     }
 
     override fun getVerifiableCredential(credentialRequestDTO: CredentialRequestDTO) {
+        // create the proof type JWT
         val jwt = createJwt(credentialRequestDTO)
         log.debug("jwt object: $jwt")
-        credentialRequestDataService.clearIssuerNonceByIssuerName(credentialRequestDTO.issuerName)
+        // build the body that contains the proof and the format of the verifiable credential
         val credentialRequestBody = createCredentialRequestBody(credentialRequestDTO.proofType,jwt)
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
         val issuerMetadata = ObjectMapper().readTree(getExistentMetadata(credentialRequestDTO.issuerName))
-        val verifiableCredential = getVerifiableCredential1(accessToken,issuerMetadata,credentialRequestBody)
+        val verifiableCredential = getVerifiableCredential(accessToken,issuerMetadata,credentialRequestBody)
         log.debug("verifiable credential: $verifiableCredential")
+        // delete the nonce once we have used it
+        credentialRequestDataService.clearIssuerNonceByIssuerName(credentialRequestDTO.issuerName)
+        // save the verifiable credential
         personalDataSpaceService.saveVC(verifiableCredential)
+
 
     }
 
@@ -165,19 +169,8 @@ class VerifiableCredentialServiceImpl(
         return listOf(cNonce,accessToken)
     }
 
-    private fun getVerifiableCredential(accessToken: String, credentialOffer: CredentialOfferForPreAuthorizedCodeFlow,
-                                        credentialIssuerMetadata: CredentialIssuerMetadata): String {
-        val credentialType = credentialOffer.credentials[0]
-        val credentialEndpoint = credentialIssuerMetadata.credentialEndpoint + credentialType
-        val headers = listOf(
-            CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM,
-            HEADER_AUTHORIZATION to "Bearer $accessToken")
-        val verifiableCredential = postRequest(url=credentialEndpoint, headers=headers, body="")
-        log.debug("Verifiable credential: {}", verifiableCredential)
-        return verifiableCredential
-    }
 
-    private fun getVerifiableCredential1(accessToken: String, credentialIssuerMetadata: JsonNode,credentialRequestBodyDTO: CredentialRequestBodyDTO): String {
+    private fun getVerifiableCredential(accessToken: String, credentialIssuerMetadata: JsonNode,credentialRequestBodyDTO: CredentialRequestBodyDTO): String {
         val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
         val headers = listOf(
             CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON,
@@ -192,7 +185,7 @@ class VerifiableCredentialServiceImpl(
 
     private fun createJwt(credentialRequestDTO: CredentialRequestDTO): String{
         val ecJWK : ECKey = walletKeyService.getECKeyFromKid(credentialRequestDTO.did)
-        val signer: JWSSigner = ECDSASigner(ecJWK)
+        val signer : JWSSigner = ECDSASigner(ecJWK)
         val header = createJwtHeader(credentialRequestDTO.did)
         val payload = createJwtPayload(credentialRequestDTO.issuerName)
         val signedJWT = SignedJWT(header, payload)
@@ -210,6 +203,7 @@ class VerifiableCredentialServiceImpl(
     private fun createJwtPayload(issuerName: String): JWTClaimsSet {
         val instant = Instant.now()
         val requestData = credentialRequestDataService.getCredentialRequestDataByIssuerName(issuerName)
+        //get the nonce provided by the Credential Issuer on getCredentialIssuerMetadata method
         val nonce = requestData.map { it.issuerNonce }
                 .orElseThrow { CredentialRequestDataNotFoundException("Nonce not found for $issuerName") }
         return JWTClaimsSet.Builder()
@@ -226,12 +220,14 @@ class VerifiableCredentialServiceImpl(
 
     private fun getExistentAccessToken(issuerName: String): String {
         val requestData = credentialRequestDataService.getCredentialRequestDataByIssuerName(issuerName)
+        //get the access token provided by the Credential Issuer on getCredentialIssuerMetadata method
         return requestData.map { it.issuerAccessToken }
                 .orElseThrow { CredentialRequestDataNotFoundException("Access token not found for $issuerName") }
     }
 
     private fun getExistentMetadata(issuerName: String): String {
         val requestData = issuerDataService.getIssuerDataByIssuerName(issuerName)
+        //get the metadata provided by the Credential Issuer on getCredentialIssuerMetadata method
         return requestData.map { it.metadata }
                 .orElseThrow { IssuerDataNotFoundException("Issuer metadata not found for $issuerName") }
     }
