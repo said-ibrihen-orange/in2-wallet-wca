@@ -13,6 +13,7 @@ import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.util.concurrent.Flow
 
 @Component
 object ApplicationUtils {
@@ -25,6 +26,7 @@ object ApplicationUtils {
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        logCRUD(request, response)
         checkGetResponseStatus(response.statusCode())
         return response.body()
     }
@@ -36,6 +38,7 @@ object ApplicationUtils {
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        logCRUD(request, response, body)
         checkPostResponseStatus(response.statusCode())
         return response.body()
     }
@@ -47,14 +50,25 @@ object ApplicationUtils {
             .DELETE()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        logCRUD(request, response)
         checkDeleteResponseStatus(response.statusCode())
     }
 
+    private fun logCRUD(request: HttpRequest, response: HttpResponse<String>, body: String = "") {
+        log.debug("********************************************************************************")
+        log.debug(">>> URI: {}", request.uri())
+        log.debug(">>> HEADERS: {}", request.headers())
+        log.debug(">>> BODY: $body")
+        log.debug("<<< STATUS CODE: ${response.statusCode()}")
+        log.debug("<<< HEADERS: {}", response.headers().map())
+        log.debug("<<< BODY: ${response.body()}")
+        log.debug("********************************************************************************")
+    }
 
     private fun checkGetResponseStatus(statusCode: Int) {
         when (statusCode) {
             200 -> {
-                log.info("DELETE OK")
+                log.info("GET OK")
             }
             404 -> {
                 throw NoSuchElementException("Element not found: $statusCode")

@@ -69,13 +69,20 @@ class VerifiableCredentialServiceImpl(
         // build the body that contains the proof and the format of the verifiable credential
         val credentialRequestBody = createCredentialRequestBody(credentialRequestDTO.proofType,jwt)
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
-        val issuerMetadata = ObjectMapper().readTree(getExistentMetadata(credentialRequestDTO.issuerName))
-        val verifiableCredential = getVerifiableCredential(accessToken,issuerMetadata,credentialRequestBody)
-        log.debug("verifiable credential: $verifiableCredential")
+        /*  TODO: For some reason, when storing metadata SNAKE_CASE becomes CAMEL_CASE
+        *       This means that 'credential_endpoint' becomes 'credentialEndpoint'
+        */
+        val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
+        val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
+        val credentialEndpoint = credentialIssuerMetadata["credentialEndpoint"].asText()
+
+        val verifiableCredentialResponse: VerifiableCredentialResponse = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
+        val credential = verifiableCredentialResponse.credential
+        log.debug("verifiable credential: $credential")
         // delete the nonce once we have used it
         credentialRequestDataService.clearIssuerNonceByIssuerName(credentialRequestDTO.issuerName)
         // save the verifiable credential
-        personalDataSpaceService.saveVC(verifiableCredential)
+        personalDataSpaceService.saveVC(credential)
 
 
     }
@@ -112,6 +119,8 @@ class VerifiableCredentialServiceImpl(
 
     /*
         TODO: Deserialization is encountering error in VerifiableCredential
+            This is not our class but walt-ids class. We are using default serialization and deserialization methods
+            implemented by walt-id
      */
     private fun getCredentialIssuerMetadataObject(credentialIssuerMetadataUri: String): CredentialIssuerMetadata {
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
@@ -170,17 +179,31 @@ class VerifiableCredentialServiceImpl(
     }
 
 
-    private fun getVerifiableCredential(accessToken: String, credentialIssuerMetadata: JsonNode,credentialRequestBodyDTO: CredentialRequestBodyDTO): String {
-        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
+    private fun getVerifiableCredential(
+        accessToken: String,
+        credentialEndpoint: String,
+        credentialRequestBodyDTO: CredentialRequestBodyDTO):
+            VerifiableCredentialResponse{
         val headers = listOf(
             CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON,
             HEADER_AUTHORIZATION to "Bearer $accessToken")
         val objectMapper = ObjectMapper()
         val requestBodyJson = objectMapper.writeValueAsString(credentialRequestBodyDTO)
         val body = requestBodyJson.toString()
-        val verifiableCredential = postRequest(url=credentialEndpoint, headers=headers, body=body)
-        log.debug("Verifiable credential: {}", verifiableCredential)
-        return verifiableCredential
+        /*
+            TODO: This POST response contains a JSONString that when parsed has issues
+                Why is this not working if I used the same pattern as CredentialOfferForPreAuthorizedCodeFlow
+                For some reason instead of 'c_nonce' we get 'cnonce'
+                Also instead of c_nonce_expires_in we get 'cnonceExpiresIn'
+                "cnonce":"Implement this cnonce","cnonceExpiresIn":-1234}
+                However in the getCredentialOffer we get the following response which contains a good SNAKE_CASE
+                {"credential_issuer":"http://localhost:8081"
+         */
+        val response: String = postRequest(url=credentialEndpoint, headers=headers, body=body)
+        val valueTypeRef = ObjectMapper().typeFactory.constructType(VerifiableCredentialResponse::class.java)
+        val verifiableCredentialResponse: VerifiableCredentialResponse= ObjectMapper().readValue(response, valueTypeRef)
+        log.debug("Verifiable credential: {}", verifiableCredentialResponse)
+        return verifiableCredentialResponse
     }
 
     private fun createJwt(credentialRequestDTO: CredentialRequestDTO): String{
