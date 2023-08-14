@@ -5,6 +5,7 @@ import es.in2.wallet.service.VerifiableCredentialService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -13,6 +14,7 @@ class VerifiableCredentialController(
         private val verifiableCredentialService: VerifiableCredentialService
 ){
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Get a verifiable credential",
             description = "Get a verifiable credential and save it in the personal data space."
@@ -23,8 +25,7 @@ class VerifiableCredentialController(
         ApiResponse(responseCode = "403", description = "Access token has expired"),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun getVC(@RequestBody credentialRequestDTO: CredentialRequestDTO): String{
+    fun getVC(@RequestBody credentialRequestDTO: CredentialRequestDTO){
         verifiableCredentialService.getVerifiableCredential(credentialRequestDTO)
-        return "Verifiable Credential stored"
     }
 }
