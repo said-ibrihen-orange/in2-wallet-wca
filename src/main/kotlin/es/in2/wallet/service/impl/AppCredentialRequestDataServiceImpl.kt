@@ -54,9 +54,9 @@ class AppCredentialRequestDataServiceImpl(
         else{throw CredentialRequestDataNotFoundException("The $issuerName was not found")}
     }
     @Transactional
-    override fun clearIssuerNonceByIssuerName(issuerName: String) {
+    override fun saveNewIssuerNonceByIssuerName(issuerName: String, freshNonce: String) {
         val userId = appUserService.getUserWithContextAuthentication().id.toString()
-        appCredentialRequestDataRepository.updateIssuerNonceToNullByIssuerNameAndUserId(issuerName,userId)
+        appCredentialRequestDataRepository.updateIssuerNonceWithNewValueByIssuerNameAndUserId(issuerName,userId,freshNonce)
     }
 
 

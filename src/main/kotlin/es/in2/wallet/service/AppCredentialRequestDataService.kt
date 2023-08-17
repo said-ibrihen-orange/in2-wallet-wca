@@ -7,5 +7,5 @@ interface AppCredentialRequestDataService {
     fun saveCredentialRequestData(issuerName: String, issuerNonce: String, issuerAccessToken: String)
     fun getCredentialRequestDataByIssuerName(issuerName: String) : Optional<AppCredentialRequestData>
 
-    fun clearIssuerNonceByIssuerName(issuerName: String)
+    fun saveNewIssuerNonceByIssuerName(issuerName: String, freshNonce: String)
 }

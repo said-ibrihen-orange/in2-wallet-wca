@@ -74,13 +74,13 @@ class VerifiableCredentialServiceImpl(
         */
         val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
         val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
-        val credentialEndpoint = credentialIssuerMetadata["credentialEndpoint"].asText()
+        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
 
         val verifiableCredentialResponse: VerifiableCredentialResponse = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
+        //save the fresh nonce to be able to request another credential if we want
+        credentialRequestDataService.saveNewIssuerNonceByIssuerName(credentialRequestDTO.issuerName,verifiableCredentialResponse.cNonce)
         val credential = verifiableCredentialResponse.credential
         log.debug("verifiable credential: $credential")
-        // delete the nonce once we have used it
-        credentialRequestDataService.clearIssuerNonceByIssuerName(credentialRequestDTO.issuerName)
         // save the verifiable credential
         personalDataSpaceService.saveVC(credential)
 

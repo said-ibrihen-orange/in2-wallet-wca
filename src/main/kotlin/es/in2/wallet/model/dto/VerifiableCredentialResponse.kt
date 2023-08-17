@@ -26,10 +26,10 @@ data class VerifiableCredentialResponse(
             When received, the Wallet MUST use this nonce value for its subsequent credential requests until the 
             Credential Issuer provides a fresh nonce.
         """)
-    @JsonProperty("c_nonce") val cNonce: String?,
+    @JsonProperty("c_nonce") val cNonce: String,
     @Schema(
         required = false,
         example = "86400",
         description = "Lifetime in seconds of the c_nonce")
-    @JsonProperty("c_nonce_expires_in") val cNonceExpiresIn: Int?
+    @JsonProperty("c_nonce_expires_in") val cNonceExpiresIn: Int
 )

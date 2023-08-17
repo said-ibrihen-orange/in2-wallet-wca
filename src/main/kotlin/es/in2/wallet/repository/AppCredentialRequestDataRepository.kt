@@ -11,9 +11,12 @@ import java.util.*
 interface AppCredentialRequestDataRepository : CrudRepository<AppCredentialRequestData, UUID> {
     fun findAppCredentialRequestDataByIssuerNameAndUserId(issuerName: String, userId: String): Optional<AppCredentialRequestData>
     @Modifying
-    @Query("UPDATE AppCredentialRequestData c SET c.issuerNonce = null WHERE c.issuerName = :issuerName AND c.userId = :userId")
-    fun updateIssuerNonceToNullByIssuerNameAndUserId(
-        @Param("issuerName") issuerName: String,
-        @Param("userId") userId: String
+    @Query("UPDATE AppCredentialRequestData c SET c.issuerNonce = :freshNonce WHERE c.issuerName = :issuerName AND c.userId = :userId")
+    fun updateIssuerNonceWithNewValueByIssuerNameAndUserId(
+            @Param("issuerName") issuerName: String,
+            @Param("userId") userId: String,
+            @Param("freshNonce") freshNonce: String
     )
+
+
 }
