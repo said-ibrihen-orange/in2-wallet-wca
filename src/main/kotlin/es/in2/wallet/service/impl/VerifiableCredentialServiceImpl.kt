@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger
 import com.nimbusds.jose.jwk.ECKey
 import es.in2.wallet.exception.*
 import es.in2.wallet.model.dto.*
+import es.in2.wallet.util.ApplicationUtils.toJsonString
 import org.springframework.stereotype.Service
 
 @Service
@@ -74,7 +75,7 @@ class VerifiableCredentialServiceImpl(
         */
         val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
         val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
-        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
+        val credentialEndpoint = credentialIssuerMetadata["credentialEndpoint"].asText()
 
         val verifiableCredentialResponse: VerifiableCredentialResponse = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
         //save the fresh nonce to be able to request another credential if we want
@@ -190,19 +191,11 @@ class VerifiableCredentialServiceImpl(
         val objectMapper = ObjectMapper()
         val requestBodyJson = objectMapper.writeValueAsString(credentialRequestBodyDTO)
         val body = requestBodyJson.toString()
-        /*
-            TODO: This POST response contains a JSONString that when parsed has issues
-                Why is this not working if I used the same pattern as CredentialOfferForPreAuthorizedCodeFlow
-                For some reason instead of 'c_nonce' we get 'cnonce'
-                Also instead of c_nonce_expires_in we get 'cnonceExpiresIn'
-                "cnonce":"Implement this cnonce","cnonceExpiresIn":-1234}
-                However in the getCredentialOffer we get the following response which contains a good SNAKE_CASE
-                {"credential_issuer":"http://localhost:8081"
-         */
         val response: String = postRequest(url=credentialEndpoint, headers=headers, body=body)
         val valueTypeRef = ObjectMapper().typeFactory.constructType(VerifiableCredentialResponse::class.java)
         val verifiableCredentialResponse: VerifiableCredentialResponse= ObjectMapper().readValue(response, valueTypeRef)
-        log.debug("Verifiable credential: {}", verifiableCredentialResponse)
+
+        log.debug("Verifiable credential: {}", toJsonString(verifiableCredentialResponse))
         return verifiableCredentialResponse
     }
 
