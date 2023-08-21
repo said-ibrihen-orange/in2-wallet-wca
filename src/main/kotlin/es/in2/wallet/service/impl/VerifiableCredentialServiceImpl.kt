@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger
 import com.nimbusds.jose.jwk.ECKey
 import es.in2.wallet.exception.*
 import es.in2.wallet.model.dto.*
+import es.in2.wallet.util.ApplicationUtils.toJsonString
 import org.springframework.stereotype.Service
 
 @Service
@@ -71,7 +72,7 @@ class VerifiableCredentialServiceImpl(
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
         val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
         val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
-        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
+        val credentialEndpoint = credentialIssuerMetadata["credentialEndpoint"].asText()
 
         val verifiableCredentialResponse: VerifiableCredentialResponse = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
         //save the fresh nonce to be able to request another credential if we want
@@ -190,7 +191,8 @@ class VerifiableCredentialServiceImpl(
         val response: String = postRequest(url=credentialEndpoint, headers=headers, body=body)
         val valueTypeRef = ObjectMapper().typeFactory.constructType(VerifiableCredentialResponse::class.java)
         val verifiableCredentialResponse: VerifiableCredentialResponse= ObjectMapper().readValue(response, valueTypeRef)
-        log.debug("Verifiable credential: {}", verifiableCredentialResponse)
+
+        log.debug("Verifiable credential: {}", toJsonString(verifiableCredentialResponse))
         return verifiableCredentialResponse
     }
 
