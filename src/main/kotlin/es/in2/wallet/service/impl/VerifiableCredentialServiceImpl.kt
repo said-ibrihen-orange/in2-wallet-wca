@@ -72,12 +72,12 @@ class VerifiableCredentialServiceImpl(
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
         val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
         val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
-        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
+        val credentialEndpoint = credentialIssuerMetadata["credentialEndpoint"].asText()
 
-        val verifiableCredentialResponse: VerifiableCredentialResponse = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
+        val verifiableCredentialResponseDTO: VerifiableCredentialResponseDTO = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
         //save the fresh nonce to be able to request another credential if we want
-        credentialRequestDataService.saveNewIssuerNonceByIssuerName(credentialRequestDTO.issuerName,verifiableCredentialResponse.cNonce)
-        val credential = verifiableCredentialResponse.credential
+        credentialRequestDataService.saveNewIssuerNonceByIssuerName(credentialRequestDTO.issuerName,verifiableCredentialResponseDTO.cNonce)
+        val credential = verifiableCredentialResponseDTO.credential
         log.debug("verifiable credential: $credential")
         // save the verifiable credential
         personalDataSpaceService.saveVC(credential)
@@ -181,7 +181,7 @@ class VerifiableCredentialServiceImpl(
         accessToken: String,
         credentialEndpoint: String,
         credentialRequestBodyDTO: CredentialRequestBodyDTO):
-            VerifiableCredentialResponse{
+            VerifiableCredentialResponseDTO{
         val headers = listOf(
             CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON,
             HEADER_AUTHORIZATION to "Bearer $accessToken")
@@ -190,11 +190,11 @@ class VerifiableCredentialServiceImpl(
         val body = requestBodyJson.toString()
         val response: String = postRequest(url=credentialEndpoint, headers=headers, body=body)
         log.info(response)
-        val valueTypeRef = ObjectMapper().typeFactory.constructType(VerifiableCredentialResponse::class.java)
-        val verifiableCredentialResponse: VerifiableCredentialResponse = ObjectMapper().readValue(response, valueTypeRef)
+        val valueTypeRef = ObjectMapper().typeFactory.constructType(VerifiableCredentialResponseDTO::class.java)
+        val verifiableCredentialResponseDTO: VerifiableCredentialResponseDTO = ObjectMapper().readValue(response, valueTypeRef)
 
-        log.debug("Verifiable credential: {}", toJsonString(verifiableCredentialResponse))
-        return verifiableCredentialResponse
+        log.debug("Verifiable credential: {}", toJsonString(verifiableCredentialResponseDTO))
+        return verifiableCredentialResponseDTO
     }
 
     private fun createJwt(credentialRequestDTO: CredentialRequestDTO): String{
