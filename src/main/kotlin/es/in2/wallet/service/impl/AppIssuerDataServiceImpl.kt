@@ -3,7 +3,6 @@ package es.in2.wallet.service.impl
 import es.in2.wallet.exception.IssuerDataNotFoundException
 import es.in2.wallet.exception.IssuerNameAlreadyExistsException
 import es.in2.wallet.model.AppIssuerData
-import es.in2.wallet.model.dto.AppIssuerDataResponseDTO
 import es.in2.wallet.repository.AppIssuerDataRepository
 import es.in2.wallet.service.AppIssuerDataService
 import org.springframework.stereotype.Service
@@ -37,11 +36,11 @@ class AppIssuerDataServiceImpl(
         return appIssuerDataRepository.findAppIssuerDataByName(issuerName)
     }
 
-    override fun getIssuers(): List<AppIssuerDataResponseDTO> {
+    override fun getIssuers(): List<String> {
         log.info("AppIssuerServiceImpl.getIssuers()")
         val issuers = appIssuerDataRepository.findAll()
         val issuerResponseList = issuers.map { issuer ->
-            AppIssuerDataResponseDTO(issuer.name)
+            issuer.name
         }
         if (issuerResponseList.isEmpty()) {
             throw IssuerDataNotFoundException("The Issuer List is empty.")

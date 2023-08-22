@@ -1,6 +1,5 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.model.dto.AppIssuerDataResponseDTO
 import es.in2.wallet.service.AppIssuerDataService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -29,7 +28,7 @@ class AppIssuerDataController(
         ApiResponse(responseCode = "200", description = "List of Issuers retrieved successfully."),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun getAllIssuers(): List<AppIssuerDataResponseDTO> {
+    fun getAllIssuers(): List<String> {
         log.debug("AppIssuerController.getAllIssuers()")
         return appIssuerDataService.getIssuers()
     }

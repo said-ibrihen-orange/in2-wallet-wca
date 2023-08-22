@@ -1,6 +1,5 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.model.dto.AppIssuerDataResponseDTO
 import es.in2.wallet.service.AppIssuerDataService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,8 +36,8 @@ class AppIssuerDataControllerTest {
 
     @Test
     fun testGetAllIssuers() {
-        val issuer1 = AppIssuerDataResponseDTO("Issuer1")
-        val issuer2 = AppIssuerDataResponseDTO("Issuer2")
+        val issuer1 = "Issuer1"
+        val issuer2 = "Issuer2"
         val issuers = listOf(issuer1, issuer2)
 
         `when`(appIssuerDataService.getIssuers()).thenReturn(issuers)
@@ -46,8 +45,8 @@ class AppIssuerDataControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/issuers"))
                 .andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].issuerName").value("Issuer1"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].issuerName").value("Issuer2"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0]").value("Issuer1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1]").value("Issuer2"))
     }
 
 

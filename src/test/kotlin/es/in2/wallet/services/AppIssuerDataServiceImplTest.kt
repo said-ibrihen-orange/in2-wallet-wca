@@ -106,7 +106,7 @@ class AppIssuerDataServiceImplTest {
         val result = appIssuerDataServiceImpl.getIssuers()
 
         assertEquals(2, result.size)
-        assertEquals("Issuer1", result[0].issuerName)
-        assertEquals("Issuer2", result[1].issuerName)
+        assertEquals("Issuer1", result[0])
+        assertEquals("Issuer2", result[1])
     }
 }

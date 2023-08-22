@@ -68,11 +68,11 @@ class VerifiableCredentialServiceImpl(
         val jwt = createJwt(credentialRequestDTO)
         log.debug("jwt object: $jwt")
         // build the body that contains the proof and the format of the verifiable credential
-        val credentialRequestBody = createCredentialRequestBody(credentialRequestDTO.proofType,jwt)
+        val credentialRequestBody = createCredentialRequestBody(jwt)
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
         val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
         val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
-        val credentialEndpoint = credentialIssuerMetadata["credentialEndpoint"].asText()
+        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
 
         val verifiableCredentialResponse: VerifiableCredentialResponse = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
         //save the fresh nonce to be able to request another credential if we want
@@ -226,8 +226,8 @@ class VerifiableCredentialServiceImpl(
                 .build()
     }
 
-    private fun createCredentialRequestBody(proofType: String, jwt: String): CredentialRequestBodyDTO{
-        val proof = ProofDTO(proofType,jwt)
+    private fun createCredentialRequestBody(jwt: String): CredentialRequestBodyDTO{
+        val proof = ProofDTO("jwt",jwt)
         return CredentialRequestBodyDTO("jwt_vc_json",proof)
     }
 
