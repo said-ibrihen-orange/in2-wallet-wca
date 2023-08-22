@@ -1,5 +1,6 @@
 package es.in2.wallet.service.impl
 
+import es.in2.wallet.exception.IssuerDataNotFoundException
 import es.in2.wallet.exception.IssuerNameAlreadyExistsException
 import es.in2.wallet.model.AppIssuerData
 import es.in2.wallet.repository.AppIssuerDataRepository
@@ -34,6 +35,19 @@ class AppIssuerDataServiceImpl(
         log.info("AppIssuerDataServiceImpl.getUserByUsername()")
         return appIssuerDataRepository.findAppIssuerDataByName(issuerName)
     }
+
+    override fun getIssuers(): List<String> {
+        log.info("AppIssuerServiceImpl.getIssuers()")
+        val issuers = appIssuerDataRepository.findAll()
+        val issuerResponseList = issuers.map { issuer ->
+            issuer.name
+        }
+        if (issuerResponseList.isEmpty()) {
+            throw IssuerDataNotFoundException("The Issuer List is empty.")
+        }
+        return issuerResponseList
+    }
+
     private fun checkIfIssuerNameAlreadyExist(issuerName: String) {
         log.info("AppIssuerDataServiceImpl.checkIfIssuerNameAlreadyExist()")
         if (getIssuerDataByIssuerName(issuerName).isPresent) {

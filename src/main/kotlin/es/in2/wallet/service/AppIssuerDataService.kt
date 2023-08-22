@@ -6,4 +6,5 @@ import java.util.*
 interface AppIssuerDataService {
     fun saveIssuerData(issuerName: String, issuerMetadata: String)
     fun getIssuerDataByIssuerName(issuerName: String): Optional<AppIssuerData>
+    fun getIssuers(): List<String>
 }

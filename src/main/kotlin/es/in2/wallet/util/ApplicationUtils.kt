@@ -1,5 +1,8 @@
 package es.in2.wallet.util
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import es.in2.wallet.exception.FailedCommunicationException
 import es.in2.wallet.model.OpenIdConfig
 import org.slf4j.Logger
@@ -13,6 +16,7 @@ import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.util.concurrent.Flow
 
 @Component
 object ApplicationUtils {
@@ -25,6 +29,7 @@ object ApplicationUtils {
             .GET()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        logCRUD(request, response)
         checkGetResponseStatus(response.statusCode())
         return response.body()
     }
@@ -36,6 +41,7 @@ object ApplicationUtils {
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        logCRUD(request, response, body)
         checkPostResponseStatus(response.statusCode())
         return response.body()
     }
@@ -47,14 +53,25 @@ object ApplicationUtils {
             .DELETE()
             .build()
         val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        logCRUD(request, response)
         checkDeleteResponseStatus(response.statusCode())
     }
 
+    private fun logCRUD(request: HttpRequest, response: HttpResponse<String>, body: String = "") {
+        log.debug("********************************************************************************")
+        log.debug(">>> URI: {}", request.uri())
+        log.debug(">>> HEADERS: {}", request.headers())
+        log.debug(">>> BODY: $body")
+        log.debug("<<< STATUS CODE: ${response.statusCode()}")
+        log.debug("<<< HEADERS: {}", response.headers().map())
+        log.debug("<<< BODY: ${response.body()}")
+        log.debug("********************************************************************************")
+    }
 
     private fun checkGetResponseStatus(statusCode: Int) {
         when (statusCode) {
             200 -> {
-                log.info("DELETE OK")
+                log.info("GET OK")
             }
             404 -> {
                 throw NoSuchElementException("Element not found: $statusCode")
@@ -155,5 +172,18 @@ object ApplicationUtils {
     }
 
     private fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
+
+    /**
+     * Converts the input to a String representing a JSON.
+     * @param data data class instance with only JsonProperties attributes of either primitive types or other data
+     * classes types that display this same characteristics recursively
+     * @return a String representing a JSON
+     */
+    fun toJsonString(data: Any, naming: PropertyNamingStrategy = PropertyNamingStrategies.SNAKE_CASE): String {
+        val objectMapper = ObjectMapper()
+        objectMapper.setPropertyNamingStrategy(naming)
+        return objectMapper.writeValueAsString(data)
+    }
+
 
 }

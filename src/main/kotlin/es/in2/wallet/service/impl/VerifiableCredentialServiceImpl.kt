@@ -1,17 +1,23 @@
 package es.in2.wallet.service.impl
 
-
+import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jwt.JWTClaimsSet
 import VcTemplateDeserializer
+import java.time.Instant
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.nimbusds.jose.JOSEObjectType
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.JWSSigner
+import com.nimbusds.jose.crypto.ECDSASigner
+import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.model.W3CContextDeserializer
 import es.in2.wallet.model.W3CCredentialSchemaDeserializer
 import es.in2.wallet.model.W3CIssuerDeserializer
-import es.in2.wallet.model.dto.CredentialIssuerMetadata
-import es.in2.wallet.model.dto.CredentialOfferForPreAuthorizedCodeFlow
 import es.in2.wallet.service.*
+import java.util.*
 import es.in2.wallet.util.*
 import es.in2.wallet.util.ApplicationUtils.buildUrlEncodedFormDataRequestBody
 import es.in2.wallet.util.ApplicationUtils.getRequest
@@ -22,13 +28,18 @@ import id.walt.credentials.w3c.W3CIssuer
 import id.walt.credentials.w3c.templates.VcTemplate
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import com.nimbusds.jose.jwk.ECKey
+import es.in2.wallet.exception.*
+import es.in2.wallet.model.dto.*
+import es.in2.wallet.util.ApplicationUtils.toJsonString
 import org.springframework.stereotype.Service
 
 @Service
 class VerifiableCredentialServiceImpl(
     private val personalDataSpaceService: PersonalDataSpaceService,
     private val issuerDataService: AppIssuerDataService,
-    private val credentialRequestDataService: AppCredentialRequestDataService
+    private val credentialRequestDataService: AppCredentialRequestDataService,
+    private val walletKeyService: WalletKeyService
 
 ) : VerifiableCredentialService {
 
@@ -51,6 +62,29 @@ class VerifiableCredentialServiceImpl(
             credentialRequestDataService.saveCredentialRequestData(credentialOffer.credentialIssuer,accessToken[0],accessToken[1])
         }
     }
+
+    override fun getVerifiableCredential(credentialRequestDTO: CredentialRequestDTO) {
+        // create the proof type JWT
+        val jwt = createJwt(credentialRequestDTO)
+        log.debug("jwt object: $jwt")
+        // build the body that contains the proof and the format of the verifiable credential
+        val credentialRequestBody = createCredentialRequestBody(jwt)
+        val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
+        val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
+        val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
+        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
+
+        val verifiableCredentialResponse: VerifiableCredentialResponse = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
+        //save the fresh nonce to be able to request another credential if we want
+        credentialRequestDataService.saveNewIssuerNonceByIssuerName(credentialRequestDTO.issuerName,verifiableCredentialResponse.cNonce)
+        val credential = verifiableCredentialResponse.credential
+        log.debug("verifiable credential: $credential")
+        // save the verifiable credential
+        personalDataSpaceService.saveVC(credential)
+
+
+    }
+
 
     /**
      * @param credentialOfferUriExtended:
@@ -83,6 +117,8 @@ class VerifiableCredentialServiceImpl(
 
     /*
         TODO: Deserialization is encountering error in VerifiableCredential
+            This is not our class but walt-ids class. We are using default serialization and deserialization methods
+            implemented by walt-id
      */
     private fun getCredentialIssuerMetadataObject(credentialIssuerMetadataUri: String): CredentialIssuerMetadata {
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
@@ -140,27 +176,73 @@ class VerifiableCredentialServiceImpl(
         return listOf(cNonce,accessToken)
     }
 
-    private fun getVerifiableCredential(accessToken: String, credentialOffer: CredentialOfferForPreAuthorizedCodeFlow,
-                                        credentialIssuerMetadata: CredentialIssuerMetadata): String {
-        val credentialType = credentialOffer.credentials[0]
-        val credentialEndpoint = credentialIssuerMetadata.credentialEndpoint + credentialType
+
+    private fun getVerifiableCredential(
+        accessToken: String,
+        credentialEndpoint: String,
+        credentialRequestBodyDTO: CredentialRequestBodyDTO):
+            VerifiableCredentialResponse{
         val headers = listOf(
-            CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM,
+            CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON,
             HEADER_AUTHORIZATION to "Bearer $accessToken")
-        val verifiableCredential = postRequest(url=credentialEndpoint, headers=headers, body="")
-        log.debug("Verifiable credential: {}", verifiableCredential)
-        return verifiableCredential
+        val objectMapper = ObjectMapper()
+        val requestBodyJson = objectMapper.writeValueAsString(credentialRequestBodyDTO)
+        val body = requestBodyJson.toString()
+        val response: String = postRequest(url=credentialEndpoint, headers=headers, body=body)
+        log.info(response)
+        val valueTypeRef = ObjectMapper().typeFactory.constructType(VerifiableCredentialResponse::class.java)
+        val verifiableCredentialResponse: VerifiableCredentialResponse = ObjectMapper().readValue(response, valueTypeRef)
+
+        log.debug("Verifiable credential: {}", toJsonString(verifiableCredentialResponse))
+        return verifiableCredentialResponse
     }
 
-    private fun getVerifiableCredential1(accessToken: String, credentialOffer: CredentialOfferForPreAuthorizedCodeFlow,
-                                        credentialIssuerMetadata: JsonNode): String {
-        val credentialType = credentialOffer.credentials[0]
-        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText() + credentialType
-        val headers = listOf(
-            CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM,
-            HEADER_AUTHORIZATION to "Bearer $accessToken")
-        val verifiableCredential = postRequest(url=credentialEndpoint, headers=headers, body="")
-        log.debug("Verifiable credential: {}", verifiableCredential)
-        return verifiableCredential
+    private fun createJwt(credentialRequestDTO: CredentialRequestDTO): String{
+        val ecJWK : ECKey = walletKeyService.getECKeyFromKid(credentialRequestDTO.did)
+        val signer : JWSSigner = ECDSASigner(ecJWK)
+        val header = createJwtHeader(credentialRequestDTO.did)
+        val payload = createJwtPayload(credentialRequestDTO.issuerName)
+        val signedJWT = SignedJWT(header, payload)
+        signedJWT.sign(signer)
+        log.debug("JWT signed successfully")
+        return signedJWT.serialize()
+    }
+    private fun createJwtHeader(kid: String): JWSHeader {
+        return JWSHeader.Builder(JWSAlgorithm.ES256)
+                .type(JOSEObjectType("openid4vci-proof+jwt"))
+                .keyID(kid)
+                .build()
+    }
+
+    private fun createJwtPayload(issuerName: String): JWTClaimsSet {
+        val instant = Instant.now()
+        val requestData = credentialRequestDataService.getCredentialRequestDataByIssuerName(issuerName)
+        //get the nonce provided by the Credential Issuer on getCredentialIssuerMetadata method
+        val nonce = requestData.map { it.issuerNonce }
+                .orElseThrow { CredentialRequestDataNotFoundException("Nonce not found for $issuerName") }
+        return JWTClaimsSet.Builder()
+                .audience(issuerName)
+                .issueTime(Date.from(instant))
+                .claim("nonce", nonce)
+                .build()
+    }
+
+    private fun createCredentialRequestBody(jwt: String): CredentialRequestBodyDTO{
+        val proof = ProofDTO("jwt",jwt)
+        return CredentialRequestBodyDTO("jwt_vc_json",proof)
+    }
+
+    private fun getExistentAccessToken(issuerName: String): String {
+        val requestData = credentialRequestDataService.getCredentialRequestDataByIssuerName(issuerName)
+        //get the access token provided by the Credential Issuer on getCredentialIssuerMetadata method
+        return requestData.map { it.issuerAccessToken }
+                .orElseThrow { CredentialRequestDataNotFoundException("Access token not found for $issuerName") }
+    }
+
+    private fun getExistentMetadata(issuerName: String): String {
+        val requestData = issuerDataService.getIssuerDataByIssuerName(issuerName)
+        //get the metadata provided by the Credential Issuer on getCredentialIssuerMetadata method
+        return requestData.map { it.metadata }
+                .orElseThrow { IssuerDataNotFoundException("Issuer metadata not found for $issuerName") }
     }
 }

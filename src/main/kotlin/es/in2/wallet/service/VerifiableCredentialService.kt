@@ -1,5 +1,8 @@
 package es.in2.wallet.service
 
-fun interface VerifiableCredentialService {
+import es.in2.wallet.model.dto.CredentialRequestDTO
+
+interface VerifiableCredentialService {
     fun getCredentialIssuerMetadata(credentialOfferUriExtended: String)
+    fun getVerifiableCredential(credentialRequestDTO: CredentialRequestDTO)
 }
