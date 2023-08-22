@@ -1,44 +1,30 @@
 package es.in2.wallet.model.dto
 
-
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 
-/**
- *  This data class is used to represent the Credential Offer by Reference using credential_offer_uri parameter for a
- *  Pre-Authorized Code Flow.
- *
- *  url: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-sending-credential-offer-by-
- *
- *  example:
- *      {
- *          "credential_issuer": "https://credential-issuer.example.com",
- *          "credentials": [
- *          "UniversityDegree"
- *          ],
- *          "grants": {
- *              "urn:ietf:params:oauth:grant-type:pre-authorized_code": {
- *                  "pre-authorized_code": "1234",
- *                  "user_pin_required": true
- *               }
- *           }
- *      }
- */
+
+@Schema(description = """
+   This data class is used to represent the Credential Offer by Reference using credential_offer_uri parameter for a
+   Pre-Authorized Code Flow. 
+   For more information: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-sending-credential-offer-by-
+""")
 data class CredentialOfferForPreAuthorizedCodeFlow(
     @Schema(
         required = true,
         example = "https://credential-issuer.example.com")
-    @JsonProperty("credential_issuer")
+    @param:JsonProperty("credential_issuer") @get:JsonProperty("credential_issuer")
     val credentialIssuer: String,
 
     @Schema(
         required = true,
         example = "[\"UniversityDegree\"]")
-    @JsonProperty("credentials")
+    @param:JsonProperty("credentials") @get:JsonProperty("credentials")
     val credentials: MutableList<String>,
 
+    //TODO: The key should not be string but a specific keyword like "urn:ietf:params:oauth:grant-type:pre-authorized_code"
     @Schema(implementation = Grant::class)
-    @JsonProperty("grants")
+    @param:JsonProperty("grants") @get:JsonProperty("grants")
     val grants: MutableMap<String, Grant>
 )
 
@@ -46,11 +32,12 @@ data class Grant(
     @Schema(
         required = true,
         example = "1234")
-    @JsonProperty("pre-authorized_code")
+    @param:JsonProperty("pre-authorized_code") @get:JsonProperty("pre-authorized_code")
     val preAuthorizedCode: String,
 
     @Schema(
         required = true,
         example = "true")
-    @JsonProperty("user_pin_required") val userPinRequired: Boolean,
+    @param:JsonProperty("user_pin_required") @get:JsonProperty("user_pin_required")
+    val userPinRequired: Boolean,
 )
