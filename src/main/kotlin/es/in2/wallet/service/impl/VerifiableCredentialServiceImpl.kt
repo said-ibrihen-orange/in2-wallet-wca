@@ -189,8 +189,9 @@ class VerifiableCredentialServiceImpl(
         val requestBodyJson = objectMapper.writeValueAsString(credentialRequestBodyDTO)
         val body = requestBodyJson.toString()
         val response: String = postRequest(url=credentialEndpoint, headers=headers, body=body)
+        log.info(response)
         val valueTypeRef = ObjectMapper().typeFactory.constructType(VerifiableCredentialResponse::class.java)
-        val verifiableCredentialResponse: VerifiableCredentialResponse= ObjectMapper().readValue(response, valueTypeRef)
+        val verifiableCredentialResponse: VerifiableCredentialResponse = ObjectMapper().readValue(response, valueTypeRef)
 
         log.debug("Verifiable credential: {}", toJsonString(verifiableCredentialResponse))
         return verifiableCredentialResponse
