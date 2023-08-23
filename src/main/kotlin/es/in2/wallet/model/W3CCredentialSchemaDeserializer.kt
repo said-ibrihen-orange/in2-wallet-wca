@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
-import id.walt.credentials.w3c.W3CContext
 import id.walt.credentials.w3c.W3CCredentialSchema
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 
 class W3CCredentialSchemaDeserializer : JsonDeserializer<W3CCredentialSchema>() {
     override fun deserialize(parser: JsonParser, ctxt: DeserializationContext): W3CCredentialSchema {
