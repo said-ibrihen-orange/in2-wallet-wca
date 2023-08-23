@@ -51,13 +51,13 @@ class VerifiableCredentialServiceImpl(
         val credentialIssuerMetadataUri = getCredentialIssuerMetadataUri(credentialOffer)
         try {
             val credentialIssuerMetadataObject = getCredentialIssuerMetadataObject(credentialIssuerMetadataUri)
-            issuerDataService.saveIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataObject.toString())
+            issuerDataService.upsertIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataObject.toString())
             val accessToken = getAccessTokenAndNonce(credentialOffer, credentialIssuerMetadataObject)
             credentialRequestDataService.saveCredentialRequestData(credentialOffer.credentialIssuer,accessToken[0],accessToken[1])
         }catch (e: UnrecognizedPropertyException){
             log.error(e)
             val credentialIssuerMetadataObject = getCredentialIssuerMetadataObject1(credentialIssuerMetadataUri)
-            issuerDataService.saveIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataObject.toString())
+            issuerDataService.upsertIssuerData(credentialOffer.credentialIssuer,credentialIssuerMetadataObject.toString())
             val accessToken = getAccessTokenAndNonce1(credentialOffer, credentialIssuerMetadataObject)
             credentialRequestDataService.saveCredentialRequestData(credentialOffer.credentialIssuer,accessToken[0],accessToken[1])
         }
@@ -70,10 +70,9 @@ class VerifiableCredentialServiceImpl(
         // build the body that contains the proof and the format of the verifiable credential
         val credentialRequestBody = createCredentialRequestBody(jwt)
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
-        val storedMetadata: String = getExistentMetadata(credentialRequestDTO.issuerName)
+        val storedMetadata: String = issuerDataService.getMetadata(credentialRequestDTO.issuerName)
         val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
-        val credentialEndpoint = credentialIssuerMetadata["credentialEndpoint"].asText()
-
+        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
         val verifiableCredentialResponseDTO: VerifiableCredentialResponseDTO = getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
         //save the fresh nonce to be able to request another credential if we want
         credentialRequestDataService.saveNewIssuerNonceByIssuerName(credentialRequestDTO.issuerName,verifiableCredentialResponseDTO.cNonce)
@@ -81,10 +80,7 @@ class VerifiableCredentialServiceImpl(
         log.debug("verifiable credential: $credential")
         // save the verifiable credential
         personalDataSpaceService.saveVC(credential)
-
-
     }
-
 
     /**
      * @param credentialOfferUriExtended:
@@ -176,7 +172,6 @@ class VerifiableCredentialServiceImpl(
         return listOf(cNonce,accessToken)
     }
 
-
     private fun getVerifiableCredential(
         accessToken: String,
         credentialEndpoint: String,
@@ -237,12 +232,5 @@ class VerifiableCredentialServiceImpl(
         //get the access token provided by the Credential Issuer on getCredentialIssuerMetadata method
         return requestData.map { it.issuerAccessToken }
                 .orElseThrow { CredentialRequestDataNotFoundException("Access token not found for $issuerName") }
-    }
-
-    private fun getExistentMetadata(issuerName: String): String {
-        val requestData = issuerDataService.getIssuerDataByIssuerName(issuerName)
-        //get the metadata provided by the Credential Issuer on getCredentialIssuerMetadata method
-        return requestData.map { it.metadata }
-                .orElseThrow { IssuerDataNotFoundException("Issuer metadata not found for $issuerName") }
     }
 }

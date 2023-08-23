@@ -38,7 +38,7 @@ class AppIssuerDataServiceImplTest {
         `when`(appIssuerDataRepository.findAppIssuerDataByName(issuerName)).thenReturn(Optional.empty())
 
         // Call the method to be tested
-        appIssuerDataServiceImpl.saveIssuerData(issuerName, issuerMetadata)
+        appIssuerDataServiceImpl.upsertIssuerData(issuerName, issuerMetadata)
 
         // Verify that the repository method was called
         verify(appIssuerDataRepository).findAppIssuerDataByName(issuerName)
@@ -56,7 +56,7 @@ class AppIssuerDataServiceImplTest {
             .thenReturn(Optional.of(AppIssuerData(id = UUID.randomUUID(), name = issuerName, metadata = issuerMetadata)))
 
         // Call the method to be tested
-        appIssuerDataServiceImpl.saveIssuerData(issuerName, issuerMetadata)
+        appIssuerDataServiceImpl.upsertIssuerData(issuerName, issuerMetadata)
 
         // Verify that the repository method was called
         verify(appIssuerDataRepository).findAppIssuerDataByName(issuerName)
