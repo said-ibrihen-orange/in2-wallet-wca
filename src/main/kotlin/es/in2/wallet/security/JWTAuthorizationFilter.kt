@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.configuration.WalletDidKeyGenerator
 import es.in2.wallet.exception.AccessTokenException
+import es.in2.wallet.service.TokenBlackListService
 import es.in2.wallet.util.BEARER_PREFIX
 import es.in2.wallet.util.USER_ROLE
 import es.in2.wallet.service.WalletKeyService
@@ -30,6 +31,7 @@ class JWTAuthorizationFilter(
     authenticationManager: AuthenticationManager,
     walletDidKeyGenerator: WalletDidKeyGenerator,
     private val walletKeyService: WalletKeyService,
+    private val tokenBlackListService: TokenBlackListService
 ) : BasicAuthenticationFilter(authenticationManager) {
 
     private val log: Logger = LogManager.getLogger(JWTAuthorizationFilter::class.java)
@@ -48,6 +50,13 @@ class JWTAuthorizationFilter(
         if (accessToken == null || !accessToken.startsWith(BEARER_PREFIX)) {
             log.info("No JWT token found in request headers")
             chain.doFilter(request, response)
+            return
+        }
+        // verify if the access_token is on black list.
+        if (tokenBlackListService.isBlacklisted(accessToken)) {
+            log.warn("Blocked JWT token found in request headers")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            log.info("Token is blacklisted")
             return
         }
         // parse access_token to SignedJWT

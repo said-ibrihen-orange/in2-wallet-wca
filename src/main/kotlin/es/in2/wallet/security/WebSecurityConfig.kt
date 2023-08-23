@@ -2,6 +2,7 @@ package es.in2.wallet.security
 
 import es.in2.wallet.configuration.WalletDidKeyGenerator
 import es.in2.wallet.service.AppUserService
+import es.in2.wallet.service.TokenBlackListService
 import es.in2.wallet.util.ALL
 import es.in2.wallet.service.WalletKeyService
 import org.springframework.context.annotation.Bean
@@ -29,6 +30,7 @@ class WebSecurityConfig(
     private val authConfiguration: AuthenticationConfiguration,
     private val walletKeyService: WalletKeyService,
     private val appUserService: AppUserService,
+    private val tokenBlackListService: TokenBlackListService
 ) {
 
     @Bean
@@ -59,7 +61,7 @@ class WebSecurityConfig(
                 JWTAuthenticationFilter(authenticationManager(), walletDidKeyGenerator, walletKeyService, appUserService)
             )
             addFilterAt<JWTAuthorizationFilter>(
-                JWTAuthorizationFilter(authenticationManager(), walletDidKeyGenerator, walletKeyService)
+                JWTAuthorizationFilter(authenticationManager(), walletDidKeyGenerator, walletKeyService,tokenBlackListService)
             )
             sessionManagement {
                 sessionCreationPolicy = SessionCreationPolicy.STATELESS
