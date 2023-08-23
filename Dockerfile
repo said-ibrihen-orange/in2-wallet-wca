@@ -2,13 +2,11 @@
 FROM docker.io/gradle:8.0.2-jdk AS TEMP_BUILD
 ARG SKIP_TESTS=false
 # Copy project files
-# COPY --chown=gradle:gradle . /home/gradle/src
-#--chown=gradle:gradle
-COPY  --chmod=gradle:gradle build.gradle.kts settings.gradle.kts /home/gradle/src/
-COPY --chmod=gradle:gradle src /home/gradle/src/src
-COPY --chmod=gradle:gradle gradle /home/gradle/src/gradle
-COPY --chmod=gradle:gradle docker/configs /home/gradle/src/configs
-COPY --chmod=gradle:gradle service-matrix.properties /home/gradle/src/
+COPY  --chown=gradle:gradle build.gradle.kts settings.gradle.kts /home/gradle/src/
+COPY --chown=gradle:gradle src /home/gradle/src/src
+COPY --chown=gradle:gradle gradle /home/gradle/src/gradle
+COPY --chown=gradle:gradle docker/configs /home/gradle/src/configs
+COPY --chown=gradle:gradle service-matrix.properties /home/gradle/src/
 WORKDIR /home/gradle/src
 RUN if [ "$SKIP_TESTS" = "true" ]; then \
     gradle build --no-daemon -x test; \
