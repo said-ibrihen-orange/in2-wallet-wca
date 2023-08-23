@@ -1,7 +1,6 @@
 package es.in2.wallet.service.impl
 
 import es.in2.wallet.exception.IssuerDataNotFoundException
-import es.in2.wallet.exception.IssuerNameAlreadyExistsException
 import es.in2.wallet.model.AppIssuerData
 import es.in2.wallet.repository.AppIssuerDataRepository
 import es.in2.wallet.service.AppIssuerDataService
@@ -16,19 +15,26 @@ class AppIssuerDataServiceImpl(
 ) : AppIssuerDataService {
 
     private val log: Logger = LoggerFactory.getLogger(AppUserServiceImpl::class.java)
-    override fun saveIssuerData(issuerName: String, issuerMetadata: String) {
-        try {
-            checkIfIssuerNameAlreadyExist(issuerName)
-            val appIssuerData = AppIssuerData(
-                id = UUID.randomUUID(),
+
+    /**
+     * Inserts or updates Credential Issuer Metadata on an SQL table
+     */
+    override fun upsertIssuerData(issuerName: String, issuerMetadata: String) {
+        val issuerData = getIssuerDataByIssuerName(issuerName)
+        val appIssuerData: AppIssuerData = if (issuerData.isPresent) {
+            AppIssuerData(
+                id = issuerData.get().id,
                 name = issuerName,
                 metadata = issuerMetadata
             )
-            log.debug("AppIssuerDataServiceImpl.saveIssuerData()")
-            appIssuerDataRepository.save(appIssuerData)
-        }catch (e: IssuerNameAlreadyExistsException){
-            log.info("This data is already save")
+        } else {
+            AppIssuerData(
+                id = null,
+                name = issuerName,
+                metadata = issuerMetadata
+            )
         }
+        appIssuerDataRepository.save(appIssuerData)
     }
 
     override fun getIssuerDataByIssuerName(issuerName: String): Optional<AppIssuerData> {
@@ -48,10 +54,12 @@ class AppIssuerDataServiceImpl(
         return issuerResponseList
     }
 
-    private fun checkIfIssuerNameAlreadyExist(issuerName: String) {
-        log.info("AppIssuerDataServiceImpl.checkIfIssuerNameAlreadyExist()")
-        if (getIssuerDataByIssuerName(issuerName).isPresent) {
-            throw IssuerNameAlreadyExistsException("Issuer name already exists: $issuerName")
+    override fun getMetadata(issuerName: String): String {
+        val issuerData = getIssuerDataByIssuerName(issuerName)
+        if (issuerData.isPresent){
+            return issuerData.get().metadata
+        } else {
+            throw IssuerDataNotFoundException("Issuer metadata not found for $issuerName")
         }
     }
 }

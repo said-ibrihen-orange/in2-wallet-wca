@@ -30,3 +30,12 @@ app:
   url:
     api: https://walletapidev.in2.es
     orion_context_broker: http://wallet-orion:1026/v2/entities
+
+# Logging configuration
+logging:
+  level:
+    # Set the log level for the entire application
+    root: INFO
+    # Set log level for specific packages or classes
+    es.in2.wallet.service: DEBUG
+    es.in2.wallet.util: DEBUG
