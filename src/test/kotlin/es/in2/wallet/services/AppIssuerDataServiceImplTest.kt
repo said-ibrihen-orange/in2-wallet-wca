@@ -51,15 +51,18 @@ class AppIssuerDataServiceImplTest {
         val issuerName = "issuer123"
         val issuerMetadata = """{"key": "value"}"""
 
+        val appIssuerData = AppIssuerData(id = UUID.randomUUID(), name = issuerName, metadata = issuerMetadata)
         // Mock behavior of the repository method
         `when`(appIssuerDataRepository.findAppIssuerDataByName(issuerName))
-            .thenReturn(Optional.of(AppIssuerData(id = UUID.randomUUID(), name = issuerName, metadata = issuerMetadata)))
+            .thenReturn(Optional.of(appIssuerData))
+        `when`(appIssuerDataRepository.save(appIssuerData)).thenReturn(null)
 
         // Call the method to be tested
         appIssuerDataServiceImpl.upsertIssuerData(issuerName, issuerMetadata)
 
         // Verify that the repository method was called
         verify(appIssuerDataRepository).findAppIssuerDataByName(issuerName)
+        verify(appIssuerDataRepository).save(appIssuerData)
         verifyNoMoreInteractions(appIssuerDataRepository)
     }
 
