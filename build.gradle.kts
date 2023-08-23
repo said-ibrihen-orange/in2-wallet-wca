@@ -1,14 +1,17 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
+
 plugins {
 	distribution
+	val kotlinPluginVersion = "1.7.22"
 	id("org.springframework.boot") version "3.0.5"
 	id("io.spring.dependency-management") version "1.1.0"
 	id("jacoco")
 	id("org.sonarqube") version "4.0.0.2929"
-	kotlin("jvm") version "1.7.22"
-	kotlin("plugin.spring") version "1.7.22"
-	kotlin("plugin.jpa") version "1.7.22"
+	kotlin("jvm") version kotlinPluginVersion
+	kotlin("plugin.spring") version kotlinPluginVersion
+	kotlin("plugin.jpa") version kotlinPluginVersion
 }
 
 group = "es.in2"
@@ -47,8 +50,11 @@ dependencies {
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// lombok
-	compileOnly("org.projectlombok:lombok:1.18.26")
-	annotationProcessor("org.projectlombok:lombok:1.18.26")
+	val lombokDependency = "org.projectlombok:lombok:1.18.26"
+	compileOnly(lombokDependency)
+	annotationProcessor(lombokDependency)
+	testCompileOnly(lombokDependency)
+	testAnnotationProcessor(lombokDependency)
 
 	// OpenAPI
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4")
@@ -84,9 +90,6 @@ dependencies {
 	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 	testImplementation("org.mockito:mockito-core:3.12.4")
 	testImplementation("io.mockk:mockk:1.13.5")
-	testCompileOnly("org.projectlombok:lombok:1.18.26")
-	testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
-
 }
 
 tasks.withType<KotlinCompile> {
