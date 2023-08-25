@@ -163,7 +163,7 @@ class PersonalDataSpaceServiceImpl(
 
     fun getVerifiableCredentialsByUserIdAndFormat(format: String): MutableList<VcContextBrokerEntity> {
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?type=$format&user_ID=$userUUID",
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?type=$format&q=userId==$userUUID",
             headers=listOf())
         return parseResponseBodyIntoContextBrokerVcMutableList(response)
     }
@@ -186,7 +186,7 @@ class PersonalDataSpaceServiceImpl(
     override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String {
         // Get user session
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID",
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL/$id?type=$format&q=userId==$userUUID",
             headers=listOf())
         val objectMapper = ObjectMapper()
         return if (format == VC_JWT) {
@@ -203,7 +203,8 @@ class PersonalDataSpaceServiceImpl(
 
     override fun deleteVCs() {
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?user_ID=$userUUID", headers=listOf())
+        val typePattern = URLEncoder.encode("^vc", "UTF-8")
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?typePattern=$typePattern&q=userId==$userUUID", headers=listOf())
         val vcs = parseResponseBodyIntoContextBrokerVcMutableList(response)
         val vcIdList = getDistinctIds(vcs)
         // get all VCs from user
@@ -250,7 +251,7 @@ class PersonalDataSpaceServiceImpl(
         val typePattern = URLEncoder.encode("^did", "UTF-8")
         // get all DIDs from user
         val response = applicationUtils.getRequest(
-            url="$contextBrokerEntitiesURL/?typePattern=$typePattern&userId.value=$userUUID", headers=listOf())
+            url="$contextBrokerEntitiesURL/?typePattern=$typePattern&q=userId==$userUUID", headers=listOf())
         return parseResponseBodyIntoContextBrokerDidMutableList(response)
 
     }
