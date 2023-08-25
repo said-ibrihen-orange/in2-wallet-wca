@@ -14,7 +14,8 @@ data class AppIssuerData(
         @Column(unique = true, nullable = false)
         val name: String,
 
-        @Column(nullable = false)
+        //Do not remove the columnDefinition annotation to prevent MySQL data truncation
+        @Column(nullable = false, columnDefinition = "json")
         val metadata: String
 
 )
