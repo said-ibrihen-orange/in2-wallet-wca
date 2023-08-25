@@ -29,9 +29,9 @@ import java.util.*
 
 @Service
 class PersonalDataSpaceServiceImpl(
-    private val appUserService: AppUserService,
-    private val applicationUtils: ApplicationUtils,
-    @Value("\${app.url.orion_context_broker}") private val contextBrokerEntitiesURL: String
+        private val appUserService: AppUserService,
+        private val applicationUtils: ApplicationUtils,
+        @Value("\${app.url.orion_context_broker}") private val contextBrokerEntitiesURL: String
 ) : PersonalDataSpaceService {
 
     private val log: Logger = LoggerFactory.getLogger(PersonalDataSpaceServiceImpl::class.java)
@@ -47,11 +47,11 @@ class PersonalDataSpaceServiceImpl(
         log.info("Saving Verifiable Credential for user: $userId")
         // Store the VC as VC_JWT in Context Broker
         storeVcInContextBroker(
-            VcContextBrokerEntity(id = vcId, type = VC_JWT, userId = userIdAttribute, vcData = vcJwtAttribute)
+                VcContextBrokerEntity(id = vcId, type = VC_JWT, userId = userIdAttribute, vcData = vcJwtAttribute)
         )
         // Store the VC as VC_JSON in Context Broker
         storeVcInContextBroker(
-            VcContextBrokerEntity(id = vcId, type = VC_JSON, userId = userIdAttribute, vcData = vcJsonAttribute)
+                VcContextBrokerEntity(id = vcId, type = VC_JSON, userId = userIdAttribute, vcData = vcJsonAttribute)
         )
         // Log the successful completion of the saveVC function
         log.info("Verifiable Credential saved successfully for user: $userId")
@@ -111,11 +111,11 @@ class PersonalDataSpaceServiceImpl(
             val jsonNode = ObjectMapper().convertValue(vcDataValue, JsonNode::class.java)
             val vcTypeList = getVcTypeListFromVcJson(jsonNode)
             result.add(
-                VcBasicDataDTO(
-                    id = it.id,
-                    vcType = vcTypeList,
-                    credentialSubject = jsonNode["credentialSubject"]
-                )
+                    VcBasicDataDTO(
+                            id = it.id,
+                            vcType = vcTypeList,
+                            credentialSubject = jsonNode["credentialSubject"]
+                    )
             )
         }
         return result
@@ -136,11 +136,11 @@ class PersonalDataSpaceServiceImpl(
             // If vc_types matches with vc_types requested, build VcBasicDataDTO and store it in a List
             if (vcDataTypeList.containsAll(vcTypeList)) {
                 result.add(
-                    VcBasicDataDTO(
-                        id = jsonNode["id"].asText(),
-                        vcType = vcDataTypeList,
-                        credentialSubject = jsonNode["credentialSubject"]
-                    )
+                        VcBasicDataDTO(
+                                id = jsonNode["id"].asText(),
+                                vcType = vcDataTypeList,
+                                credentialSubject = jsonNode["credentialSubject"]
+                        )
                 )
             }
         }
@@ -163,8 +163,8 @@ class PersonalDataSpaceServiceImpl(
 
     fun getVerifiableCredentialsByUserIdAndFormat(format: String): MutableList<VcContextBrokerEntity> {
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?type=$format&user_ID=$userUUID",
-            headers=listOf())
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?type=$format&q=userId==$userUUID",
+                headers=listOf())
         return parseResponseBodyIntoContextBrokerVcMutableList(response)
     }
 
@@ -186,24 +186,25 @@ class PersonalDataSpaceServiceImpl(
     override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String {
         // Get user session
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL/$id?type=$format&user_ID=$userUUID",
-            headers=listOf())
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL/$id?type=$format&q=userId==$userUUID",
+                headers=listOf())
         val objectMapper = ObjectMapper()
         return if (format == VC_JWT) {
             objectMapper.readValue(response, VcContextBrokerEntity::class.java).vcData.value.toString()
         } else {
             objectMapper.writeValueAsString(
-                objectMapper.readValue(
-                    response,
-                    VcContextBrokerEntity::class.java
-                ).vcData.value
+                    objectMapper.readValue(
+                            response,
+                            VcContextBrokerEntity::class.java
+                    ).vcData.value
             )
         }
     }
 
     override fun deleteVCs() {
         val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?user_ID=$userUUID", headers=listOf())
+        val typePattern = URLEncoder.encode("^vc", "UTF-8")
+        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?typePattern=$typePattern&q=userId==$userUUID", headers=listOf())
         val vcs = parseResponseBodyIntoContextBrokerVcMutableList(response)
         val vcIdList = getDistinctIds(vcs)
         // get all VCs from user
@@ -227,7 +228,7 @@ class PersonalDataSpaceServiceImpl(
         }
 
         storeDIDInContextBroker(
-            DidContextBrokerEntity(id = did, type = didMethod.stringValue, userId = userIdAttribute)
+                DidContextBrokerEntity(id = did, type = didMethod.stringValue, userId = userIdAttribute)
         )
 
         log.info("DID Stored Successfully")
@@ -250,7 +251,7 @@ class PersonalDataSpaceServiceImpl(
         val typePattern = URLEncoder.encode("^did", "UTF-8")
         // get all DIDs from user
         val response = applicationUtils.getRequest(
-            url="$contextBrokerEntitiesURL/?typePattern=$typePattern&userId.value=$userUUID", headers=listOf())
+                url="$contextBrokerEntitiesURL/?typePattern=$typePattern&q=userId==$userUUID", headers=listOf())
         return parseResponseBodyIntoContextBrokerDidMutableList(response)
 
     }
@@ -269,14 +270,14 @@ class PersonalDataSpaceServiceImpl(
         val userUUID = getUserIdFromContextAuthentication()
         didExists(didResponseDTO,userUUID)
         applicationUtils.deleteRequest(url="$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
-            headers=listOf())
+                headers=listOf())
     }
 
     private fun didExists(didResponseDTO: DidResponseDTO,userUUID: String): Boolean {
         try {
             val response = applicationUtils.getRequest(
-                url="$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
-                headers=listOf())
+                    url="$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
+                    headers=listOf())
             return response.isNotEmpty()
 
         } catch (e: NoSuchElementException) {
