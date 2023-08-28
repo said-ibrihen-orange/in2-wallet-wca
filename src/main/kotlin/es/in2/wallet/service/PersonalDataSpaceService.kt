@@ -1,5 +1,6 @@
 package es.in2.wallet.service
 
+import es.in2.wallet.model.AppUser
 import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.model.dto.VcBasicDataDTO
@@ -16,6 +17,7 @@ interface PersonalDataSpaceService {
     fun saveDid(did: String, didMethod: DidMethods)
     fun getDidsByUserId(): MutableList<DidResponseDTO>
     fun deleteSelectedDid(did: String)
+    fun registerUserInContextBroker(appUser: AppUser)
 
 
 

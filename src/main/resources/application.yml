@@ -31,5 +31,5 @@ in2:
 app:
   url:
     api: http://localhost:8083
-    orion_context_broker: http://localhost:1026/v2/entities
+    orion_context_broker: http://localhost:1026/ngsi-ld/v1/entities
 

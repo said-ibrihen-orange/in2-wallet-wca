@@ -6,10 +6,10 @@ import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.InvalidDIDFormatException
 import es.in2.wallet.exception.DIDNotFoundException
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
-import es.in2.wallet.model.ContextBrokerAttribute
-import es.in2.wallet.model.DidContextBrokerEntity
+import es.in2.wallet.model.AppUser
 import es.in2.wallet.model.DidMethods
-import es.in2.wallet.model.VcContextBrokerEntity
+import es.in2.wallet.model.NGSILDArrayAttribute
+import es.in2.wallet.model.UserContextBrokerEntity
 import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.AppUserService
@@ -289,6 +289,22 @@ class PersonalDataSpaceServiceImpl(
 
     fun getDistinctIds(vcs: MutableList<VcContextBrokerEntity>): List<String> {
         return vcs.map { it.id }.distinct()
+    }
+
+    override fun registerUserInContextBroker(appUser: AppUser) {
+        val userEntity = UserContextBrokerEntity(
+            id = appUser.id.toString(),
+            dids = NGSILDArrayAttribute(value = emptyList()),
+            vcs = NGSILDArrayAttribute(value = emptyList())
+        )
+        storeUserInContextBroker(userEntity)
+    }
+    private fun storeUserInContextBroker(userEntity: UserContextBrokerEntity) {
+        val url = contextBrokerEntitiesURL
+        val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(userEntity)
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
+        applicationUtils.postRequest(url=url, body=requestBody, headers=headers)
+        log.info("User register Stored in Context Broker")
     }
 
 }

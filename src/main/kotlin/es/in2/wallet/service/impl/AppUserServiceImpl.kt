@@ -6,6 +6,7 @@ import es.in2.wallet.repository.AppUserRepository
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.exception.EmailAlreadyExistsException
 import es.in2.wallet.exception.UsernameAlreadyExistsException
+import es.in2.wallet.service.PersonalDataSpaceService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
@@ -16,7 +17,8 @@ import java.util.*
 
 @Service
 class AppUserServiceImpl(
-    private val appUserRepository: AppUserRepository
+    private val appUserRepository: AppUserRepository,
+    private val personalDataSpaceService: PersonalDataSpaceService
 ) : AppUserService {
 
     private val log: Logger = LoggerFactory.getLogger(AppUserServiceImpl::class.java)
@@ -48,6 +50,7 @@ class AppUserServiceImpl(
         )
         log.info(appUser.id.toString())
         saveUser(appUser)
+        personalDataSpaceService.registerUserInContextBroker(appUser)
     }
 
     override fun getUsers(): List<AppUser> {
