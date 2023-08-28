@@ -30,9 +30,8 @@ class DidManagementController(
         ApiResponse(responseCode = "400", description = "Invalid request."),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun createDid(@RequestBody didRequestDTO: DidRequestDTO): String {
+    fun createDid(@RequestBody didRequestDTO: DidRequestDTO){
         walletDidService.createDid(didRequestDTO)
-        return "DID created"
     }
 
     @GetMapping
@@ -49,7 +48,7 @@ class DidManagementController(
         return walletDidService.getDidsByUserId()
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{did}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
         summary = "Delete DID",
@@ -61,9 +60,8 @@ class DidManagementController(
         ApiResponse(responseCode = "400", description = "Invalid request."),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun deleteDid(@RequestBody didResponseDTO: DidResponseDTO): String {
-        walletDidService.deleteDid(didResponseDTO)
-        return "DID deleted"
+    fun deleteDid(@PathVariable("did") did: String){
+        walletDidService.deleteDid(did)
     }
 
 }

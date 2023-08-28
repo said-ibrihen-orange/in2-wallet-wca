@@ -15,7 +15,7 @@ interface PersonalDataSpaceService {
     fun deleteVCs()
     fun saveDid(did: String, didMethod: DidMethods)
     fun getDidsByUserId(): MutableList<DidResponseDTO>
-    fun deleteSelectedDid(didResponseDTO: DidResponseDTO)
+    fun deleteSelectedDid(did: String)
 
 
 

@@ -157,8 +157,9 @@ class PersonalDataSpaceServiceImpl(
     }
 
     override fun deleteVerifiableCredential(id: String) {
-        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JWT", headers = listOf())
-        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JSON", headers = listOf())
+        val userUUID = getUserIdFromContextAuthentication()
+        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JWT&q=userId==$userUUID", headers = listOf())
+        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JSON&q=userId==$userUUID", headers = listOf())
     }
 
     fun getVerifiableCredentialsByUserIdAndFormat(format: String): MutableList<VcContextBrokerEntity> {
@@ -266,22 +267,22 @@ class PersonalDataSpaceServiceImpl(
         return result
     }
 
-    override fun deleteSelectedDid(didResponseDTO: DidResponseDTO){
+    override fun deleteSelectedDid(did: String){
         val userUUID = getUserIdFromContextAuthentication()
-        didExists(didResponseDTO,userUUID)
-        applicationUtils.deleteRequest(url="$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
+        didExists(did,userUUID)
+        applicationUtils.deleteRequest(url="$contextBrokerEntitiesURL/$did?userId.value=$userUUID",
                 headers=listOf())
     }
 
-    private fun didExists(didResponseDTO: DidResponseDTO,userUUID: String): Boolean {
+    private fun didExists(did: String,userUUID: String): Boolean {
         try {
             val response = applicationUtils.getRequest(
-                    url="$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
+                    url="$contextBrokerEntitiesURL/$did?userId.value=$userUUID",
                     headers=listOf())
             return response.isNotEmpty()
 
         } catch (e: NoSuchElementException) {
-            throw DIDNotFoundException("DID not found: ${didResponseDTO.did}")
+            throw DIDNotFoundException("DID not found: $did")
         }
     }
 

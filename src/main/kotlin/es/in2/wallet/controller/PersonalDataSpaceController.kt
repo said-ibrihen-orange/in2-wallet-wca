@@ -26,11 +26,11 @@ class PersonalDataSpaceController(
     }
 
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    fun deleteVerifiableCredential() {
+    fun deleteVerifiableCredential(@PathVariable("id") id: String) {
         log.debug("VerifiableCredentialController.deleteVerifiableCredential()")
-        personalDataSpaceService.deleteVCs()
+        personalDataSpaceService.deleteVerifiableCredential(id)
     }
 
 }

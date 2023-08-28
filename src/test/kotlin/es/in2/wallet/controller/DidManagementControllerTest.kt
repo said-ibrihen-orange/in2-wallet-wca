@@ -40,9 +40,6 @@ class DidManagementControllerTest {
 
     @Test
     fun `createDidKey should return 200 OK`() {
-        val did = DidRequestDTO("key", null)
-        Mockito.`when`(didManagementController.createDid(did)).thenReturn("DID created")
-
         val jsonRequestDTO = """
             {
               "type": "key",
@@ -60,9 +57,6 @@ class DidManagementControllerTest {
 
     @Test
     fun `createDidElsi should return 200 OK`() {
-        val did = DidRequestDTO("elsi", "did:elsi:56789")
-        Mockito.`when`(didManagementController.createDid(did)).thenReturn("DID created")
-
         val jsonRequestDTO = """
             {
               "type": "elsi",
@@ -164,33 +158,22 @@ class DidManagementControllerTest {
 
     @Test
     fun `Delete Did should return 200 OK`() {
-        val did = DidResponseDTO("did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
+        val did = "did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
         val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
-        Mockito.`when`(didManagementController.deleteDid(did)).thenReturn("DID deleted")
-
-        val jsonRequestDTO = """
-            {
-                "did": "did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
-            }
-        """.trimIndent()
 
         mockMvc.perform(
-            MockMvcRequestBuilders.delete("/api/dids")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequestDTO)
+            MockMvcRequestBuilders.delete("/api/dids/{did}", did)
                 .param("userId.value", userUUID)
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
-
-
     }
 
     @Test
     fun `Delete Did should return 500 INTERNAL SERVER ERROR`() {
-        val didResponseDTO = DidResponseDTO("did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
+        val did = "did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
         val errorMessage = "DID not found: did:key:sdsdsdsdsdsdsdsdsdsdsdsd"
         val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
-        Mockito.`when`(didManagementController.deleteDid(didResponseDTO))
+        Mockito.`when`(didManagementController.deleteDid(did))
 
         val jsonRequestDTO = """
             {
@@ -200,7 +183,7 @@ class DidManagementControllerTest {
 
         try {
             mockMvc.perform(
-                MockMvcRequestBuilders.delete("/api/dids")
+                MockMvcRequestBuilders.delete("/api/dids/{did}", did)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(jsonRequestDTO)
                     .param("userId.value", userUUID)
