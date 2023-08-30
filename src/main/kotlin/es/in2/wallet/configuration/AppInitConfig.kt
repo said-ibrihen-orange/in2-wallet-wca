@@ -52,7 +52,7 @@ class AppInitConfig(
     }
 
     @Bean
-    @Profile("!default")
+    @Profile("!default, !dev")
     fun setDefaultUserAdmin(): AppUser {
         log.info("Initializing defaultUserAdmin()")
         val existingUser = appUserRepository.findAppUserByEmail(defaultEmail)
