@@ -55,6 +55,16 @@ object ApplicationUtils {
         logCRUD(request, response)
         checkDeleteResponseStatus(response.statusCode())
     }
+    fun patchRequest(url: String, headers: List<Pair<String, String>>, body: String): String {
+        val client = HttpClient.newBuilder().build()
+        val request = httpRequestBuilder(url=url, headers=headers)
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+                .build()
+        val response = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).get()
+        logCRUD(request, response, body)
+        checkPatchResponseStatus(response.statusCode())
+        return response.body()
+    }
 
     private fun logCRUD(request: HttpRequest, response: HttpResponse<String>, body: String = "") {
         log.debug("********************************************************************************")
@@ -111,6 +121,25 @@ object ApplicationUtils {
         }
     }
 
+    private fun checkPatchResponseStatus(statusCode: Int) {
+        when (statusCode) {
+            200 -> {
+                log.info("PATCH OK")
+            }
+            204 -> {
+                log.info("PATCH OK - No Content")
+            }
+            422 -> {
+                throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Entity update issues")
+            }
+            404 -> {
+                throw NoSuchElementException("Element not found: $statusCode")
+            }
+            else -> {
+                throw FailedCommunicationException("HttpStatus response $statusCode")
+            }
+        }
+    }
 
     fun parseOpenIdConfig(url: String): OpenIdConfig {
         val builder = UriComponentsBuilder.fromUriString(url)

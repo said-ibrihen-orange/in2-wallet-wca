@@ -3,35 +3,23 @@ package es.in2.wallet.service.impl
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
-import es.in2.wallet.exception.InvalidDIDFormatException
-import es.in2.wallet.exception.DIDNotFoundException
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
-import es.in2.wallet.model.AppUser
-import es.in2.wallet.model.DidMethods
-import es.in2.wallet.model.NGSILDArrayAttribute
-import es.in2.wallet.model.UserContextBrokerEntity
-import es.in2.wallet.model.dto.DidResponseDTO
+import es.in2.wallet.model.*
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.*
-import es.in2.wallet.util.ApplicationUtils.postRequest
-import org.json.JSONArray
-import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import java.net.URLEncoder
 import java.util.*
 
 @Service
 class PersonalDataSpaceServiceImpl(
         private val appUserService: AppUserService,
-        private val applicationUtils: ApplicationUtils,
-        @Value("\${app.url.orion_context_broker}") private val contextBrokerEntitiesURL: String
+        private val applicationUtils: ApplicationUtils
 ) : PersonalDataSpaceService {
 
     private val log: Logger = LoggerFactory.getLogger(PersonalDataSpaceServiceImpl::class.java)
@@ -40,22 +28,29 @@ class PersonalDataSpaceServiceImpl(
         val userId = getUserIdFromContextAuthentication()
         val vcJson = extractVcJsonFromVcJwt(vcJwt)
         val vcId = extractVerifiableCredentialIdFromVcJson(vcJson)
-        val userIdAttribute = ContextBrokerAttribute(type = STRING_FORMAT, value = userId)
-        val vcJwtAttribute = ContextBrokerAttribute(type = STRING_FORMAT, value = vcJwt)
-        val vcJsonAttribute = ContextBrokerAttribute(type = JSON_FORMAT, value = vcJson)
-        // Log the start of the saveVC function
-        log.info("Saving Verifiable Credential for user: $userId")
-        // Store the VC as VC_JWT in Context Broker
-        storeVcInContextBroker(
-                VcContextBrokerEntity(id = vcId, type = VC_JWT, userId = userIdAttribute, vcData = vcJwtAttribute)
-        )
-        // Store the VC as VC_JSON in Context Broker
-        storeVcInContextBroker(
-                VcContextBrokerEntity(id = vcId, type = VC_JSON, userId = userIdAttribute, vcData = vcJsonAttribute)
-        )
-        // Log the successful completion of the saveVC function
+        // Get current user entity from Context Broker
+        val userEntity : NGSILDUserEntity = getUserEntityFromContextBroker(userId)
+        // Create new VC entity in the format you want
+        val newVCJwt = VCAttribute(id = vcId, type = VC_JWT, value = vcJwt)
+        val newVCJson = VCAttribute(id = vcId, type = VC_JSON, value = vcJson)
+        // Add the new VC to the list
+        val updatedVCs = userEntity.vcs.value.toMutableList()
+        updatedVCs.add(newVCJwt)
+        updatedVCs.add(newVCJson)
+        val vcs = NGSILDAttribute(value = updatedVCs.toList())
+        val updatedUserEntity = (
+                NGSILDUserEntity(
+                        id = userEntity.id,
+                        userData = userEntity.userData,
+                        vcs = vcs,
+                        dids = userEntity.dids))
+
+        // PATCH updated user entity back to Context Broker
+        updateUserEntityInContextBroker(updatedUserEntity)
+
         log.info("Verifiable Credential saved successfully for user: $userId")
     }
+
 
     private fun getUserIdFromContextAuthentication(): String {
         // Retrieve the user session using context authentication
@@ -95,19 +90,11 @@ class PersonalDataSpaceServiceImpl(
         }
     }
 
-    private fun storeVcInContextBroker(contextBrokerEntity: VcContextBrokerEntity) {
-        val url = contextBrokerEntitiesURL
-        val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(contextBrokerEntity)
-        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
-        postRequest(url=url, headers=headers, body=requestBody)
-        log.info("Verifiable Credential stored in Context Broker")
-    }
-
     override fun getUserVCsInJson(): MutableList<VcBasicDataDTO> {
         val result: MutableList<VcBasicDataDTO> = mutableListOf()
         val contextBrokerVcList = getVerifiableCredentialsByUserIdAndFormat(VC_JSON)
         contextBrokerVcList.forEach {
-            val vcDataValue = it.vcData.value as LinkedHashMap<*, *>
+            val vcDataValue = it.value as LinkedHashMap<*, *>
             val jsonNode = ObjectMapper().convertValue(vcDataValue, JsonNode::class.java)
             val vcTypeList = getVcTypeListFromVcJson(jsonNode)
             result.add(
@@ -128,7 +115,7 @@ class PersonalDataSpaceServiceImpl(
 
         vcListInJsonByUser.forEach {
             // Parse the VC stored into a JsonNode object
-            val vcDataValue = it.vcData.value as LinkedHashMap<*, *>
+            val vcDataValue = it.value as LinkedHashMap<*, *>
             val jsonNode = ObjectMapper().convertValue(vcDataValue, JsonNode::class.java)
 
             // Create a list of the VC IDs
@@ -157,26 +144,35 @@ class PersonalDataSpaceServiceImpl(
     }
 
     override fun deleteVerifiableCredential(id: String) {
-        val userUUID = getUserIdFromContextAuthentication()
-        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JWT&q=userId==$userUUID", headers = listOf())
-        applicationUtils.deleteRequest(url = "$contextBrokerEntitiesURL/$id?type=$VC_JSON&q=userId==$userUUID", headers = listOf())
+        val userId = getUserIdFromContextAuthentication()
+
+        // Get current user entity from Context Broker
+        val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
+
+        // Filter out the VC entities with the given ID
+        val updatedVCs = userEntity.vcs.value.filterNot { it.id == id }
+
+        val updatedUserEntity = NGSILDUserEntity(
+                id = userEntity.id,
+                userData = userEntity.userData,
+                vcs = NGSILDAttribute(value = updatedVCs),
+                dids = userEntity.dids
+        )
+
+        // PATCH updated user entity back to Context Broker
+        updateUserEntityInContextBroker(updatedUserEntity)
+
+        log.info("Verifiable Credential with ID: $id deleted successfully for user: $userId")
     }
 
-    fun getVerifiableCredentialsByUserIdAndFormat(format: String): MutableList<VcContextBrokerEntity> {
-        val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?type=$format&q=userId==$userUUID",
-                headers=listOf())
-        return parseResponseBodyIntoContextBrokerVcMutableList(response)
+    fun getVerifiableCredentialsByUserIdAndFormat(format: String): List<VCAttribute> {
+        val userId = getUserIdFromContextAuthentication()
+        // Get current user entity from Context Broker
+        val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
+        return userEntity.vcs.value.filter { it.type == format }
     }
 
-    private fun parseResponseBodyIntoContextBrokerVcMutableList(response: String): MutableList<VcContextBrokerEntity> {
-        val result: MutableList<VcContextBrokerEntity> = mutableListOf()
-        JSONArray(response).forEach {
-            val contextBrokerVcEntityDTO = ObjectMapper().readValue(it.toString(), VcContextBrokerEntity::class.java)
-            result.add(contextBrokerVcEntityDTO)
-        }
-        return result
-    }
+
 
     private fun getVcTypeListFromVcJson(jsonNode: JsonNode): MutableList<String> {
         val result = mutableListOf<String>()
@@ -184,127 +180,125 @@ class PersonalDataSpaceServiceImpl(
         return result
     }
 
-    override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): String {
-        // Get user session
-        val userUUID = getUserIdFromContextAuthentication()
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL/$id?type=$format&q=userId==$userUUID",
-                headers=listOf())
-        val objectMapper = ObjectMapper()
-        return if (format == VC_JWT) {
-            objectMapper.readValue(response, VcContextBrokerEntity::class.java).vcData.value.toString()
-        } else {
-            objectMapper.writeValueAsString(
-                    objectMapper.readValue(
-                            response,
-                            VcContextBrokerEntity::class.java
-                    ).vcData.value
-            )
+    override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): VCAttribute? {
+        val userId = getUserIdFromContextAuthentication()
+        // Get current user entity from Context Broker
+        val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
+        return userEntity.vcs.value.firstOrNull { vc ->
+            vc.id == id && vc.type == format
         }
     }
 
     override fun deleteVCs() {
-        val userUUID = getUserIdFromContextAuthentication()
-        val typePattern = URLEncoder.encode("^vc", "UTF-8")
-        val response = applicationUtils.getRequest(url="$contextBrokerEntitiesURL?typePattern=$typePattern&q=userId==$userUUID", headers=listOf())
-        val vcs = parseResponseBodyIntoContextBrokerVcMutableList(response)
-        val vcIdList = getDistinctIds(vcs)
-        // get all VCs from user
-        vcIdList.forEach {
-            // delete VCs by Id
-            deleteVerifiableCredential(it)
-        }
-    }
-
-    @Throws(InvalidDIDFormatException::class)
-    override fun saveDid(did: String, didMethod: DidMethods) {
+        // Fetch the userId from the authentication context
         val userId = getUserIdFromContextAuthentication()
-        val userIdAttribute = ContextBrokerAttribute(type = STRING_FORMAT, value = userId)
-        // Log the start of saveDID func
-        log.debug("Saving the new DID $did for user: $userId")
 
-        if (didMethod == DidMethods.DID_ELSI && !did.startsWith("did:elsi:")) {
+        // Fetch the current user entity from the Context Broker
+        val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
 
-            throw InvalidDIDFormatException("DID does not match the pattern")
-
-        }
-
-        storeDIDInContextBroker(
-                DidContextBrokerEntity(id = did, type = didMethod.stringValue, userId = userIdAttribute)
+        // Clear all the verifiable credentials
+        val emptyVCs = NGSILDAttribute(value = listOf<VCAttribute>())
+        val updatedUserEntity = NGSILDUserEntity(
+                id = userEntity.id,
+                userData = userEntity.userData,
+                vcs = emptyVCs,
+                dids = userEntity.dids
         )
 
-        log.info("DID Stored Successfully")
+        // Update the user entity back to the Context Broker without VCs
+        updateUserEntityInContextBroker(updatedUserEntity)
+
+        log.info("All Verifiable Credentials deleted successfully for user: $userId")
+    }
+
+    override fun saveDid(did: String, didMethod: DidMethods) {
+        // Fetch the userId from the authentication context
+        val userId = getUserIdFromContextAuthentication()
+
+        // Fetch the current user entity from the Context Broker
+        val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
+
+        // Create new DidAttribute for the provided DID
+        val newDid = DidAttribute(type = didMethod, value = did)
+
+        // Add the new DID to the list of existing DIDs
+        val updatedDids = userEntity.dids.value.toMutableList()
+        updatedDids.add(newDid)
+
+        val dids = NGSILDAttribute(value = updatedDids.toList())
+        val updatedUserEntity = NGSILDUserEntity(
+                id = userEntity.id,
+                userData = userEntity.userData,
+                vcs = userEntity.vcs,
+                dids = dids
+        )
+
+        // Update the user entity back to the Context Broker with the new DID
+        updateUserEntityInContextBroker(updatedUserEntity)
+
+        log.info("DID saved successfully for user: $userId")
+
     }
 
 
 
+    override fun getDidsByUserId(): List<String> {
+        // Fetch the userId from the authentication context
+        val userId = getUserIdFromContextAuthentication()
 
-    private fun storeDIDInContextBroker(didContextBrokerEntity: DidContextBrokerEntity) {
-        val url = contextBrokerEntitiesURL
-        val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(didContextBrokerEntity)
-        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
-        applicationUtils.postRequest(url=url, body=requestBody, headers=headers)
-        log.info("DID Stored in Context Broker")
-    }
+        // Fetch the current user entity from the Context Broker
+        val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
 
-    override fun getDidsByUserId(): MutableList<DidResponseDTO> {
-        val userUUID = getUserIdFromContextAuthentication()
-        // We need to encode ^ character to avoid interpretation issues in the HTTP request
-        val typePattern = URLEncoder.encode("^did", "UTF-8")
-        // get all DIDs from user
-        val response = applicationUtils.getRequest(
-                url="$contextBrokerEntitiesURL/?typePattern=$typePattern&q=userId==$userUUID", headers=listOf())
-        return parseResponseBodyIntoContextBrokerDidMutableList(response)
-
-    }
-    private fun parseResponseBodyIntoContextBrokerDidMutableList(response: String): MutableList<DidResponseDTO> {
-        val result: MutableList<DidResponseDTO> = mutableListOf()
-        JSONArray(response).forEach {
-            val jsonObject = JSONObject(it.toString())
-            val did = jsonObject.getString("id")
-            val didResponseDTO = DidResponseDTO(did)
-            result.add(didResponseDTO)
-        }
-        return result
-    }
-
-    override fun deleteSelectedDid(did: String){
-        val userUUID = getUserIdFromContextAuthentication()
-        didExists(did,userUUID)
-        applicationUtils.deleteRequest(url="$contextBrokerEntitiesURL/$did?userId.value=$userUUID",
-                headers=listOf())
-    }
-
-    private fun didExists(did: String,userUUID: String): Boolean {
-        try {
-            val response = applicationUtils.getRequest(
-                    url="$contextBrokerEntitiesURL/$did?userId.value=$userUUID",
-                    headers=listOf())
-            return response.isNotEmpty()
-
-        } catch (e: NoSuchElementException) {
-            throw DIDNotFoundException("DID not found: $did")
-        }
+        // Extract the DIDs from the user entity and return them as a list of strings
+        return userEntity.dids.value.map { it.value }
     }
 
 
-    fun getDistinctIds(vcs: MutableList<VcContextBrokerEntity>): List<String> {
-        return vcs.map { it.id }.distinct()
+    override fun deleteSelectedDid(did: String) {
+        // Fetch the userId from the authentication context
+        val userId = getUserIdFromContextAuthentication()
+
+        // Fetch the current user entity from the Context Broker
+        val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
+
+        // Remove the specific DID from the user entity's DIDs list
+        val updatedDids = userEntity.dids.value.filterNot { it.value == did }
+
+        // Create the updated DID attribute
+        val dids = NGSILDAttribute(value = updatedDids)
+
+        // Construct the updated user entity
+        val updatedUserEntity = NGSILDUserEntity(
+                id = userEntity.id,
+                userData = userEntity.userData,
+                vcs = userEntity.vcs,
+                dids = dids
+        )
+
+        // Update the user entity in the Context Broker
+        updateUserEntityInContextBroker(updatedUserEntity)
+
+        log.info("Deleted DID: $did for user: $userId")
     }
 
     override fun registerUserInContextBroker(appUser: AppUser) {
-        val userEntity = UserContextBrokerEntity(
-            id = appUser.id.toString(),
-            dids = NGSILDArrayAttribute(value = emptyList()),
-            vcs = NGSILDArrayAttribute(value = emptyList())
+        val userEntity = NGSILDUserEntity(
+                id = "urn:entities:userId:"+appUser.id.toString(),
+                userData = NGSILDAttribute(value = UserAttribute(username = appUser.username, email = appUser.email)),
+                dids = NGSILDAttribute(value = emptyList()),
+                vcs = NGSILDAttribute(value = emptyList())
         )
         storeUserInContextBroker(userEntity)
     }
-    private fun storeUserInContextBroker(userEntity: UserContextBrokerEntity) {
-        val url = contextBrokerEntitiesURL
-        val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(userEntity)
-        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
-        applicationUtils.postRequest(url=url, body=requestBody, headers=headers)
-        log.info("User register Stored in Context Broker")
+    private fun storeUserInContextBroker(userEntity: NGSILDUserEntity) {
+        // TODO implement the orion-ld interface
     }
 
+    private fun getUserEntityFromContextBroker(userId: String): NGSILDUserEntity {
+        // TODO implement the orion-ld interface
+    }
+
+    private fun updateUserEntityInContextBroker(userEntity: NGSILDUserEntity) {
+        // TODO implement the orion-ld interface
+    }
 }
