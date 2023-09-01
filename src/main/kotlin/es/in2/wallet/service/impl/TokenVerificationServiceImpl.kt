@@ -56,35 +56,43 @@ class TokenVerificationServiceImpl : TokenVerificationService {
         val issuerDID: String = payload.toJSONObject()[ISSUER_TOKEN_PROPERTY_NAME].toString()
         log.info("issuer_did = $issuerDID")
 
-        try {
-            log.info("Resolving DID using Universal Resolver")
-            val url = "$UNIVERSAL_RESOLVER_URL/$issuerDID"
-            val request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .headers("Content-Type", "application/json")
-                .GET()
-                .build()
-            val response = HttpClient.newBuilder()
-                .build()
-                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            if (response.get().statusCode() != 200) {
-                log.error("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
-                throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
-            }
-            val result = response.get().body()
-            if (result.isNotBlank()) {
-                log.debug("didDocument = $result")
-                return ObjectMapper().readTree(result)["didDocument"]
-            } else {
-                log.error("The DID $issuerDID is not in the Trusted Participant List")
-                throw DidVerificationException("The DID $issuerDID is not in the Trusted Participant List")
-            }
-        } catch (e: Exception) {
-            log.info("Resolving DID using SSI Kit")
-            val didDocument = DidService.resolve(issuerDID)
-            log.debug("didDocument = ${didDocument.encodePretty()}")
-            return ObjectMapper().readTree(didDocument.encodePretty())
-        }
+        log.info("Resolving DID using SSI Kit")
+        val didDocument = DidService.resolve(issuerDID)
+        log.debug("didDocument = ${didDocument.encodePretty()}")
+        return ObjectMapper().readTree(didDocument.encodePretty())
+
+        /*
+            Until we can use our Universal Resolver we do not need to use this code:
+                try {
+                    log.info("Resolving DID using Universal Resolver")
+                    val url = "$UNIVERSAL_RESOLVER_URL/$issuerDID"
+                    val request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .headers("Content-Type", "application/json")
+                        .GET()
+                        .build()
+                    val response = HttpClient.newBuilder()
+                        .build()
+                        .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    if (response.get().statusCode() != 200) {
+                        log.error("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+                        throw Exception("Request cannot be completed. HttpStatus response ${response.get().statusCode()}")
+                    }
+                    val result = response.get().body()
+                    if (result.isNotBlank()) {
+                        log.debug("didDocument = $result")
+                        return ObjectMapper().readTree(result)["didDocument"]
+                    } else {
+                        log.error("The DID $issuerDID is not in the Trusted Participant List")
+                        throw DidVerificationException("The DID $issuerDID is not in the Trusted Participant List")
+                    }
+                } catch (e: Exception) {
+                    log.info("Resolving DID using SSI Kit")
+                    val didDocument = DidService.resolve(issuerDID)
+                    log.debug("didDocument = ${didDocument.encodePretty()}")
+                    return ObjectMapper().readTree(didDocument.encodePretty())
+                }
+        */
 
     }
 
