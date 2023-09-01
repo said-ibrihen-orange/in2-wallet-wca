@@ -1,7 +1,6 @@
 package es.in2.wallet.controller
 
 import es.in2.wallet.model.dto.DidRequestDTO
-import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.service.WalletDidService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -44,7 +43,7 @@ class DidManagementController(
         ApiResponse(responseCode = "200", description = "List of DIDs retrieved successfully."),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun getDidList() : List<DidResponseDTO>{
+    fun getDidList() : List<String>{
         return walletDidService.getDidsByUserId()
     }
 

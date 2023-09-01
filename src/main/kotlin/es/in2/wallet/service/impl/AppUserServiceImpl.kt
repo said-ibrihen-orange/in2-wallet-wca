@@ -17,8 +17,7 @@ import java.util.*
 
 @Service
 class AppUserServiceImpl(
-    private val appUserRepository: AppUserRepository,
-    private val personalDataSpaceService: PersonalDataSpaceService
+    private val appUserRepository: AppUserRepository
 ) : AppUserService {
 
     private val log: Logger = LoggerFactory.getLogger(AppUserServiceImpl::class.java)
@@ -50,7 +49,6 @@ class AppUserServiceImpl(
         )
         log.info(appUser.id.toString())
         saveUser(appUser)
-        personalDataSpaceService.registerUserInContextBroker(appUser)
     }
 
     override fun getUsers(): List<AppUser> {

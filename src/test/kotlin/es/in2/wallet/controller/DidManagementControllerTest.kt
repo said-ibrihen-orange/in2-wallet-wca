@@ -1,6 +1,5 @@
 import es.in2.wallet.controller.DidManagementController
 import es.in2.wallet.model.dto.DidRequestDTO
-import es.in2.wallet.model.dto.DidResponseDTO
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.service.WalletDidService
 import org.junit.jupiter.api.BeforeEach

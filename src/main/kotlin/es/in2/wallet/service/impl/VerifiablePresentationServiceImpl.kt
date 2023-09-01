@@ -32,7 +32,7 @@ class VerifiablePresentationServiceImpl(
             verifiableCredentialsList.add(
                 PresentableCredential(
                     verifiableCredential = VerifiableCredential.fromString(
-                        personalDataSpaceService.getVerifiableCredentialByIdAndFormat(it.id, VC_JWT)),
+                        personalDataSpaceService.getVerifiableCredentialByIdAndFormat(it.id, VC_JWT).toString()),
                     discloseAll = false
             ))
         }
