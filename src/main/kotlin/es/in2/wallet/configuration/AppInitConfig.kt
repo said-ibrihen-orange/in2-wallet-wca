@@ -1,7 +1,8 @@
 package es.in2.wallet.configuration
 
 import es.in2.wallet.model.AppUser
-import es.in2.wallet.repository.AppUserRepository
+import es.in2.wallet.model.dto.AppUserRequestDTO
+import es.in2.wallet.service.AppUserService
 import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.SERVICE_MATRIX
 import id.walt.crypto.KeyAlgorithm
@@ -22,13 +23,12 @@ import java.util.*
 
 @Configuration
 class AppInitConfig(
-    private val appUserRepository: AppUserRepository,
+    private val appUserService: AppUserService,
     private val personalDataSpaceService: PersonalDataSpaceService,
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(AppInitConfig::class.java)
 
-    private val defaultUUID = "3c56da39-d9c7-40e9-8555-d77400a26211"
     private val defaultUsername = "in2admin"
     private val defaultEmail = "in2admin@example.com"
     private val defaultCredential = "in2pass"
@@ -55,27 +55,26 @@ class AppInitConfig(
     @Profile("!default")
     fun setDefaultUserAdmin(): AppUser {
         log.info("Initializing defaultUserAdmin()")
-        val existingUser = appUserRepository.findAppUserByEmail(defaultEmail)
+        val existingUser = appUserService.getUserByEmail(defaultEmail)
         return if (existingUser.isPresent) {
             log.info("Default admin user already exists. Retrieving user details.")
             setSession()
-            //setContextBrokerDataSet(personalDataSpaceService)
+            setContextBrokerDataSetForExistingUser(personalDataSpaceService)
             existingUser.get()
         } else {
             log.info("Default admin user does not exist. Creating a new user.")
-            val adminUser = setAppUser()
-            appUserRepository.save(adminUser)
+            val adminUser = setAppUserRequestDTO()
+            appUserService.registerUser(adminUser)
             setSession()
-            //personalDataSpaceService.registerUserInContextBroker(adminUser)
-            //setContextBrokerDataSet(personalDataSpaceService)
-            adminUser
+            val user =  appUserService.getUserByEmail(adminUser.email)
+            setContextBrokerDataSetForNewUser(personalDataSpaceService,user)
+            user.get()
         }
     }
 
-    private fun setAppUser(): AppUser {
+    private fun setAppUserRequestDTO(): AppUserRequestDTO {
         log.debug("Creating default AppUser")
-        val appUser = AppUser(
-            id = UUID.fromString(defaultUUID),
+        val appUser = AppUserRequestDTO(
             username = defaultUsername,
             email = defaultEmail,
             password = BCryptPasswordEncoder().encode(defaultCredential)
@@ -93,18 +92,19 @@ class AppInitConfig(
         log.debug("Session set for default user: $defaultUsername")
     }
 
-    private fun setContextBrokerDataSet(personalDataSpaceService: PersonalDataSpaceService) {
-        log.debug("Setting context broker data set")
-        val response = personalDataSpaceService.getUserVCsInJson()
-        if (response.isEmpty()) {
-            log.debug("No verifiable credentials found. Saving default VC: $defaultVc")
-            personalDataSpaceService.saveVC(defaultVc)
-        } else {
-            log.debug("Verifiable credentials found. Deleting existing VC with ID: $defaultVcId and saving default VC: $defaultVc")
-            personalDataSpaceService.deleteVerifiableCredential(defaultVcId)
-            personalDataSpaceService.saveVC(defaultVc)
-        }
+    private fun setContextBrokerDataSetForNewUser(personalDataSpaceService: PersonalDataSpaceService,appUser : Optional<AppUser>) {
+        personalDataSpaceService.registerUserInContextBroker(appUser)
+        log.debug("Setting context broker data set for the new user")
+        log.debug("Saving default VC: $defaultVc")
+        personalDataSpaceService.saveVC(defaultVc)
         log.debug("Context broker data set updated")
     }
+    private fun setContextBrokerDataSetForExistingUser(personalDataSpaceService: PersonalDataSpaceService) {
+        log.debug("Deleting existing VC with ID: $defaultVcId and saving default VC: $defaultVc")
+        personalDataSpaceService.deleteVerifiableCredential(defaultVcId)
+        personalDataSpaceService.saveVC(defaultVc)
+        log.debug("Context broker data set updated")
+    }
+
 
 }
