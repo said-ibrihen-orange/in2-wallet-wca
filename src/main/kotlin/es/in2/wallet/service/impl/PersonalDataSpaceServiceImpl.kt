@@ -11,6 +11,7 @@ import es.in2.wallet.service.PersonalDataSpaceService
 import es.in2.wallet.util.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -19,7 +20,8 @@ import java.util.*
 @Service
 class PersonalDataSpaceServiceImpl(
         private val appUserService: AppUserService,
-        private val applicationUtils: ApplicationUtils
+        private val applicationUtils: ApplicationUtils,
+        @Value("\${app.url.orion_context_broker}") private val contextBrokerEntitiesURL: String
 ) : PersonalDataSpaceService {
 
     private val log: Logger = LoggerFactory.getLogger(PersonalDataSpaceServiceImpl::class.java)
@@ -291,14 +293,28 @@ class PersonalDataSpaceServiceImpl(
         storeUserInContextBroker(userEntity)
     }
     private fun storeUserInContextBroker(userEntity: NGSILDUserEntity) {
-        // TODO implement the orion-ld interface
+        val url = contextBrokerEntitiesURL
+        val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(userEntity)
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
+        applicationUtils.postRequest(url=url, headers=headers, body=requestBody)
     }
 
     private fun getUserEntityFromContextBroker(userId: String): NGSILDUserEntity {
-        // TODO implement the orion-ld interface
+        val url = "$contextBrokerEntitiesURL/urn:entities:userId:$userId"
+        val response = applicationUtils.getRequest(url=url, headers= listOf())
+        val objectMapper = ObjectMapper()
+        val valueTypeRef = objectMapper.typeFactory.constructType(NGSILDUserEntity::class.java)
+        val userEntity: NGSILDUserEntity = objectMapper.readValue(response, valueTypeRef)
+        log.debug("User Entity: {}", userEntity)
+        return userEntity
     }
 
+
     private fun updateUserEntityInContextBroker(userEntity: NGSILDUserEntity) {
-        // TODO implement the orion-ld interface
+        val userId = getUserIdFromContextAuthentication()
+        val url = "$contextBrokerEntitiesURL/urn:entities:userId:$userId/attrs"
+        val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(userEntity)
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
+        applicationUtils.patchRequest(url=url, headers=headers, body=requestBody)
     }
 }
