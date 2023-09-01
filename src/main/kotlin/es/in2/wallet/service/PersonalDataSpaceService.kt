@@ -4,6 +4,7 @@ import es.in2.wallet.model.AppUser
 import es.in2.wallet.model.DidMethods
 import es.in2.wallet.model.VCAttribute
 import es.in2.wallet.model.dto.VcBasicDataDTO
+import java.util.*
 
 
 interface PersonalDataSpaceService {
@@ -17,7 +18,7 @@ interface PersonalDataSpaceService {
     fun saveDid(did: String, didMethod: DidMethods)
     fun getDidsByUserId(): List<String>
     fun deleteSelectedDid(did: String)
-    fun registerUserInContextBroker(appUser: AppUser)
+    fun registerUserInContextBroker(appUser: Optional<AppUser>)
 
 
 

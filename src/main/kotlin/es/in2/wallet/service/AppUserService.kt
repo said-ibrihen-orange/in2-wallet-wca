@@ -6,7 +6,7 @@ import java.util.*
 
 interface AppUserService {
     fun getUserWithContextAuthentication(): AppUser
-    fun registerUser(appUserRequestDTO: AppUserRequestDTO)
+    fun registerUser(appUserRequestDTO: AppUserRequestDTO): Optional<AppUser>
     fun getUsers(): List<AppUser>
     fun getUserById(uuid: UUID): Optional<AppUser>
     fun getUserByUsername(username: String): Optional<AppUser>

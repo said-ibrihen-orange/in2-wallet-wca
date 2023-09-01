@@ -3,6 +3,7 @@ package es.in2.wallet.controller
 import es.in2.wallet.model.AppUser
 import es.in2.wallet.model.dto.AppUserRequestDTO
 import es.in2.wallet.service.AppUserService
+import es.in2.wallet.service.PersonalDataSpaceService
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.websocket.server.PathParam
 import org.slf4j.Logger
@@ -15,7 +16,8 @@ import java.util.*
 @RestController
 @RequestMapping("/api/users")
 class AppUserController(
-    private val appUserService: AppUserService
+    private val appUserService: AppUserService,
+    private val personalDataSpaceService: PersonalDataSpaceService
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(AppUserController::class.java)
@@ -24,7 +26,8 @@ class AppUserController(
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(@RequestBody appUserRequestDTO: AppUserRequestDTO) {
         log.debug("AppUserController.registerUser()")
-        appUserService.registerUser(appUserRequestDTO)
+        val user = appUserService.registerUser(appUserRequestDTO)
+        personalDataSpaceService.registerUserInContextBroker(user)
     }
 
     @GetMapping

@@ -1,5 +1,6 @@
 package es.in2.wallet.service.impl
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
@@ -283,14 +284,20 @@ class PersonalDataSpaceServiceImpl(
         log.info("Deleted DID: $did for user: $userId")
     }
 
-    override fun registerUserInContextBroker(appUser: AppUser) {
-        val userEntity = NGSILDUserEntity(
-                id = "urn:entities:userId:"+appUser.id.toString(),
-                userData = NGSILDAttribute(value = UserAttribute(username = appUser.username, email = appUser.email)),
+    override fun registerUserInContextBroker(appUser: Optional<AppUser>) {
+        if (appUser.isPresent) {
+            val appUserPresent = appUser.get()
+
+            val userEntity = NGSILDUserEntity(
+                id = "urn:entities:userId:" + appUserPresent.id.toString(),
+                userData = NGSILDAttribute(value = UserAttribute(username = appUserPresent.username, email = appUserPresent.email)),
                 dids = NGSILDAttribute(value = emptyList()),
                 vcs = NGSILDAttribute(value = emptyList())
-        )
-        storeUserInContextBroker(userEntity)
+            )
+            storeUserInContextBroker(userEntity)
+        } else {
+            log.error("empty user")
+        }
     }
     private fun storeUserInContextBroker(userEntity: NGSILDUserEntity) {
         val url = contextBrokerEntitiesURL
@@ -302,7 +309,10 @@ class PersonalDataSpaceServiceImpl(
     private fun getUserEntityFromContextBroker(userId: String): NGSILDUserEntity {
         val url = "$contextBrokerEntitiesURL/urn:entities:userId:$userId"
         val response = applicationUtils.getRequest(url=url, headers= listOf())
-        val objectMapper = ObjectMapper()
+        val objectMapper = ObjectMapper().apply {
+            //  Enable deserialization of a single object as a list
+            enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+        }
         val valueTypeRef = objectMapper.typeFactory.constructType(NGSILDUserEntity::class.java)
         val userEntity: NGSILDUserEntity = objectMapper.readValue(response, valueTypeRef)
         log.debug("User Entity: {}", userEntity)
