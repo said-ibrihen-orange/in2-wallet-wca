@@ -123,25 +123,21 @@ class DidManagementControllerTest {
         }
     }
 
-    /*@Test
+    @Test
     fun `getDidList should return 200 OK`() {
 
         val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
 
         val responseJsonArray = """
         [
-            {
-                "did": "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"
-            },
-            {
-                "did": "did:elsi:sasas"
-            }
+          "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ",
+          "did:elsi:sasas"
         ]
     """.trimIndent()
 
         val expectedDidResponseDTOs = mutableListOf(
-            DidResponseDTO("did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ"),
-            DidResponseDTO("did:elsi:sasas")
+           "did:key:z6MkvP5DbcyqCd8edocU8vU9yEpbnsSopnxCD7bybTPD95gZ",
+            "did:elsi:sasas"
         )
 
         Mockito.`when`(didManagementController.getDidList()).thenReturn(expectedDidResponseDTOs)
@@ -153,7 +149,7 @@ class DidManagementControllerTest {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.content().json(responseJsonArray))
-    }*/
+    }
 
     @Test
     fun `Delete Did should return 200 OK`() {

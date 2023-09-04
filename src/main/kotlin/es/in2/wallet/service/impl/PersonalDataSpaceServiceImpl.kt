@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.NoSuchVerifiableCredentialException
+import es.in2.wallet.exception.UserNotFoundException
 import es.in2.wallet.model.*
 import es.in2.wallet.model.dto.VcBasicDataDTO
 import es.in2.wallet.service.AppUserService
@@ -33,7 +34,7 @@ class PersonalDataSpaceServiceImpl(
         val vcId = extractVerifiableCredentialIdFromVcJson(vcJson)
         // Get current user entity from Context Broker
         val userEntity : NGSILDUserEntity = getUserEntityFromContextBroker(userId)
-        // Create new VC entity in the format you want
+        // Create new VC entity in both format
         val newVCJwt = VCAttribute(id = vcId, type = VC_JWT, value = vcJwt)
         val newVCJson = VCAttribute(id = vcId, type = VC_JSON, value = vcJson)
         // Add the new VC to the list
@@ -222,7 +223,7 @@ class PersonalDataSpaceServiceImpl(
         val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
 
         // Create new DidAttribute for the provided DID
-        val newDid = DidAttribute(type = didMethod, value = did)
+        val newDid = DidAttribute(type = didMethod.stringValue, value = did)
 
         // Add the new DID to the list of existing DIDs
         val updatedDids = userEntity.dids.value.toMutableList()
@@ -296,7 +297,7 @@ class PersonalDataSpaceServiceImpl(
             )
             storeUserInContextBroker(userEntity)
         } else {
-            log.error("empty user")
+            throw UserNotFoundException("User not found")
         }
     }
     private fun storeUserInContextBroker(userEntity: NGSILDUserEntity) {

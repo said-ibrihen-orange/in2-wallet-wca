@@ -19,7 +19,7 @@ class NGSILDAttribute<T>(
 )
 
 class DidAttribute(
-        @JsonProperty("type") val type: DidMethods,
+        @JsonProperty("type") val type:String,
         @JsonProperty("value") val value: String
 )
 
