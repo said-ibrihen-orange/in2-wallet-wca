@@ -2,6 +2,7 @@ package es.in2.wallet.controller
 
 import es.in2.wallet.model.AppUser
 import es.in2.wallet.service.AppUserService
+import es.in2.wallet.service.PersonalDataSpaceService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -27,6 +28,8 @@ class AppUserControllerTest {
 
     @Mock
     private lateinit var appUserService: AppUserService
+    @Mock
+    private lateinit var personalDataSpaceService: PersonalDataSpaceService
 
     @InjectMocks
     private lateinit var appUserController: AppUserController
@@ -44,16 +47,16 @@ class AppUserControllerTest {
     private val uuid = UUID.randomUUID()
     private val uuid2 = UUID.randomUUID()
     private val appUser = AppUser(
-        id = uuid,
-        username = "jdoe",
-        email = "jdoe@example.com",
-        password = BCryptPasswordEncoder().encode("1234")
+            id = uuid,
+            username = "jdoe",
+            email = "jdoe@example.com",
+            password = BCryptPasswordEncoder().encode("1234")
     )
     private val appUser2 = AppUser(
-        id = uuid2,
-        username = "janeDoe",
-        email = "janedoe@example.com",
-        password = BCryptPasswordEncoder().encode("1234")
+            id = uuid2,
+            username = "janeDoe",
+            email = "janedoe@example.com",
+            password = BCryptPasswordEncoder().encode("1234")
     )
 
     // @Post /api/users
@@ -61,9 +64,9 @@ class AppUserControllerTest {
     @Test
     fun testRegisterUser() {
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"username\":\"jdoe\",\"email\":\"jdoe@example.com\",\"password\":\"1234\"}")
+                MockMvcRequestBuilders.post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"jdoe\",\"email\":\"jdoe@example.com\",\"password\":\"1234\"}")
         ).andExpect(status().isCreated)
     }
 
@@ -76,12 +79,12 @@ class AppUserControllerTest {
         given(appUserService.getUsers()).willReturn(users)
 
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/users")
-                .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.get("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$[0].username").value("jdoe"))
-            .andExpect(jsonPath("$[1].username").value("janeDoe"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$[0].username").value("jdoe"))
+                .andExpect(jsonPath("$[1].username").value("janeDoe"))
     }
 
     // @Get /api/users/{uuid}
@@ -90,10 +93,10 @@ class AppUserControllerTest {
     fun testGetUserByUUID() {
         given(appUserService.getUserById(uuid)).willReturn(Optional.of(appUser))
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/uuid?uuid=$uuid"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(uuid.toString()))
-            .andExpect(jsonPath("$.username").value("jdoe"))
-            .andExpect(jsonPath("$.email").value("jdoe@example.com"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.id").value(uuid.toString()))
+                .andExpect(jsonPath("$.username").value("jdoe"))
+                .andExpect(jsonPath("$.email").value("jdoe@example.com"))
     }
 
     // @Get /api/users/{uuid}
@@ -102,10 +105,10 @@ class AppUserControllerTest {
     fun testGetUserByUsername() {
         given(appUserService.getUserByUsername(appUser.username)).willReturn(Optional.of(appUser))
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/username?username=${appUser.username}"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(uuid.toString()))
-            .andExpect(jsonPath("$.username").value("jdoe"))
-            .andExpect(jsonPath("$.email").value("jdoe@example.com"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.id").value(uuid.toString()))
+                .andExpect(jsonPath("$.username").value("jdoe"))
+                .andExpect(jsonPath("$.email").value("jdoe@example.com"))
     }
 
 }

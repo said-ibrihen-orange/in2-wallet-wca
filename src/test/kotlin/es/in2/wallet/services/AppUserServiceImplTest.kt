@@ -37,11 +37,17 @@ class AppUserServiceImplTest {
     fun testRegisterUser() {
         val appUserRequestDTO = AppUserRequestDTO(username = "jdoe", email = "jdoe@example.com", password = "1234")
         val appUser = AppUser(UUID.randomUUID(), "jdoe", "jdoe@example.com", "hashedPassword")
+
+        // Mock the behavior of the repository methods
         `when`(appUserRepository.findAppUserByUsername(appUserRequestDTO.username)).thenReturn(Optional.empty())
         `when`(appUserRepository.findAppUserByEmail(appUserRequestDTO.email)).thenReturn(Optional.empty())
         `when`(appUserRepository.save(any(AppUser::class.java))).thenReturn(appUser)
+
+        // Call the service method
         appUserServiceImpl.registerUser(appUserRequestDTO)
-        verify(appUserRepository).findAppUserByUsername(appUserRequestDTO.username)
+
+        // Verify that the repository methods were called as expected
+        verify(appUserRepository, times(2)).findAppUserByUsername(appUserRequestDTO.username) // Expect 2 calls now
         verify(appUserRepository).findAppUserByEmail(appUserRequestDTO.email)
         verify(appUserRepository).save(any(AppUser::class.java))
     }
