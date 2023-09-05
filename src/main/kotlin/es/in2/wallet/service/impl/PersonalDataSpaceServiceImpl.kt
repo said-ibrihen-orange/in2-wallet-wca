@@ -32,7 +32,7 @@ class PersonalDataSpaceServiceImpl(
         val userId = getUserIdFromContextAuthentication()
         val vcJson = extractVcJsonFromVcJwt(vcJwt)
         val vcId = extractVerifiableCredentialIdFromVcJson(vcJson)
-        // Get current user entity from Context Broker
+        // Fetch current user entity from Context Broker
         val userEntity : NGSILDUserEntity = getUserEntityFromContextBroker(userId)
         // Create new VC entity in both format
         val newVCJwt = VCAttribute(id = vcId, type = VC_JWT, value = vcJwt)
@@ -150,7 +150,7 @@ class PersonalDataSpaceServiceImpl(
     override fun deleteVerifiableCredential(id: String) {
         val userId = getUserIdFromContextAuthentication()
 
-        // Get current user entity from Context Broker
+        // Fetch  current user entity from Context Broker
         val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
 
         // Filter out the VC entities with the given ID
@@ -171,7 +171,7 @@ class PersonalDataSpaceServiceImpl(
 
     fun getVerifiableCredentialsByUserIdAndFormat(format: String): List<VCAttribute> {
         val userId = getUserIdFromContextAuthentication()
-        // Get current user entity from Context Broker
+        // Fetch current user entity from Context Broker
         val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
         return userEntity.vcs.value.filter { it.type == format }
     }
@@ -186,7 +186,7 @@ class PersonalDataSpaceServiceImpl(
 
     override fun getVerifiableCredentialByIdAndFormat(id: String, format: String): VCAttribute? {
         val userId = getUserIdFromContextAuthentication()
-        // Get current user entity from Context Broker
+        // Fetch  current user entity from Context Broker
         val userEntity: NGSILDUserEntity = getUserEntityFromContextBroker(userId)
         return userEntity.vcs.value.firstOrNull { vc ->
             vc.id == id && vc.type == format
@@ -288,7 +288,6 @@ class PersonalDataSpaceServiceImpl(
     override fun registerUserInContextBroker(appUser: Optional<AppUser>) {
         if (appUser.isPresent) {
             val appUserPresent = appUser.get()
-
             val userEntity = NGSILDUserEntity(
                 id = "urn:entities:userId:" + appUserPresent.id.toString(),
                 userData = NGSILDAttribute(value = UserAttribute(username = appUserPresent.username, email = appUserPresent.email)),
@@ -296,6 +295,7 @@ class PersonalDataSpaceServiceImpl(
                 vcs = NGSILDAttribute(value = emptyList())
             )
             storeUserInContextBroker(userEntity)
+            log.debug("entity saved")
         } else {
             throw UserNotFoundException("User not found")
         }
@@ -303,6 +303,7 @@ class PersonalDataSpaceServiceImpl(
     private fun storeUserInContextBroker(userEntity: NGSILDUserEntity) {
         val url = contextBrokerEntitiesURL
         val requestBody = ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(userEntity)
+        log.info(requestBody)
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_APPLICATION_JSON)
         applicationUtils.postRequest(url=url, headers=headers, body=requestBody)
     }

@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.util.*
 
 @Configuration
@@ -65,21 +64,22 @@ class AppInitConfig(
             log.info("Default admin user does not exist. Creating a new user.")
             val adminUser = setAppUserRequestDTO()
             appUserService.registerUser(adminUser)
+            log.info("user registered.")
             setSession()
             val user =  appUserService.getUserByEmail(adminUser.email)
+            log.info("User $user.")
             setContextBrokerDataSetForNewUser(personalDataSpaceService,user)
             user.get()
         }
     }
 
     private fun setAppUserRequestDTO(): AppUserRequestDTO {
-        log.debug("Creating default AppUser")
         val appUser = AppUserRequestDTO(
             username = defaultUsername,
             email = defaultEmail,
-            password = BCryptPasswordEncoder().encode(defaultCredential)
+            password = defaultCredential
         )
-        log.debug("Default AppUser created: {}", appUser)
+        log.debug("Default AppUserRequestDTO created: {}", appUser)
         return appUser
     }
 
