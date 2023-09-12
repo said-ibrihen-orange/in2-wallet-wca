@@ -154,6 +154,7 @@ class SiopServiceImpl(
     }
 
 
+    //TODO: we are using payload.toJSONObject in many places, we should parse it only once
     private fun getAuthRequestClaim(jwtSiopAuthRequest: String): String {
         val jwsObject = JWSObject.parse(jwtSiopAuthRequest)
         return jwsObject.payload.toJSONObject()["auth_request"].toString()
