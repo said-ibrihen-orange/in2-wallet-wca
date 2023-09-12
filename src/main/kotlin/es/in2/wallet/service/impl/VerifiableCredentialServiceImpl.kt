@@ -33,6 +33,8 @@ import es.in2.wallet.exception.*
 import es.in2.wallet.model.dto.*
 import es.in2.wallet.util.ApplicationUtils.toJsonString
 import org.springframework.stereotype.Service
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Service
 class VerifiableCredentialServiceImpl(
@@ -91,8 +93,9 @@ class VerifiableCredentialServiceImpl(
     private fun getCredentialOfferUri(credentialOfferUriExtended: String): String {
         val splitCredentialOfferUri = credentialOfferUriExtended.split("=")
         val credentialOfferUriValue = splitCredentialOfferUri[1]
-        log.debug("Credential offer URI: {}", credentialOfferUriValue)
-        return credentialOfferUriValue
+        val decodedCredentialOfferUriValue = URLDecoder.decode(credentialOfferUriValue, StandardCharsets.UTF_8.toString())
+        log.debug("Credential offer URI: {}", decodedCredentialOfferUriValue)
+        return decodedCredentialOfferUriValue
     }
 
     private fun getCredentialOffer(credentialOfferUri: String): CredentialOfferForPreAuthorizedCodeFlow {
