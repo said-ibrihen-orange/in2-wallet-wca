@@ -45,7 +45,6 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     testImplementation("org.testng:testng:7.7.0")
 
-<<<<<<< HEAD
 	// Works with @Json() or @Serializable
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
@@ -73,10 +72,9 @@ dependencies {
 
 	// persistence
 	testImplementation("com.h2database:h2:2.1.214")
-=======
+
     // Persistence Layer
 	runtimeOnly("com.h2database:h2:2.1.214")
->>>>>>> origin/develop
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// lombok
