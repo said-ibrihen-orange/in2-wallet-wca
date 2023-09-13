@@ -8,20 +8,14 @@ import com.nimbusds.jose.Payload
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jwt.SignedJWT
-import es.in2.wallet.exception.DidVerificationException
 import es.in2.wallet.exception.InvalidTokenException
 import es.in2.wallet.exception.JwtInvalidFormatException
 import es.in2.wallet.service.TokenVerificationService
 import es.in2.wallet.util.ISSUER_TOKEN_PROPERTY_NAME
-import es.in2.wallet.util.UNIVERSAL_RESOLVER_URL
 import id.walt.services.did.DidService
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.stereotype.Service
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.security.interfaces.ECPublicKey
 import java.text.ParseException
 
