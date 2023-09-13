@@ -64,8 +64,8 @@ class KeycloakServiceImpl : KeycloakService {
         val formData = mapOf(
             "grant_type" to "password",
             "client_id" to "admin-rest-client",
-            "username" to "admin",
-            "password" to "password"
+            "username" to "in2admin",
+            "password" to "in2pass"
         )
         val body = ApplicationUtils.buildUrlEncodedFormDataRequestBody(formDataMap = formData)
         val response = ApplicationUtils.postRequest(url = url, headers = headers, body = body)
