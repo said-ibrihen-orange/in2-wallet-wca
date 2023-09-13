@@ -1,6 +1,6 @@
 package es.in2.wallet.domain
 
-import es.in2.wallet.model.AppUser
+import es.in2.wallet.api.model.entity.AppUser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

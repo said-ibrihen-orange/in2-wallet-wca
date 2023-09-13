@@ -1,6 +1,7 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.service.QrCodeProcessorService
+import es.in2.wallet.api.controller.QrCodeProcessorController
+import es.in2.wallet.api.service.QrCodeProcessorService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString

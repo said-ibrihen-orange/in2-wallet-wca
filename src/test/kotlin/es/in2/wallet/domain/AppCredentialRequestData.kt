@@ -1,13 +1,13 @@
 package es.in2.wallet.domain
 
-import es.in2.wallet.model.AppCredentialRequestData
+import es.in2.wallet.wca.model.entity.CredentialRequestData
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import java.util.*
 
 @SpringBootTest
-class AppCredentialRequestDataTest {
+class CredentialRequestDataTest {
 
     @Test
     fun testAppCredentialRequestDataProperties() {
@@ -19,7 +19,7 @@ class AppCredentialRequestDataTest {
         val issuerAccessToken = "accessToken123"
 
         // Create an instance of the AppIssuerData entity
-        val appCredentialRequestData = AppCredentialRequestData(
+        val credentialRequestData = CredentialRequestData(
                 id = id,
                 issuerName = issuerName,
                 userId = userId,
@@ -28,10 +28,10 @@ class AppCredentialRequestDataTest {
         )
 
         // Verify the properties
-        Assertions.assertEquals(id, appCredentialRequestData.id)
-        Assertions.assertEquals(issuerName, appCredentialRequestData.issuerName)
-        Assertions.assertEquals(userId, appCredentialRequestData.userId)
-        Assertions.assertEquals(issuerNonce, appCredentialRequestData.issuerNonce)
-        Assertions.assertEquals(issuerAccessToken, appCredentialRequestData.issuerAccessToken)
+        Assertions.assertEquals(id, credentialRequestData.id)
+        Assertions.assertEquals(issuerName, credentialRequestData.issuerName)
+        Assertions.assertEquals(userId, credentialRequestData.userId)
+        Assertions.assertEquals(issuerNonce, credentialRequestData.issuerNonce)
+        Assertions.assertEquals(issuerAccessToken, credentialRequestData.issuerAccessToken)
     }
 }

@@ -1,7 +1,8 @@
 package es.in2.wallet.controller
 
-import es.in2.wallet.model.AppUser
-import es.in2.wallet.service.AppUserService
+import es.in2.wallet.api.controller.AppUserController
+import es.in2.wallet.api.model.entity.AppUser
+import es.in2.wallet.api.service.AppUserService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given

@@ -6,7 +6,7 @@ ARG SKIP_TESTS=false
 COPY build.gradle.kts settings.gradle.kts /home/gradle/src/
 COPY src /home/gradle/src/src
 COPY gradle /home/gradle/src/gradle
-COPY docker/configs /home/gradle/src/configs
+COPY configs /home/gradle/src/configs
 COPY service-matrix.properties /home/gradle/src/
 WORKDIR /home/gradle/src
 RUN if [ "$SKIP_TESTS" = "true" ]; then \
