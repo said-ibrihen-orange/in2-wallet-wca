@@ -23,6 +23,7 @@ const val VP_JWT = "vp_jwt"
 const val VP_LDP = "vp_ldp"
 const val STRING_FORMAT = "String"
 const val JSON_FORMAT = "JSON"
+const val KEYCLOAK_REALM = "master"
 
 // Presentation Submission Format
 const val JWT_VC = "jwt_vc"

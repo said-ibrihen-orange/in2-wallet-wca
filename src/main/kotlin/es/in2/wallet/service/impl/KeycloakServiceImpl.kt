@@ -1,7 +1,10 @@
 package es.in2.wallet.service.impl
 
 import es.in2.wallet.service.KeycloakService
+import es.in2.wallet.util.*
 import jakarta.transaction.Transactional
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import org.json.JSONObject
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.representations.idm.UserRepresentation
@@ -14,12 +17,14 @@ import java.net.URLEncoder
 
 @Service
 class KeycloakServiceImpl : KeycloakService {
+    private val log: Logger = LogManager.getLogger(KeycloakServiceImpl::class.java)
+
     override fun test(): String {
         print("test");
         return "test";
     }
 
-    override fun getKeycloakToken(): String {
+    fun getKeycloakToken1(): String {
         val url = URL("http://localhost:8080/realms/master/protocol/openid-connect/token")
         val connection = url.openConnection() as HttpURLConnection
         connection.requestMethod = "POST"
@@ -53,11 +58,26 @@ class KeycloakServiceImpl : KeycloakService {
             throw Exception("Failed to obtain Keycloak token. Response Code: $responseCode")
         }
     }
+
+    override fun getKeycloakToken(): String {
+        val url = "${getKeycloakUrl()}/realms/master/protocol/openid-connect/token"
+        val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
+        val formData = mapOf(
+            "grant_type" to "password",
+            "client_id" to "admin-rest-client",
+            "username" to "admin",
+            "password" to "password"
+        )
+        val body = ApplicationUtils.buildUrlEncodedFormDataRequestBody(formDataMap = formData)
+        val response = ApplicationUtils.postRequest(url = url, headers = headers, body = body)
+        log.info("This is the response: $response")
+        return "access_token"
+    }
     @Transactional
     override fun createUserInKeycloak(token: String, userData: Map<String, Any>) {
         val keycloak = KeycloakBuilder.builder()
-                .serverUrl("http://localhost:8080")
-                .realm("master")
+                .serverUrl(getKeycloakUrl())
+                .realm(KEYCLOAK_REALM)
                 .authorization("Bearer $token")
                 .build()
 
@@ -68,6 +88,10 @@ class KeycloakServiceImpl : KeycloakService {
         user.lastName = userData["lastName"].toString()
         user.email = userData["email"].toString()
 
-        keycloak.realm("master").users().create(user)
+        keycloak.realm(KEYCLOAK_REALM).users().create(user)
+    }
+
+    fun getKeycloakUrl(): String{
+        return System.getenv("KC_HOSTNAME_URL")
     }
 }
