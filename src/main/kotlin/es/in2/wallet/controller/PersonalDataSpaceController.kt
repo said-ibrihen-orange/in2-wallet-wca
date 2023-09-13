@@ -25,4 +25,12 @@ class PersonalDataSpaceController(
         return personalDataSpaceService.getUserVCsInJson()
     }
 
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.OK)
+    fun deleteVerifiableCredential() {
+        log.debug("VerifiableCredentialController.deleteVerifiableCredential()")
+        personalDataSpaceService.deleteVCs()
+    }
+
 }

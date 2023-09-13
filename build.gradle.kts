@@ -1,18 +1,21 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
+
 plugins {
 	distribution
+	val kotlinPluginVersion = "1.7.22"
 	id("org.springframework.boot") version "3.0.5"
 	id("io.spring.dependency-management") version "1.1.0"
 	id("jacoco")
 	id("org.sonarqube") version "4.0.0.2929"
-	kotlin("jvm") version "1.7.22"
-	kotlin("plugin.spring") version "1.7.22"
-	kotlin("plugin.jpa") version "1.7.22"
+	kotlin("jvm") version kotlinPluginVersion
+	kotlin("plugin.spring") version kotlinPluginVersion
+	kotlin("plugin.jpa") version kotlinPluginVersion
 }
 
 group = "es.in2"
-version = "1.5.0"
+version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 configurations.implementation {
@@ -77,15 +80,24 @@ dependencies {
 	runtimeOnly("com.mysql:mysql-connector-j")
 
 	// lombok
-	compileOnly("org.projectlombok:lombok:1.18.26")
-	annotationProcessor("org.projectlombok:lombok:1.18.26")
+	val lombokDependency = "org.projectlombok:lombok:1.18.26"
+	compileOnly(lombokDependency)
+	annotationProcessor(lombokDependency)
+	testCompileOnly(lombokDependency)
+	testAnnotationProcessor(lombokDependency)
 
 	// OpenAPI
-	//implementation("org.springdoc:springdoc-openapi-starter-common:2.0.4")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4")
 
 	// walt.id
-	implementation("id.walt:waltid-ssikit:1.2305121558.0")
+	// https://github.com/walt-id/waltid-ssikit
+	// to update this versions go to
+	// https://maven.walt.id/repository/waltid-ssi-kit/id/walt/waltid-sd-jwt-jvm/
+	// https://maven.walt.id/repository/waltid-ssi-kit/id/walt/waltid-ssikit
+	// and pick the one with the newest version number
+	// make sure to update all other implementations in issuer
+	implementation("id.walt:waltid-ssikit:1.2308021811.0")
+	implementation("id.walt:waltid-sd-jwt-jvm:1.2306191408.0")
 	implementation("id.walt.servicematrix:WaltID-ServiceMatrix:1.1.3")
 
 	// nimbus-jjwt
@@ -108,9 +120,6 @@ dependencies {
 	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 	testImplementation("org.mockito:mockito-core:3.12.4")
 	testImplementation("io.mockk:mockk:1.13.5")
-	testCompileOnly("org.projectlombok:lombok:1.18.26")
-	testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
-
 }
 
 tasks.withType<KotlinCompile> {
@@ -119,18 +128,6 @@ tasks.withType<KotlinCompile> {
 		jvmTarget = "17"
 	}
 }
-
-/*
-val testCoverage by tasks.registering {
-	group = "verification"
-	description = "Runs the unit tests with coverage."
-	dependsOn(":test", ":jacocoTestReport", ":jacocoTestCoverageVerification")
-	val jacocoTestReport = tasks.findByName("jacocoTestReport")
-	jacocoTestReport?.mustRunAfter(tasks.findByName("test"))
-	tasks.findByName("jacocoTestCoverageVerification")?.mustRunAfter(jacocoTestReport)
-}
-
-*/
 
 tasks.withType<Test> {
 	useJUnitPlatform()
@@ -144,22 +141,6 @@ tasks.jacocoTestReport {
 		csv.required.set(false)
 		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
 	}
-
-	//classDirectories.setFrom(
-	//	sourceSets.main.get().output.asFileTree.matching {
-			//exclude(
-				//"es/in2/wallet/*.*",
-				//"es/in2/wallet/configuration/**",
-				//"es/in2/wallet/controller/**",
-				//"es/in2/wallet/exception/**",
-				//"es/in2/wallet/model/**",
-				//"es/in2/wallet/security/**",
-				//"es/in2/wallet/service/**",
-				//"es/in2/wallet/util/**",
-				//"es/in2/wallet/waltid/impl/**",
-			//)
-	//	}
-	//)
 }
 
 tasks.jacocoTestCoverageVerification {
