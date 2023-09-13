@@ -11,6 +11,7 @@ import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.exception.InvalidTokenException
 import es.in2.wallet.exception.JwtInvalidFormatException
 import es.in2.wallet.service.TokenVerificationService
+import es.in2.wallet.util.ISSUER_SUB
 import es.in2.wallet.util.ISSUER_TOKEN_PROPERTY_NAME
 import id.walt.services.did.DidService
 import org.apache.logging.log4j.LogManager
@@ -47,7 +48,14 @@ class TokenVerificationServiceImpl : TokenVerificationService {
     private fun resolveDID(payload: Payload): JsonNode {
         log.info("RequestTokenVerificationServiceImpl - resolveDID()")
 
-        val issuerDID: String = payload.toJSONObject()[ISSUER_TOKEN_PROPERTY_NAME].toString()
+        val jsonPayload: MutableMap<String, Any> = payload.toJSONObject()
+        val issuerDID: String = jsonPayload[ISSUER_TOKEN_PROPERTY_NAME].toString()
+        val sub: String = jsonPayload[ISSUER_SUB].toString()
+        val clientId = getClientId(jsonPayload)
+        log.info("clientId: $clientId")
+        if (clientId != issuerDID || issuerDID != sub){
+            throw Exception("iss and sub MUST be the DID of the RP and must correspond to the client_id parameter in the Authorization Request")
+        }
         log.info("issuer_did = $issuerDID")
 
         log.info("Resolving DID using SSI Kit")
@@ -88,6 +96,12 @@ class TokenVerificationServiceImpl : TokenVerificationService {
                 }
         */
 
+    }
+
+    private fun getClientId(siopAuthenticationRequest: MutableMap<String, Any>): String? {
+        val authRequest:String = siopAuthenticationRequest["auth_request"].toString()
+        val scopeRegex = Regex("client_id=([^&]+)")
+        return scopeRegex.find(authRequest)?.groupValues?.get(1)
     }
 
     private fun generateEcPublicKeyFromDidDocument(didDocument: JsonNode): ECPublicKey {
