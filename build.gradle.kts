@@ -118,6 +118,9 @@ dependencies {
 	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 	testImplementation("org.mockito:mockito-core:3.12.4")
 	testImplementation("io.mockk:mockk:1.13.5")
+	// https://mvnrepository.com/artifact/org.mockito.kotlin/mockito-kotlin
+	testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+
 }
 
 tasks.withType<KotlinCompile> {

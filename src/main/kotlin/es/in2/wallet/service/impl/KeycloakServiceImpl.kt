@@ -20,7 +20,6 @@ class KeycloakServiceImpl : KeycloakService {
     private val log: Logger = LogManager.getLogger(KeycloakServiceImpl::class.java)
 
     override fun test(): String {
-        print("test");
         return "test";
     }
 
