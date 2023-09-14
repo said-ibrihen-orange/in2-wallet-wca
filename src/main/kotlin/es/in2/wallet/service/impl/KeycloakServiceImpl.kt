@@ -59,13 +59,14 @@ class KeycloakServiceImpl : KeycloakService {
     }
 
     override fun getKeycloakToken(): String {
-        val url = "${getKeycloakUrl()}/realms/master/protocol/openid-connect/token"
+        val url = "${getKeycloakUrl()}/realms/$KEYCLOAK_REALM/protocol/openid-connect/token"
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
         val formData = mapOf(
             "grant_type" to "password",
-            "client_id" to "admin-rest-client",
-            "username" to "in2admin",
-            "password" to "in2pass"
+            "client_id" to "authz-servlet",
+            "client_secret" to getKeycloakClientSecret(),
+            "username" to "jdoe",
+            "password" to "jdoe"
         )
         val body = ApplicationUtils.buildUrlEncodedFormDataRequestBody(formDataMap = formData)
         val response = ApplicationUtils.postRequest(url = url, headers = headers, body = body)
@@ -92,5 +93,9 @@ class KeycloakServiceImpl : KeycloakService {
 
     fun getKeycloakUrl(): String{
         return System.getenv("KC_HOSTNAME_URL")
+    }
+
+    fun getKeycloakClientSecret(): String {
+        return System.getenv("KC_CLIENT_SECRET")
     }
 }

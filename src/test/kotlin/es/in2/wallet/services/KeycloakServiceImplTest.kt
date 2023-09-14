@@ -36,16 +36,10 @@ class KeycloakServiceImplTest {
 
     @Test
     fun testCreateUser() {
-        //`when`(keycloakService.getKeycloakUrl()).doReturn("http://localhost:8080") //This fails because when calling getKeycloakUrl it raises error...
-        doReturn("http://localhost:8080").`when`(keycloakService).getKeycloakUrl() // partially mocking
+        //`when`(keycloakService.getKeycloakUrl()).doReturn("http://localhost:8090") //This fails because when calling getKeycloakUrl it raises error...
+        doReturn("http://localhost:8090").`when`(keycloakService).getKeycloakUrl() // partially mocking
+        doReturn("secret").`when`(keycloakService).getKeycloakClientSecret() // partially mocking
         val token = keycloakService.getKeycloakToken()
         Assertions.assertTrue(false)
     }
-
-    @Test
-    fun testOldCreateUser() {
-        keycloakService.getKeycloakToken1()
-        Assertions.assertTrue(false)
-    }
-
 }
