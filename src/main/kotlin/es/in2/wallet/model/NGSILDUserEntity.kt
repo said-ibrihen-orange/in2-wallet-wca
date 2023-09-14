@@ -13,7 +13,7 @@ class NGSILDAttribute<T>(
         @JsonProperty("type") val type: String = "Property",
         @JsonProperty("value") val value: T
 )
-data class UserAttribute(
+class UserAttribute(
         @JsonProperty("username") val username: String,
         @JsonProperty("email") val email: String
 )
