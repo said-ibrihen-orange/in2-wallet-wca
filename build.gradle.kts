@@ -1,7 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
-
 plugins {
 	distribution
 	val kotlinPluginVersion = "1.7.22"

@@ -1,11 +1,11 @@
 package es.in2.wallet.services
 
-import es.in2.wallet.exception.EmailAlreadyExistsException
-import es.in2.wallet.exception.UsernameAlreadyExistsException
-import es.in2.wallet.model.AppUser
-import es.in2.wallet.model.dto.AppUserRequestDTO
-import es.in2.wallet.repository.AppUserRepository
-import es.in2.wallet.service.impl.AppUserServiceImpl
+import es.in2.wallet.api.exception.EmailAlreadyExistsException
+import es.in2.wallet.api.exception.UsernameAlreadyExistsException
+import es.in2.wallet.api.model.entity.AppUser
+import es.in2.wallet.api.model.dto.AppUserRequestDTO
+import es.in2.wallet.api.model.repository.AppUserRepository
+import es.in2.wallet.api.service.impl.AppUserServiceImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals

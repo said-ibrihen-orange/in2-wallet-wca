@@ -1,8 +1,9 @@
 package es.in2.wallet.security
 
-import es.in2.wallet.model.AppUser
-import es.in2.wallet.service.AppUserService
-import es.in2.wallet.util.USER_ROLE
+import es.in2.wallet.api.security.CustomUserDetailsService
+import es.in2.wallet.api.model.entity.AppUser
+import es.in2.wallet.api.service.AppUserService
+import es.in2.wallet.api.util.USER_ROLE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
