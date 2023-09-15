@@ -12,6 +12,9 @@ interface KeycloakService {
 
     fun getKeycloakUserById(token: String, id: String): KeycloakUserDTO?
 
+    fun updateUser(token: String, username: String, userData: KeycloakUserDTO)
+
     fun deleteKeycloakUser(token: String, username: String)
 
+    fun deleteKeycloakUserById(token: String, id: String)
 }

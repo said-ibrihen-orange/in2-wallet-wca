@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger
 import org.json.JSONObject
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
+import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.admin.client.resource.RealmsResource
 import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.admin.client.resource.UsersResource
@@ -98,32 +99,48 @@ class KeycloakServiceImpl : KeycloakService {
         return result
     }
 
-    override fun getKeycloakUser(token: String, username: String): KeycloakUserDTO? {
-        val keycloak = getKeycloakClient(token=token)
-        val users = keycloak.realm(KEYCLOAK_REALM).users().search(username)
-        if (users != null && users.count() == 1) {
-            val user = users[0]
-            return toKeycloakUser(user=user)
-        }
-        return null
+    override fun getKeycloakUser(token: String, username: String): KeycloakUserDTO {
+        val userResource: UserResource = getUserResource(realmResource = getKeycloakRealm(token=token), username = username)
+        return toKeycloakUser(user = userResource.toRepresentation())
     }
 
-    override fun getKeycloakUserById(token: String, id: String): KeycloakUserDTO? {
-        val keycloak = getKeycloakClient(token = token)
-        return toKeycloakUser(user = keycloak.realm(KEYCLOAK_REALM).users()[id].toRepresentation())
+    override fun getKeycloakUserById(token: String, id: String): KeycloakUserDTO {
+        val userResource: UserResource = getUserResourceById(realmResource = getKeycloakRealm(token=token), id = id)
+        return toKeycloakUser(user = userResource.toRepresentation())
+    }
+
+    override fun updateUser(token: String, username: String, userData: KeycloakUserDTO) {
+
+    }
+
+    private fun getKeycloakRealm(token: String): RealmResource{
+        return getKeycloakClient(token = token).realm(KEYCLOAK_REALM)
+    }
+
+    private fun getUserResourceById(realmResource: RealmResource, id: String): UserResource {
+        val usersResource: UsersResource = realmResource.users()
+        return usersResource[id]
+    }
+
+    private fun getUserResource(realmResource: RealmResource, username: String): UserResource {
+        val usersResource: UsersResource = realmResource.users()
+        val users = usersResource.search(username)
+        if (users != null && users.count() == 1) {
+            val user: UserRepresentation = users[0]
+            return usersResource[user.id]
+        } else {
+            throw Exception("User $username not found")
+        }
     }
 
     override fun deleteKeycloakUser(token: String, username: String) {
-        val keycloak = getKeycloakClient(token = token)
-        val usersResource: UsersResource? = keycloak.realm(KEYCLOAK_REALM).users()
-        val users = usersResource?.search(username)
-        if (users != null && users.count() == 1) {
-            val user = users[0]
-            val userResource: UserResource = usersResource[user.id]
-            userResource.remove()
-        } else {
-            throw Exception("Couldn't delete user $username because it doesn't exist")
-        }
+        val userResource: UserResource = getUserResource(realmResource = getKeycloakRealm(token=token), username = username)
+        userResource.remove()
+    }
+
+    override fun deleteKeycloakUserById(token: String, id: String) {
+        val userResource: UserResource = getUserResourceById(realmResource = getKeycloakRealm(token = token), id = id)
+        userResource.remove()
     }
 
     fun getKeycloakClient(token: String): Keycloak{

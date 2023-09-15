@@ -3,6 +3,7 @@ package es.in2.wallet.services
 import es.in2.wallet.api.util.KEYCLOAK_ADMIN_USERNAME
 import es.in2.wallet.integration.keycloak.model.dto.KeycloakUserDTO
 import es.in2.wallet.integration.keycloak.service.impl.KeycloakServiceImpl
+import okhttp3.internal.userAgent
 import org.junit.jupiter.api.*
 import org.mockito.MockitoAnnotations
 import org.mockito.Spy
@@ -56,16 +57,15 @@ class KeycloakServiceImplTest {
         users.forEach{ user ->
             usernames.add(user.username)
         }
-        usernames.contains(KEYCLOAK_ADMIN_USERNAME)
+        Assertions.assertTrue(usernames.contains(KEYCLOAK_ADMIN_USERNAME))
     }
 
     @Test
     fun testGetUser(){
         val token = getToken()
         val user = keycloakService.getKeycloakUser(token = token, username = KEYCLOAK_ADMIN_USERNAME)
-        Assertions.assertTrue(user != null)
-        Assertions.assertTrue(user?.username == KEYCLOAK_ADMIN_USERNAME)
-        val user1 = user?.id?.let { keycloakService.getKeycloakUserById(token = token, id = it) }
+        Assertions.assertTrue(user.username == KEYCLOAK_ADMIN_USERNAME)
+        val user1 = keycloakService.getKeycloakUserById(token = token, id = user.id!!)
         Assertions.assertTrue(user == user1)
     }
     @Test
@@ -81,7 +81,64 @@ class KeycloakServiceImplTest {
         keycloakService.createUserInKeycloak(token = token, userData = userDTO)
         val user = keycloakService.getKeycloakUser(token = token, username = userDTO.username)
         keycloakService.deleteKeycloakUser(token = token, username = userDTO.username)
-        val user1 = keycloakService.getKeycloakUser(token = token, username = userDTO.username)
-        Assertions.assertNull(user1)
+        val exception = Assertions.assertThrows(Exception::class.java) {
+            keycloakService.getKeycloakUser(token = token, username = userDTO.username)
+        }
+
+        val expectedErrorMessage = "User ${userDTO.username} not found"
+        val actualMessage = exception.message
+        Assertions.assertEquals(expectedErrorMessage, actualMessage)
+
+    }
+
+    @Test
+    fun testCreateGetDeleteUserById(){
+        val token = getToken()
+        val userDTO = KeycloakUserDTO(
+            username = "deleteme",
+            firstName = "deleteme",
+            lastName = "deleteme",
+            email = "delete-me@test.test",
+            id = null,
+        )
+        keycloakService.createUserInKeycloak(token = token, userData = userDTO)
+        val user = keycloakService.getKeycloakUser(token = token, username = userDTO.username)
+        keycloakService.deleteKeycloakUserById(token = token, id = user.id!!)
+        val exception = Assertions.assertThrows(Exception::class.java) {
+            keycloakService.getKeycloakUserById(token = token, id = user.id!!)
+        }
+
+        val expectedErrorMessage = "HTTP 404 Not Found"
+        val actualMessage = exception.message
+        Assertions.assertEquals(expectedErrorMessage, actualMessage)
+
+    }
+
+    @Test
+    fun testUpdateUser() {
+        val token = getToken()
+        val userDTO = KeycloakUserDTO(
+            username = "changeme",
+            firstName = "changeme",
+            lastName = "changeme",
+            email = "changeme@changeme.test",
+            id = null
+        )
+        keycloakService.createUserInKeycloak(token = token, userData = userDTO)
+        val user = keycloakService.getKeycloakUser(token = token, username = userDTO.username)
+        val newUserDTO = KeycloakUserDTO(
+            username = "newname",
+            firstName = "newFirstName",
+            lastName = "newLastName",
+            email = "new-email@test.test",
+            id = null
+        )
+        keycloakService.updateUser(token = token, username = userDTO.username, userData = newUserDTO)
+        val user1 = keycloakService.getKeycloakUserById(token = token, id = user.id!!)
+        keycloakService.deleteKeycloakUser(token = token, username = userDTO.username)
+        Assertions.assertEquals(newUserDTO.username, user1.username)
+        Assertions.assertEquals(newUserDTO.firstName, user1.firstName)
+        Assertions.assertEquals(newUserDTO.lastName, user1.lastName)
+        Assertions.assertEquals(newUserDTO.email, user1.email)
     }
 }
