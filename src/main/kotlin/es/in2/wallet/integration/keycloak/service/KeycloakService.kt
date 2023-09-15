@@ -6,4 +6,13 @@ interface KeycloakService {
     fun test(): String
     fun getKeycloakToken(): String
     fun createUserInKeycloak(token: String, userData: KeycloakUserDTO)
+
+    fun getKeycloakUsers(token: String): List<KeycloakUserDTO>
+
+    fun getKeycloakUser(token: String, username: String): KeycloakUserDTO?
+
+    fun getKeycloakUserById(token: String, id: String): KeycloakUserDTO?
+
+    fun deleteKeycloakUser(token: String, username: String)
+
 }

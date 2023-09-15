@@ -10,6 +10,8 @@ import org.apache.logging.log4j.Logger
 import org.json.JSONObject
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
+import org.keycloak.admin.client.resource.RealmsResource
+import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.admin.client.resource.UsersResource
 import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.stereotype.Service
@@ -72,10 +74,10 @@ class KeycloakServiceImpl : KeycloakService {
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
         val formData = mapOf(
             "grant_type" to "password",
-            "client_id" to "oidc4vci-client",
+            "client_id" to KEYCLOAK_CLIENT_ID,
             "client_secret" to getKeycloakClientSecret(),
-            "username" to "in2admin1",
-            "password" to "password"
+            "username" to KEYCLOAK_ADMIN_USERNAME,
+            "password" to getKeycloakAdminPassword()
         )
         val body = ApplicationUtils.buildUrlEncodedFormDataRequestBody(formDataMap = formData)
         val response = ApplicationUtils.postRequest(url = url, headers = headers, body = body)
@@ -91,6 +93,7 @@ class KeycloakServiceImpl : KeycloakService {
         val user = toUserRepresentation(userData = userData)
 
         val response = keycloak.realm(KEYCLOAK_REALM).users().create(user)
+        keycloak.close()
         log.info("Response ${response.status}")
         val responseBody = response.readEntity(String::class.java)
         if (response.status < 200 || response.status > 299) {
@@ -114,13 +117,14 @@ class KeycloakServiceImpl : KeycloakService {
             username = user.username,
             firstName = user.firstName,
             lastName = user.lastName,
-            email = user.email
+            email = user.email,
+            id = user.id
         )
     }
 
     // The service account associated with the client needs to be allowed to view realm users otherwise returns 403 forbidden
     // https://stackoverflow.com/questions/66452108/keycloak-get-users-returns-403-forbidden
-    fun getKeycloakUsers(token: String): List<KeycloakUserDTO> {
+    override fun getKeycloakUsers(token: String): List<KeycloakUserDTO> {
         val keycloak = getKeycloakClient(token = token)
         val users: UsersResource? = keycloak.realm(KEYCLOAK_REALM).users()
         val result = mutableListOf<KeycloakUserDTO>()
@@ -131,9 +135,40 @@ class KeycloakServiceImpl : KeycloakService {
                 log.info(userData)
                 result.add(userData)
             }
+            keycloak.close()
         }
         return result
     }
+
+    override fun getKeycloakUser(token: String, username: String): KeycloakUserDTO? {
+        val keycloak = getKeycloakClient(token=token)
+        val users = keycloak.realm(KEYCLOAK_REALM).users().search(username)
+        if (users != null && users.count() == 1) {
+            val user = users[0]
+            return toKeycloakUser(user=user)
+        }
+        return null
+    }
+
+    override fun getKeycloakUserById(token: String, id: String): KeycloakUserDTO? {
+        val keycloak = getKeycloakClient(token = token)
+        return toKeycloakUser(user = keycloak.realm(KEYCLOAK_REALM).users()[id].toRepresentation())
+    }
+
+    override fun deleteKeycloakUser(token: String, username: String) {
+        val keycloak = getKeycloakClient(token = token)
+        val usersResource: UsersResource? = keycloak.realm(KEYCLOAK_REALM).users()
+        val users = usersResource?.search(username)
+        if (users != null && users.count() == 1) {
+            val user = users[0]
+            val userResource: UserResource = usersResource[user.id]
+            userResource.remove()
+        } else {
+            throw Exception("Couldn't delete user $username because it doesn't exist")
+        }
+    }
+
+
 
     fun getKeycloakClient(token: String): Keycloak{
         return KeycloakBuilder.builder()
@@ -149,5 +184,9 @@ class KeycloakServiceImpl : KeycloakService {
 
     fun getKeycloakClientSecret(): String {
         return System.getenv("KC_CLIENT_SECRET")
+    }
+
+    fun getKeycloakAdminPassword(): String {
+        return System.getenv("KC_ADMIN_PASSWORD")
     }
 }
