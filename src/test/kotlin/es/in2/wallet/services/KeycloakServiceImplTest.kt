@@ -1,5 +1,6 @@
 package es.in2.wallet.services
 
+import es.in2.wallet.integration.keycloak.model.dto.KeycloakUserDTO
 import es.in2.wallet.integration.keycloak.service.impl.KeycloakServiceImpl
 import org.junit.jupiter.api.*
 import org.mockito.MockitoAnnotations
@@ -40,14 +41,14 @@ class KeycloakServiceImplTest {
 
     @Test
     fun testCreateUser() {
-        val userData = mapOf(
-            "username" to "test",
-            "firstName" to "test-firstname",
-            "lastName" to "test-lastname",
-            "email" to "test-email@test.test"
+        val userData = KeycloakUserDTO(
+            username = "test",
+            firstName = "test-firstname",
+            lastName = "test-lastname",
+            email = "test-email@test.test"
         )
         val token = getToken()
-        keycloakService.createUserInKeycloak(token=token, userData=userData)
+        keycloakService.createUserInKeycloak(token = token, userData = userData)
     }
 
     @Test
@@ -55,5 +56,7 @@ class KeycloakServiceImplTest {
         val token = getToken()
         keycloakService.getKeycloakUsers(token = token)
     }
+
+
 
 }

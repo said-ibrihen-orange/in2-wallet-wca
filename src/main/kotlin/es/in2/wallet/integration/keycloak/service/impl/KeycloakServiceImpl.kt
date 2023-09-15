@@ -3,6 +3,7 @@ package es.in2.wallet.integration.keycloak.service.impl
 import com.fasterxml.jackson.databind.ObjectMapper
 import es.in2.wallet.integration.keycloak.service.KeycloakService
 import es.in2.wallet.api.util.*
+import es.in2.wallet.integration.keycloak.model.dto.KeycloakUserDTO
 import jakarta.transaction.Transactional
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -82,16 +83,12 @@ class KeycloakServiceImpl : KeycloakService {
         val jsonObject = ObjectMapper().readValue(response, Map::class.java) as Map<String, Any>
         return jsonObject["access_token"].toString()
     }
+
     @Transactional
-    override fun createUserInKeycloak(token: String, userData: Map<String, Any>) {
+    override fun createUserInKeycloak(token: String, userData: KeycloakUserDTO) {
         val keycloak = getKeycloakClient(token = token)
 
-        val user = UserRepresentation()
-
-        user.username = userData["username"].toString()
-        user.firstName = userData["firstName"].toString()
-        user.lastName = userData["lastName"].toString()
-        user.email = userData["email"].toString()
+        val user = toUserRepresentation(userData = userData)
 
         val response = keycloak.realm(KEYCLOAK_REALM).users().create(user)
         log.info("Response ${response.status}")
@@ -101,23 +98,41 @@ class KeycloakServiceImpl : KeycloakService {
         }
     }
 
+    private fun toUserRepresentation(userData: KeycloakUserDTO): UserRepresentation {
+        val user = UserRepresentation()
+
+        user.username = userData.username
+        user.firstName = userData.firstName
+        user.lastName = userData.lastName
+        user.email = userData.email
+
+        return user
+    }
+
+    private fun toKeycloakUser(user: UserRepresentation): KeycloakUserDTO{
+        return KeycloakUserDTO(
+            username = user.username,
+            firstName = user.firstName,
+            lastName = user.lastName,
+            email = user.email
+        )
+    }
+
     // The service account associated with the client needs to be allowed to view realm users otherwise returns 403 forbidden
     // https://stackoverflow.com/questions/66452108/keycloak-get-users-returns-403-forbidden
-    fun getKeycloakUsers(token: String) {
+    fun getKeycloakUsers(token: String): List<KeycloakUserDTO> {
         val keycloak = getKeycloakClient(token = token)
         val users: UsersResource? = keycloak.realm(KEYCLOAK_REALM).users()
+        val result = mutableListOf<KeycloakUserDTO>()
         if (users != null){
             val userList = users.list()
             userList.forEach{user ->
-                val userPrint = listOf(
-                    user.firstName,
-                    user.lastName,
-                    user.username,
-                    user.email
-                )
-                log.info(userPrint)
+                val userData = toKeycloakUser(user = user)
+                log.info(userData)
+                result.add(userData)
             }
         }
+        return result
     }
 
     fun getKeycloakClient(token: String): Keycloak{

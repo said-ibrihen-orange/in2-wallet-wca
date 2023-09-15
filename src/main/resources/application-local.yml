@@ -39,5 +39,5 @@ logging:
     # Set the log level for the entire application
     root: INFO
     # Set log level for specific packages or classes
-    es.in2.wallet.service: DEBUG
-    es.in2.wallet.util: DEBUG
+    es.in2.wallet.api.service: DEBUG
+    es.in2.wallet.api.util: DEBUG
