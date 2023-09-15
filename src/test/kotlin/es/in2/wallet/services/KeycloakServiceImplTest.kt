@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles
 class KeycloakServiceImplTest {
     @Spy
     private val keycloakService = KeycloakServiceImpl()
+
     @BeforeEach
     fun setUp() {
         MockitoAnnotations.openMocks(this)
@@ -35,11 +36,33 @@ class KeycloakServiceImplTest {
     }
 
     @Test
-    fun testCreateUser() {
-        //`when`(keycloakService.getKeycloakUrl()).doReturn("http://localhost:8090") //This fails because when calling getKeycloakUrl it raises error...
-        doReturn("http://localhost:8090").`when`(keycloakService).getKeycloakUrl() // partially mocking
-        doReturn("secret").`when`(keycloakService).getKeycloakClientSecret() // partially mocking
-        val token = keycloakService.getKeycloakToken()
-        Assertions.assertTrue(false)
+    fun testGetToken() {
+        val token = getToken()
+        Assertions.assertTrue(token.length > 512)
     }
+
+    private fun getToken(): String {
+        doReturn("http://localhost:8090").`when`(keycloakService).getKeycloakUrl() // partially mocking
+        doReturn("vxuLBYhEJ0atp1AZPjwKh5hzaZMOqd5y").`when`(keycloakService).getKeycloakClientSecret() // partially mocking
+        return keycloakService.getKeycloakToken()
+    }
+
+    @Test
+    fun testCreateUser() {
+        val userData = mapOf(
+            "username" to "test",
+            "firstName" to "test-firstname",
+            "lastName" to "test-lastname",
+            "email" to "test-email@test.test"
+        )
+        val token = getToken()
+        keycloakService.createUserInKeycloak(token=token, userData=userData)
+    }
+
+    @Test
+    fun testGetUsers(){
+        val token = getToken()
+        keycloakService.getKeycloakUsers(token = token)
+    }
+
 }
