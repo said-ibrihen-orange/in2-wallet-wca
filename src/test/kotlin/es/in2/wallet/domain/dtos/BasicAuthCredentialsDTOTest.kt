@@ -1,6 +1,6 @@
 package es.in2.wallet.domain.dtos
 
-import es.in2.wallet.model.dto.BasicAuthCredentialsDTO
+import es.in2.wallet.api.model.dto.BasicAuthCredentialsDTO
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

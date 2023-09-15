@@ -1,7 +1,7 @@
 //package es.in2.wallet.services
 //
-//import es.in2.wallet.service.PersonalDataSpaceService
-//import es.in2.wallet.service.impl.PersonalDataSpaceServiceImpl
+//import es.in2.wallet.integration.orionld.service.PersonalDataSpaceService
+//import es.in2.wallet.integration.orionld.service.impl.PersonalDataSpaceServiceImpl
 //import org.junit.jupiter.api.AfterEach
 //import org.junit.jupiter.api.Assertions.*
 //import org.junit.jupiter.api.BeforeEach
