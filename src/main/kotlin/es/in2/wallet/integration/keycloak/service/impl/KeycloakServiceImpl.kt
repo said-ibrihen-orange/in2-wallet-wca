@@ -1,16 +1,14 @@
-package es.in2.wallet.service.impl
+package es.in2.wallet.integration.keycloak.service.impl
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import es.in2.wallet.service.KeycloakService
-import es.in2.wallet.util.*
-import id.walt.common.prettyPrint
+import es.in2.wallet.integration.keycloak.service.KeycloakService
+import es.in2.wallet.api.util.*
 import jakarta.transaction.Transactional
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.json.JSONObject
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
-import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.admin.client.resource.UsersResource
 import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.stereotype.Service

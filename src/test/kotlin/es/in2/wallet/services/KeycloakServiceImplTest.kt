@@ -1,19 +1,10 @@
-package es.in2.wallet.service.impl
+package es.in2.wallet.services
 
-import es.in2.wallet.exception.FailedCommunicationException
-import es.in2.wallet.util.ApplicationUtils
-import io.ktor.util.reflect.*
-import junit.framework.TestCase.assertEquals
+import es.in2.wallet.integration.keycloak.service.impl.KeycloakServiceImpl
 import org.junit.jupiter.api.*
-import org.keycloak.admin.client.KeycloakBuilder
-import org.mockito.InjectMocks
-import org.mockito.Mock
-import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.mockito.Spy
 import org.springframework.boot.test.context.SpringBootTest
-import java.net.HttpURLConnection
-import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.springframework.test.context.ActiveProfiles
 

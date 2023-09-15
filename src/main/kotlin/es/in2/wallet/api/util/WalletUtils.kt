@@ -17,8 +17,6 @@ const val CONTENT_TYPE_URL_ENCODED_FORM = "application/x-www-form-urlencoded"
 const val HEADER_AUTHORIZATION = "Authorization"
 const val BEARER_PREFIX = "Bearer "
 const val ALL = "*"
-const val STRING_FORMAT = "String"
-const val JSON_FORMAT = "JSON"
 // fixme: vc_jwt and jwt_vc are the same? (vc_jwt must be not used)
 const val VC_JWT = "vc_jwt"
 const val JWT_VC = "jwt_vc"
@@ -30,7 +28,3 @@ const val VP_LDP = "vp_ldp"
 const val STRING_FORMAT = "String"
 const val JSON_FORMAT = "JSON"
 const val KEYCLOAK_REALM = "EAAProvider"
-
-// Presentation Submission Format
-const val JWT_VC = "jwt_vc"
-const val JWT_VP = "jwt_vp"
