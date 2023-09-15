@@ -25,50 +25,8 @@ import java.net.URLEncoder
 class KeycloakServiceImpl : KeycloakService {
     private val log: Logger = LogManager.getLogger(KeycloakServiceImpl::class.java)
 
-    override fun test(): String {
-        return "test";
-    }
-
-    // TODO: This was the original function, should be removed.
-    fun getKeycloakToken1(): String {
-        val url = URL("http://localhost:8080/realms/master/protocol/openid-connect/token")
-        val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "POST"
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-
-        val postData = "grant_type=${URLEncoder.encode("password", "UTF-8")}" +
-                "&client_id=${URLEncoder.encode("admin-rest-client", "UTF-8")}" +
-                "&username=${URLEncoder.encode("admin", "UTF-8")}" +
-                "&password=${URLEncoder.encode("password", "UTF-8")}"
-
-        connection.doOutput = true
-        connection.outputStream.write(postData.toByteArray())
-
-        val responseCode = connection.responseCode
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            val inputStreamReader = InputStreamReader(connection.inputStream)
-            val bufferedReader = BufferedReader(inputStreamReader)
-
-            val response = StringBuilder()
-            var line: String?
-            while (bufferedReader.readLine().also { line = it } != null) {
-                response.append(line)
-            }
-
-            bufferedReader.close()
-
-            val jsonResponse = JSONObject(response.toString())
-
-            return jsonResponse.getString("access_token")
-        } else {
-            throw Exception("Failed to obtain Keycloak token. Response Code: $responseCode")
-        }
-    }
-
-    // TODO: For this to work we must configure KeyCloak by importing realm-import.json
-    //  https://github.com/keycloak/keycloak-quickstarts/blob/latest/spring/rest-authz-resource-server/src/test/resources/realm-import.json
-    //  Another alternative is to import EAAProvider-realm.json
-    //  This setup should be done automatically instead of manually and it should be tailored to our specific needs.
+    // TODO: For this to work we must configure KeyCloak by importing EAAProvider-realm.json
+    //  This setup should be done automatically instead of manually.
     override fun getKeycloakToken(): String {
         val url = "${getKeycloakUrl()}/realms/$KEYCLOAK_REALM/protocol/openid-connect/token"
         val headers = listOf(CONTENT_TYPE to CONTENT_TYPE_URL_ENCODED_FORM)
@@ -167,8 +125,6 @@ class KeycloakServiceImpl : KeycloakService {
             throw Exception("Couldn't delete user $username because it doesn't exist")
         }
     }
-
-
 
     fun getKeycloakClient(token: String): Keycloak{
         return KeycloakBuilder.builder()

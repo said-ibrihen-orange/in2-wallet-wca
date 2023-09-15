@@ -11,7 +11,7 @@ import org.mockito.kotlin.doReturn
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
-@ActiveProfiles("local")
+@ActiveProfiles("local") // To enable DEBUG logs in tests
 class KeycloakServiceImplTest {
     @Spy
     private val keycloakService = KeycloakServiceImpl()
@@ -19,13 +19,6 @@ class KeycloakServiceImplTest {
     @BeforeEach
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-    }
-
-    @Test
-    fun testTest() {
-        val expected = "test"
-        val result = keycloakService.test()
-        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -91,7 +84,4 @@ class KeycloakServiceImplTest {
         val user1 = keycloakService.getKeycloakUser(token = token, username = userDTO.username)
         Assertions.assertNull(user1)
     }
-
-
-
 }
