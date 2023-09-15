@@ -109,8 +109,18 @@ class KeycloakServiceImpl : KeycloakService {
         return toKeycloakUser(user = userResource.toRepresentation())
     }
 
+    // TODO: This update is failing, we could try using the API directly PUT /admin/realms/{realm}/users/{id} and in the body
+    //  we insert the changes as a userRepresentation
+    //  See the API documentation for more info: https://www.keycloak.org/docs-api/22.0.1/rest-api/index.html#_users
     override fun updateUser(token: String, username: String, userData: KeycloakUserDTO) {
-
+        val userResource: UserResource = getUserResource(realmResource = getKeycloakRealm(token = token), username = username)
+        val userRepresentation: UserRepresentation = userResource.toRepresentation()
+        userRepresentation.username = userData.username
+        userRepresentation.firstName = userData.firstName
+        userRepresentation.lastName = userData.lastName
+        userRepresentation.email = userData.email
+        assert(userRepresentation.username == userData.username)
+        userResource.update(userRepresentation)
     }
 
     private fun getKeycloakRealm(token: String): RealmResource{
