@@ -2,10 +2,10 @@ package es.in2.wallet.wca.service.impl
 
 import com.nimbusds.jwt.SignedJWT
 import es.in2.wallet.wca.model.dto.VcSelectorResponseDTO
-import es.in2.wallet.integration.orion.service.OrionService
 import es.in2.wallet.wca.service.SiopService
 import es.in2.wallet.wca.service.VerifiablePresentationService
 import es.in2.wallet.api.util.VC_JWT
+import es.in2.wallet.integration.orionLD.service.OrionLDService
 import es.in2.wallet.wca.service.WalletDidService
 import id.walt.credentials.w3c.PresentableCredential
 import id.walt.credentials.w3c.VerifiableCredential
@@ -18,7 +18,7 @@ import java.time.Instant
 @Service
 class VerifiablePresentationServiceImpl(
     private val walletDidService: WalletDidService,
-    private val orionService: OrionService,
+    private val orionLDService: OrionLDService,
     private val siopService: SiopService
 ) : VerifiablePresentationService {
 
@@ -32,7 +32,7 @@ class VerifiablePresentationServiceImpl(
             verifiableCredentialsList.add(
                 PresentableCredential(
                     verifiableCredential = VerifiableCredential.fromString(
-                        orionService.getVerifiableCredentialByIdAndFormat(it.id, VC_JWT)),
+                        orionLDService.getVerifiableCredentialByIdAndFormat(it.id, VC_JWT)),
                     discloseAll = false
             ))
         }

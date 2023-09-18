@@ -1,7 +1,6 @@
 package es.in2.wallet.wca.controller
 
 import es.in2.wallet.wca.model.dto.DidRequestDTO
-import es.in2.wallet.wca.model.dto.DidResponseDTO
 import es.in2.wallet.wca.service.WalletDidService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -45,7 +44,7 @@ class DidController(
         ApiResponse(responseCode = "200", description = "List of DIDs retrieved successfully."),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun getDidList() : List<DidResponseDTO>{
+    fun getDidList() : List<String>{
         return walletDidService.getDidsByUserId()
     }
 
@@ -63,8 +62,8 @@ class DidController(
         ApiResponse(responseCode = "400", description = "Invalid request."),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun deleteDid(@RequestBody didResponseDTO: DidResponseDTO): String {
-        walletDidService.deleteDid(didResponseDTO)
+    fun deleteDid(@RequestBody did: String): String {
+        walletDidService.deleteDid(did)
         return "DID deleted"
     }
 

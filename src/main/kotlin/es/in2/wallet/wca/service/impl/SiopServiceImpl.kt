@@ -5,7 +5,7 @@ import com.nimbusds.jose.JWSObject
 import es.in2.wallet.api.util.*
 import es.in2.wallet.wca.model.dto.VcSelectorRequestDTO
 import es.in2.wallet.wca.model.dto.VcSelectorResponseDTO
-import es.in2.wallet.integration.orion.service.OrionService
+import es.in2.wallet.integration.orionLD.service.OrionLDService
 import es.in2.wallet.wca.service.SiopService
 import es.in2.wallet.wca.service.TokenVerificationService
 import id.walt.credentials.w3c.VerifiablePresentation
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service
 @Service
 class SiopServiceImpl(
     private val tokenVerificationService: TokenVerificationService,
-    private val orionService: OrionService,
+    private val orionLDService: OrionLDService,
     private val applicationUtils: ApplicationUtils
 ) : SiopService {
 
@@ -60,7 +60,7 @@ class SiopServiceImpl(
         val scopeList = extractScopeClaimOfTheSiopAuthRequest(siopAuthenticationRequest)
 
         // Find if User has a Verifiable Credential that matches with all the scopes requested
-        val selectableVcList = orionService.getSelectableVCsByVcTypeList(scopeList)
+        val selectableVcList = orionLDService.getSelectableVCsByVcTypeList(scopeList)
 
         // Populate the response to the Wallet Front-End adding the SIOP Authentication Request and a List of the
         // Verifiable Credential IDs that match with the requested scope

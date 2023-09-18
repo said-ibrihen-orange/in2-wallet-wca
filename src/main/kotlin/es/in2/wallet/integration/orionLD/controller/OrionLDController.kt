@@ -1,8 +1,8 @@
-package es.in2.wallet.integration.orion.controller
+package es.in2.wallet.integration.orionLD.controller
 
+import es.in2.wallet.integration.orionLD.service.OrionLDService
 import es.in2.wallet.wca.controller.VerifiablePresentationController
 import es.in2.wallet.wca.model.dto.VcBasicDataDTO
-import es.in2.wallet.integration.orion.service.OrionService
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "Personal Data Space", description = "Personal Data Space Management API")
 @RestController
 @RequestMapping("/api/personal-data-space")
-class OrionController(
-    private val orionService: OrionService
+class OrionLDController(
+    private val orionLDService: OrionLDService
 ) {
 
     private val log: Logger = LogManager.getLogger(VerifiablePresentationController::class.java)
@@ -22,7 +22,7 @@ class OrionController(
     @ResponseStatus(HttpStatus.OK)
     fun getVerifiableCredentialList(): MutableList<VcBasicDataDTO> {
         log.debug("VerifiableCredentialController.getVerifiableCredential()")
-        return orionService.getUserVCsInJson()
+        return orionLDService.getUserVCsInJson()
     }
 
 
@@ -30,7 +30,7 @@ class OrionController(
     @ResponseStatus(HttpStatus.OK)
     fun deleteVerifiableCredentials() {
         log.debug("deleteVerifiableCredentials()")
-        orionService.deleteVCs()
+        orionLDService.deleteVCs()
     }
 
     @DeleteMapping("/{credentialId}")
@@ -39,7 +39,7 @@ class OrionController(
         @PathVariable("credentialId") credentialId: String,
     ) {
         log.debug("deleteVerifiableCredential()")
-        orionService.deleteVerifiableCredential(id=credentialId)
+        orionLDService.deleteVerifiableCredential(id=credentialId)
     }
 
 }

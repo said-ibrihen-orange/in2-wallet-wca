@@ -18,13 +18,10 @@ import es.in2.wallet.api.util.ApplicationUtils.buildUrlEncodedFormDataRequestBod
 import es.in2.wallet.api.util.ApplicationUtils.getRequest
 import es.in2.wallet.api.util.ApplicationUtils.postRequest
 import es.in2.wallet.api.util.ApplicationUtils.toJsonString
-import es.in2.wallet.integration.orion.service.OrionService
-import es.in2.wallet.wca.service.CredentialRequestDataService
-import es.in2.wallet.api.service.IssuerService
+import es.in2.wallet.integration.orionLD.service.OrionLDService
 import es.in2.wallet.wca.util.W3CContextDeserializer
 import es.in2.wallet.wca.util.W3CCredentialSchemaDeserializer
 import es.in2.wallet.wca.util.W3CIssuerDeserializer
-import es.in2.wallet.wca.exception.CredentialRequestDataNotFoundException
 import es.in2.wallet.wca.model.dto.*
 import es.in2.wallet.wca.service.VerifiableCredentialService
 import es.in2.wallet.wca.service.WalletKeyService
@@ -42,9 +39,7 @@ import java.util.*
 
 @Service
 class VerifiableCredentialServiceImpl(
-    private val orionService: OrionService,
-    private val issuerDataService: IssuerService,
-    private val credentialRequestDataService: CredentialRequestDataService,
+    private val orionLDService: OrionLDService,
     private val walletKeyService: WalletKeyService
 
 ) : VerifiableCredentialService {
@@ -56,13 +51,15 @@ class VerifiableCredentialServiceImpl(
         val credentialOffer = getCredentialOffer(credentialOfferUri)
         val credentialIssuerMetadataUri = getCredentialIssuerMetadataUri(credentialOffer)
         try {
+            val mapper = ObjectMapper()
             val credentialIssuerMetadataObject = getCredentialIssuerMetadataObject(credentialIssuerMetadataUri)
-            issuerDataService.upsertIssuerData(
+            val credentialIssuerMetadataObjectNode: JsonNode = mapper.valueToTree(credentialIssuerMetadataObject)
+            orionLDService.saveIssuer(
                 credentialOffer.credentialIssuer,
-                credentialIssuerMetadataObject.toString()
+                credentialIssuerMetadataObjectNode
             )
             val accessToken = getAccessTokenAndNonce(credentialOffer, credentialIssuerMetadataObject)
-            credentialRequestDataService.saveCredentialRequestData(
+            orionLDService.saveCredentialRequestData(
                 credentialOffer.credentialIssuer,
                 accessToken[0],
                 accessToken[1]
@@ -70,12 +67,12 @@ class VerifiableCredentialServiceImpl(
         } catch (e: UnrecognizedPropertyException) {
             log.error(e)
             val credentialIssuerMetadataObject = getCredentialIssuerMetadataObject1(credentialIssuerMetadataUri)
-            issuerDataService.upsertIssuerData(
+            orionLDService.saveIssuer(
                 credentialOffer.credentialIssuer,
-                credentialIssuerMetadataObject.toString()
+                credentialIssuerMetadataObject
             )
             val accessToken = getAccessTokenAndNonce1(credentialOffer, credentialIssuerMetadataObject)
-            credentialRequestDataService.saveCredentialRequestData(
+            orionLDService.saveCredentialRequestData(
                 credentialOffer.credentialIssuer,
                 accessToken[0],
                 accessToken[1]
@@ -90,20 +87,19 @@ class VerifiableCredentialServiceImpl(
         // build the body that contains the proof and the format of the verifiable credential
         val credentialRequestBody = createCredentialRequestBody(jwt)
         val accessToken = getExistentAccessToken(credentialRequestDTO.issuerName)
-        val storedMetadata: String = issuerDataService.getMetadata(credentialRequestDTO.issuerName)
-        val credentialIssuerMetadata: JsonNode = ObjectMapper().readTree(storedMetadata)
-        val credentialEndpoint = credentialIssuerMetadata["credential_endpoint"].asText()
+        val storedMetadata: JsonNode = orionLDService.getIssuerDataByIssuerName(credentialRequestDTO.issuerName)
+        val credentialEndpoint = storedMetadata["credential_endpoint"].asText()
         val verifiableCredentialResponseDTO: VerifiableCredentialResponseDTO =
             getVerifiableCredential(accessToken, credentialEndpoint, credentialRequestBody)
         //save the fresh nonce to be able to request another credential if we want
-        credentialRequestDataService.saveNewIssuerNonceByIssuerName(
+        orionLDService.updateNonceOnCredentialRequestData(
             credentialRequestDTO.issuerName,
             verifiableCredentialResponseDTO.cNonce
         )
         val credential = verifiableCredentialResponseDTO.credential
         log.debug("verifiable credential: $credential")
         // save the verifiable credential
-        orionService.saveVC(credential)
+        orionLDService.saveVC(credential)
     }
 
     /**
@@ -245,10 +241,9 @@ class VerifiableCredentialServiceImpl(
 
     private fun createJwtPayload(issuerName: String): JWTClaimsSet {
         val instant = Instant.now()
-        val requestData = credentialRequestDataService.getCredentialRequestDataByIssuerName(issuerName)
-        //get the nonce provided by the Credential Issuer on getCredentialIssuerMetadata method
-        val nonce = requestData.map { it.issuerNonce }
-            .orElseThrow { CredentialRequestDataNotFoundException("Nonce not found for $issuerName") }
+        val requestData = orionLDService.getCredentialRequestData(issuerName)
+        //get the nonce provided by the Issuer
+        val nonce = requestData.nonce
         return JWTClaimsSet.Builder()
             .audience(issuerName)
             .issueTime(Date.from(instant))
@@ -262,9 +257,7 @@ class VerifiableCredentialServiceImpl(
     }
 
     private fun getExistentAccessToken(issuerName: String): String {
-        val requestData = credentialRequestDataService.getCredentialRequestDataByIssuerName(issuerName)
-        //get the access token provided by the Credential Issuer on getCredentialIssuerMetadata method
-        return requestData.map { it.issuerAccessToken }
-            .orElseThrow { CredentialRequestDataNotFoundException("Access token not found for $issuerName") }
+        //return the access token provided by the Issuer
+        return orionLDService.getCredentialRequestData(issuerName).token
     }
 }

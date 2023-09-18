@@ -2,8 +2,8 @@ package es.in2.wallet.api.service.impl
 
 import es.in2.wallet.api.exception.NoSuchQrContentException
 import es.in2.wallet.api.model.entity.QrType
-import es.in2.wallet.integration.orion.service.OrionService
 import es.in2.wallet.api.service.QrCodeProcessorService
+import es.in2.wallet.integration.orionLD.service.OrionLDService
 import es.in2.wallet.wca.service.SiopService
 import es.in2.wallet.wca.service.VerifiableCredentialService
 import org.apache.logging.log4j.LogManager
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 class QrCodeProcessorServiceImpl(
     private val siopService: SiopService,
     private val verifiableCredentialService: VerifiableCredentialService,
-    private val orionService: OrionService,
+    private val orionLDService: OrionLDService,
 ) : QrCodeProcessorService {
 
     private val log: Logger = LogManager.getLogger(QrCodeProcessorServiceImpl::class.java)
@@ -41,7 +41,7 @@ class QrCodeProcessorServiceImpl(
 
             QrType.VC_JWT -> {
                 log.info("Saving verifiable credential in VC JWT format")
-                orionService.saveVC(qrContent)
+                orionLDService.saveVC(qrContent)
             }
 
             QrType.UNKNOWN -> {

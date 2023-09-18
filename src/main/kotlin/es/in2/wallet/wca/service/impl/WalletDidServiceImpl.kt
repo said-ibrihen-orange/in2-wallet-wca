@@ -3,9 +3,8 @@ package es.in2.wallet.wca.service.impl
 import es.in2.wallet.wca.exception.InvalidDidFormatException
 import es.in2.wallet.wca.model.entity.DidMethods
 import es.in2.wallet.wca.model.dto.DidRequestDTO
-import es.in2.wallet.wca.model.dto.DidResponseDTO
-import es.in2.wallet.integration.orion.service.OrionService
 import es.in2.wallet.api.util.SERVICE_MATRIX
+import es.in2.wallet.integration.orionLD.service.OrionLDService
 import es.in2.wallet.wca.service.WalletDidService
 import es.in2.wallet.wca.service.WalletKeyService
 import id.walt.model.DidMethod
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Service
 @Service
 class WalletDidServiceImpl(
     private val walletKeyService: WalletKeyService,
-    private val orionService: OrionService
+    private val orionLDService: OrionLDService
 ) : WalletDidService {
 
     private val log: Logger = LogManager.getLogger(WalletDidService::class.java)
@@ -51,7 +50,7 @@ class WalletDidServiceImpl(
 
     private fun createDidElsi(elsi: String): String {
         log.debug("DID Service - Create DID ELSI")
-        orionService.saveDid(elsi, DidMethods.DID_ELSI)
+        orionLDService.saveDid(elsi, DidMethods.DID_ELSI)
         log.debug("DID ELSI = {}", elsi)
         return elsi
     }
@@ -60,21 +59,20 @@ class WalletDidServiceImpl(
         log.debug("DID Service - Create DID Key")
         val did = generateDidKey()
         log.debug("DID Key = {}", did)
-        orionService.saveDid(did, DidMethods.DID_KEY)
+        orionLDService.saveDid(did, DidMethods.DID_KEY)
         return did
     }
 
-    override fun getDidsByUserId(): List<DidResponseDTO> {
-        return orionService.getDidsByUserId()
+    override fun getDidsByUserId(): List<String> {
+        return orionLDService.getDidsByUserId()
     }
 
-    override fun deleteDid(didResponseDTO: DidResponseDTO): String{
-        val did = didResponseDTO.did
+    override fun deleteDid(did: String): String{
         if(!did.startsWith("did:key:") && !did.startsWith("did:elsi:")){
             throw InvalidDidFormatException("Value DID has an invalid format.")
         }
-        orionService.deleteSelectedDid(didResponseDTO)
-        return "Deleted " + didResponseDTO.did
+        orionLDService.deleteSelectedDid(did)
+        return "Deleted " + did
     }
 
     override fun generateDidKey(): String {

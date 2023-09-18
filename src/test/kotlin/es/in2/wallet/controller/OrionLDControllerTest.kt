@@ -4,6 +4,7 @@ package es.in2.wallet.controller
 import es.in2.wallet.integration.orion.controller.OrionController
 import es.in2.wallet.wca.model.dto.VcBasicDataDTO
 import es.in2.wallet.integration.orion.service.OrionService
+import es.in2.wallet.integration.orionLD.service.OrionLDService
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,10 +23,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 @SpringJUnitConfig
 @SpringBootTest
 @AutoConfigureMockMvc
-class OrionControllerTest {
+class OrionLDControllerTest {
 
     @Mock
-    private lateinit var orionService: OrionService
+    private lateinit var orionLDService: OrionLDService
 
     @InjectMocks
     private lateinit var orionController: OrionController
@@ -36,7 +37,7 @@ class OrionControllerTest {
 
     @BeforeEach
     fun setup() {
-        MockitoAnnotations.openMocks(OrionControllerTest::class.java)
+        MockitoAnnotations.openMocks(OrionLDControllerTest::class.java)
         mockMvc = MockMvcBuilders.standaloneSetup(orionController).build()
     }
 
@@ -54,7 +55,7 @@ class OrionControllerTest {
 
 
         // Mock the personalDataSpaceService to return the expected list
-        `when`(orionService.getUserVCsInJson()).thenReturn(expectedList)
+        `when`(orionLDService.getUserVCsInJson()).thenReturn(expectedList)
 
         // Perform the GET request and assert the response
         mockMvc.perform(MockMvcRequestBuilders.get("/api/personal-data-space"))
