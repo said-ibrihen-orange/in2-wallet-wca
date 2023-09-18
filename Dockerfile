@@ -6,7 +6,7 @@ ARG SKIP_TESTS=false
 COPY build.gradle.kts settings.gradle.kts /home/gradle/src/
 COPY src /home/gradle/src/src
 COPY gradle /home/gradle/src/gradle
-COPY docker/configs /home/gradle/src/configs
+COPY configs /home/gradle/src/configs
 COPY service-matrix.properties /home/gradle/src/
 WORKDIR /home/gradle/src
 RUN if [ "$SKIP_TESTS" = "true" ]; then \
@@ -24,4 +24,4 @@ WORKDIR /app
 COPY --from=TEMP_BUILD /home/gradle/src/service-matrix.properties /app/
 COPY --from=TEMP_BUILD /home/gradle/src/configs /app/configs
 COPY --from=TEMP_BUILD /home/gradle/src/build/libs/*.jar /app/
-ENTRYPOINT ["java", "-jar", "/app/in2-wallet-wca-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "/app/in2-wallet-0.0.1-SNAPSHOT.jar"]

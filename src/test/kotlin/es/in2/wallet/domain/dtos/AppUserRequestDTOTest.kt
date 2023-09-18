@@ -1,6 +1,6 @@
 package es.in2.wallet.domain.dtos
 
-import es.in2.wallet.model.dto.AppUserRequestDTO
+import es.in2.wallet.api.model.dto.AppUserRequestDTO
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

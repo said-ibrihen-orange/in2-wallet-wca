@@ -1,11 +1,11 @@
 package es.in2.wallet.services
 
-import es.in2.wallet.service.PersonalDataSpaceService
-import es.in2.wallet.service.SiopService
-import es.in2.wallet.service.TokenVerificationService
-import es.in2.wallet.service.impl.SiopServiceImpl
-import es.in2.wallet.util.JWT_VC
-import es.in2.wallet.util.JWT_VP
+import es.in2.wallet.integration.orion.service.OrionService
+import es.in2.wallet.wca.service.SiopService
+import es.in2.wallet.wca.service.TokenVerificationService
+import es.in2.wallet.wca.service.impl.SiopServiceImpl
+import es.in2.wallet.api.util.JWT_VC
+import es.in2.wallet.api.util.JWT_VP
 import id.walt.model.dif.DescriptorMapping
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -17,7 +17,7 @@ import java.util.*
 class SiopServiceImplTest {
 
     private var tokenVerificationService: TokenVerificationService = Mockito.mock(TokenVerificationService::class.java)
-    private var personalDataSpaceService: PersonalDataSpaceService = Mockito.mock(PersonalDataSpaceService::class.java)
+    private var orionService: OrionService = Mockito.mock(OrionService::class.java)
     private var siopService: SiopService = Mockito.mock(SiopServiceImpl::class.java)
     private val userUUID = UUID.randomUUID()
     private val siopAuthRequestUri = "https://portal.packetdelivery.com/authentication-requests?state=af0ifjsldkj"

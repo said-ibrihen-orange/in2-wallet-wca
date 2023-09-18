@@ -1,11 +1,11 @@
 package es.in2.wallet.services
 
-import es.in2.wallet.controller.QrCodeProcessorController
-import es.in2.wallet.exception.NoSuchQrContentException
-import es.in2.wallet.service.impl.PersonalDataSpaceServiceImpl
-import es.in2.wallet.service.impl.QrCodeProcessorServiceImpl
-import es.in2.wallet.service.impl.SiopServiceImpl
-import es.in2.wallet.service.impl.VerifiableCredentialServiceImpl
+import es.in2.wallet.api.controller.QrCodeProcessorController
+import es.in2.wallet.api.exception.NoSuchQrContentException
+import es.in2.wallet.integration.orion.service.impl.OrionServiceImpl
+import es.in2.wallet.api.service.impl.QrCodeProcessorServiceImpl
+import es.in2.wallet.wca.service.impl.SiopServiceImpl
+import es.in2.wallet.wca.service.impl.VerifiableCredentialServiceImpl
 import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -31,7 +31,7 @@ class QrCodeProcessorServiceImplTest {
     private lateinit var verifiableCredentialService: VerifiableCredentialServiceImpl
 
     @MockBean
-    private lateinit var personalDataSpaceService: PersonalDataSpaceServiceImpl
+    private lateinit var personalDataSpaceService: OrionServiceImpl
 
     @MockBean
     private lateinit var qrCodeProcessorService: QrCodeProcessorServiceImpl
