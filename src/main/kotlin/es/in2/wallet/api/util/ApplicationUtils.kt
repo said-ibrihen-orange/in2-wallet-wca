@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import es.in2.wallet.api.exception.FailedCommunicationException
+import es.in2.wallet.api.model.dto.AppUserResponseDTO
 import es.in2.wallet.api.model.dto.OpenIdConfig
+import es.in2.wallet.api.model.entity.AppUser
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -175,4 +177,9 @@ object ApplicationUtils {
         return objectMapper.writeValueAsString(data)
     }
 
+    fun AppUser.toAppUserResponseDTO() = AppUserResponseDTO(
+        uuid = id.toString(),
+        username = username,
+        email = email
+    )
 }

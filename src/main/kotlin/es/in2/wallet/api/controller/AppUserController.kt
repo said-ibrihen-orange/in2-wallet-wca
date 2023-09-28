@@ -1,8 +1,9 @@
 package es.in2.wallet.api.controller
 
-import es.in2.wallet.api.model.entity.AppUser
 import es.in2.wallet.api.model.dto.AppUserRequestDTO
+import es.in2.wallet.api.model.dto.AppUserResponseDTO
 import es.in2.wallet.api.service.AppUserService
+import es.in2.wallet.api.util.ApplicationUtils.toAppUserResponseDTO
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.websocket.server.PathParam
 import org.slf4j.Logger
@@ -27,25 +28,25 @@ class AppUserController(
         appUserService.registerUser(appUserRequestDTO)
     }
 
-    // fixme: this method should return List<AppUserResponseDTO>
     @GetMapping
-    fun getAllUsers(): List<AppUser> {
+    fun getAllUsers(): List<AppUserResponseDTO> {
         log.debug("AppUserController.getAllUsers()")
-        return appUserService.getUsers()
+        return appUserService.getUsers().map { it.toAppUserResponseDTO() }
     }
 
-    // fixme: this method should return an AppUserResponseDTO
     @GetMapping("/uuid")
-    fun getUserByUUID(@PathParam("uuid") uuid: String): Optional<AppUser> {
+    fun getUserByUUID(@PathParam("uuid") uuid: String): Optional<AppUserResponseDTO> {
         log.debug("AppUserController.getUserByUUID()")
+
         return appUserService.getUserById(UUID.fromString(uuid))
+            .map { it.toAppUserResponseDTO() }
     }
 
-    // fixme: this method should return an AppUserResponseDTO
     @GetMapping("/username")
-    fun getUserByUsername(@PathParam("username") username: String): Optional<AppUser> {
+    fun getUserByUsername(@PathParam("username") username: String): Optional<AppUserResponseDTO> {
         log.debug("AppUserController.getUserByUsername()")
         return appUserService.getUserByUsername(username)
+            .map { it.toAppUserResponseDTO() }
     }
 
 }

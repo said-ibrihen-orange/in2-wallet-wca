@@ -71,7 +71,7 @@ class AppUserControllerTest {
     // @Get /api/users
 
     @Test
-    fun `getAllUsers should return a list of AppUser`() {
+    fun `getAllUsers should return a list of AppUserResponseDTO`() {
         val users = listOf(appUser, appUser2)
 
         given(appUserService.getUsers()).willReturn(users)
@@ -81,8 +81,12 @@ class AppUserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$[0].username").value("jdoe"))
-            .andExpect(jsonPath("$[1].username").value("janeDoe"))
+            .andExpect(jsonPath("$[0].uuid").value(appUser.id.toString()))
+            .andExpect(jsonPath("$[0].username").value(appUser.username))
+            .andExpect(jsonPath("$[0].email").value(appUser.email))
+            .andExpect(jsonPath("$[1].uuid").value(appUser2.id.toString()))
+            .andExpect(jsonPath("$[1].username").value(appUser2.username))
+            .andExpect(jsonPath("$[1].email").value(appUser2.email))
     }
 
     // @Get /api/users/{uuid}
@@ -92,7 +96,7 @@ class AppUserControllerTest {
         given(appUserService.getUserById(uuid)).willReturn(Optional.of(appUser))
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/uuid?uuid=$uuid"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(uuid.toString()))
+            .andExpect(jsonPath("$.uuid").value(uuid.toString()))
             .andExpect(jsonPath("$.username").value("jdoe"))
             .andExpect(jsonPath("$.email").value("jdoe@example.com"))
     }
@@ -104,7 +108,7 @@ class AppUserControllerTest {
         given(appUserService.getUserByUsername(appUser.username)).willReturn(Optional.of(appUser))
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/username?username=${appUser.username}"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(uuid.toString()))
+            .andExpect(jsonPath("$.uuid").value(uuid.toString()))
             .andExpect(jsonPath("$.username").value("jdoe"))
             .andExpect(jsonPath("$.email").value("jdoe@example.com"))
     }
