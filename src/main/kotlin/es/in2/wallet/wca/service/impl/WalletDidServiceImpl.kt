@@ -68,13 +68,17 @@ class WalletDidServiceImpl(
         return orionService.getDidsByUserId()
     }
 
-    override fun deleteDid(didResponseDTO: DidResponseDTO): String{
-        val did = didResponseDTO.did
-        if(!did.startsWith("did:key:") && !did.startsWith("did:elsi:")){
-            throw InvalidDidFormatException("Value DID has an invalid format.")
+    override fun deleteDid(didRequestDTO: DidRequestDTO): String{
+        val didType = didRequestDTO.type
+        val did = didRequestDTO.value
+
+        when (didType) {
+            "key", "elsi" -> {
+                orionService.deleteSelectedDid(didRequestDTO)
+                return "Deleted " + did
+            }
+            else -> throw InvalidDidFormatException("Invalid DID format")
         }
-        orionService.deleteSelectedDid(didResponseDTO)
-        return "Deleted " + didResponseDTO.did
     }
 
     override fun generateDidKey(): String {

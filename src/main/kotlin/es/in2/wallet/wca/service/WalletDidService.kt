@@ -8,7 +8,6 @@ interface WalletDidService {
     fun generateDidKey(): String
     fun generateDidKeyWithKid(kid: String): String
     fun getDidsByUserId(): List<DidResponseDTO>
-    // fixme: deleteDid() should use a DidRequestDTO not a DidResponseDTO
-    fun deleteDid(didResponseDTO: DidResponseDTO): String
+    fun deleteDid(didRequestDTO: DidRequestDTO): String
 }
 

@@ -13,6 +13,7 @@ import es.in2.wallet.integration.orion.model.VerifiableCredentialEntity
 import es.in2.wallet.integration.orion.service.OrionService
 import es.in2.wallet.wca.exception.DIDNotFoundException
 import es.in2.wallet.wca.exception.InvalidDidFormatException
+import es.in2.wallet.wca.model.dto.DidRequestDTO
 import es.in2.wallet.wca.model.dto.DidResponseDTO
 import es.in2.wallet.wca.model.dto.VcBasicDataDTO
 import es.in2.wallet.wca.model.entity.DidMethods
@@ -274,25 +275,25 @@ class OrionServiceImpl(
         return result
     }
 
-    override fun deleteSelectedDid(didResponseDTO: DidResponseDTO) {
+    override fun deleteSelectedDid(didRequestDTO: DidRequestDTO) {
         val userUUID = getUserIdFromContextAuthentication()
-        didExists(didResponseDTO, userUUID)
+        didExists(didRequestDTO, userUUID)
         applicationUtils.deleteRequest(
-            url = "$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
+            url = "$contextBrokerEntitiesURL/${didRequestDTO.value}?userId.value=$userUUID",
             headers = listOf()
         )
     }
 
-    private fun didExists(didResponseDTO: DidResponseDTO, userUUID: String): Boolean {
+    private fun didExists(didRequestDTO: DidRequestDTO, userUUID: String): Boolean {
         try {
             val response = applicationUtils.getRequest(
-                url = "$contextBrokerEntitiesURL/${didResponseDTO.did}?userId.value=$userUUID",
+                url = "$contextBrokerEntitiesURL/${didRequestDTO.value}?userId.value=$userUUID",
                 headers = listOf()
             )
             return response.isNotEmpty()
 
         } catch (e: NoSuchElementException) {
-            throw DIDNotFoundException("DID not found: ${didResponseDTO.did}")
+            throw DIDNotFoundException("DID not found: ${didRequestDTO.value}")
         }
     }
 

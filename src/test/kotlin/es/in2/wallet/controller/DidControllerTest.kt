@@ -164,13 +164,14 @@ class DidControllerTest {
 
     @Test
     fun `Delete Did should return 200 OK`() {
-        val did = DidResponseDTO("did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
+        val didRequestDTO = DidRequestDTO("key", "zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
         val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
-        Mockito.`when`(didController.deleteDid(did)).thenReturn("DID deleted")
+        Mockito.`when`(didController.deleteDid(didRequestDTO)).thenReturn("DID deleted")
 
         val jsonRequestDTO = """
             {
-                "did": "did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
+                "type": "key",
+                "value": "zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97"
             }
         """.trimIndent()
 
@@ -187,14 +188,15 @@ class DidControllerTest {
 
     @Test
     fun `Delete Did should return 500 INTERNAL SERVER ERROR`() {
-        val didResponseDTO = DidResponseDTO("did:key:zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
+        val didRequestDTO = DidRequestDTO("key", "zDnaeucFNSnCmRGj5VucjxJEJS6yhF9PtnfSjCyBMGza2Wt97")
         val errorMessage = "DID not found: did:key:sdsdsdsdsdsdsdsdsdsdsdsd"
         val userUUID = "fff36f29-2155-4647-aacf-e01e6f54cc91"
-        Mockito.`when`(didController.deleteDid(didResponseDTO))
+        Mockito.`when`(didController.deleteDid(didRequestDTO))
 
         val jsonRequestDTO = """
             {
-                "did": "did:key:sdsdsdsdsdsdsdsdsdsdsdsd"
+                "type": "key",
+                "value": "sdsdsdsdsdsdsdsdsdsdsdsd"
             }
         """.trimIndent()
 

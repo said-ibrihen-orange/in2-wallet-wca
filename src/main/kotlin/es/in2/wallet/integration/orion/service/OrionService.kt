@@ -1,5 +1,6 @@
 package es.in2.wallet.integration.orion.service
 
+import es.in2.wallet.wca.model.dto.DidRequestDTO
 import es.in2.wallet.wca.model.entity.DidMethods
 import es.in2.wallet.wca.model.dto.DidResponseDTO
 import es.in2.wallet.wca.model.dto.VcBasicDataDTO
@@ -15,10 +16,7 @@ interface OrionService {
     fun deleteVCs()
     fun saveDid(did: String, didMethod: DidMethods)
     fun getDidsByUserId(): MutableList<DidResponseDTO>
-    fun deleteSelectedDid(didResponseDTO: DidResponseDTO)
-
-
-
+    fun deleteSelectedDid(didRequestDTO: DidRequestDTO)
 }
 
 

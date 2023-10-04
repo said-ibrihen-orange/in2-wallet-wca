@@ -49,8 +49,6 @@ class DidController(
         return walletDidService.getDidsByUserId()
     }
 
-
-    // fixme: deleteDid() should use a DidRequestDTO not a DidResponseDTO
     @DeleteMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(
@@ -63,8 +61,8 @@ class DidController(
         ApiResponse(responseCode = "400", description = "Invalid request."),
         ApiResponse(responseCode = "500", description = "Internal server error.")
     ])
-    fun deleteDid(@RequestBody didResponseDTO: DidResponseDTO): String {
-        walletDidService.deleteDid(didResponseDTO)
+    fun deleteDid(@RequestBody didRequestDTO: DidRequestDTO): String {
+        walletDidService.deleteDid(didRequestDTO)
         return "DID deleted"
     }
 
